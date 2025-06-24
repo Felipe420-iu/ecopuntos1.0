@@ -45,5 +45,7 @@ urlpatterns = [
     path('get-pending-canjes-admin/', views.get_pending_canjes_for_admin, name='get_pending_canjes_for_admin'),
     path('aprobar_canje_ajax/', views.aprobar_canje_ajax, name='aprobar_canje_ajax'),
     path('get_chart_data/', views.get_chart_data, name='get_chart_data'),
+    path('admin/canje/<int:canje_id>/procesar/', views.procesar_canje, name='procesar_canje'),
+    path('rutasusuario/', views.rutasusuario, name='rutasusuario'),
 ]
 

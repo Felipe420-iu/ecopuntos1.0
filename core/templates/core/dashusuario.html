@@ -464,7 +464,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'logout' %}" style="background-color: #dc3545; border-radius: 8px; margin-top: 20px;">
+                <a class="nav-link" href="{% url 'rutasusuario' %}">
+                    <i class="fas fa-route"></i> <span>Rutas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" style="background-color: #dc3545; border-radius: 8px; margin-top: 20px;">
                     <i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span>
                 </a>
             </li>
@@ -614,22 +619,20 @@
         </a>
   </div>
 
-  <!-- Modal de Cierre de Sesión -->
+  <!-- Modal de Confirmación de Logout -->
   <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-          <h5 class="modal-title" id="logoutModalLabel">Confirmar cierre de sesión</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">Confirmar Cierre de Sesión</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
-                <div class="modal-body p-4 text-center">
-                    <i class="fas fa-sign-out-alt fa-3x mb-3 text-danger"></i>
-                    <p class="mb-3">¿Estás seguro que deseas cerrar tu sesión en Eco Puntos?</p>
-                    <p class="text-muted"><small><i class="fas fa-info-circle"></i> Tendrás que volver a iniciar sesión para acceder a tu cuenta.</small></p>
-          </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <a href="{% url 'logout' %}" class="btn btn-danger">Sí, cerrar sesión</a>
+        <div class="modal-body">
+          ¿Estás seguro de que deseas cerrar sesión?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar Sesión</a>
         </div>
       </div>
     </div>

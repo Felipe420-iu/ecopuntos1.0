@@ -1140,3 +1140,7 @@ def inicializar_configuraciones():
                     'categoria': config['categoria']
                 }
             )
+
+@login_required
+def rutasusuario(request):
+    return render(request, 'core/rutasusuario.html')
