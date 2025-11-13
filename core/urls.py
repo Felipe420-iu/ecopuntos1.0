@@ -103,10 +103,22 @@ urlpatterns = [
     path('chatbot/conversacion/<int:conversacion_id>/', chatbot_views.ver_conversacion, name='ver_conversacion_chatbot'),
     path('chatbot/status/', chatbot_views.check_chatbot_status, name='chatbot_status'),
     path('chatbot/soporte/', chatbot_views.chatbot_soporte, name='chat_soporte'),
+    path('chatbot/escalar/', chatbot_views.escalar_a_humano, name='escalar_a_humano'),
+    
+    # APIs para integración de chat directo con el chatbot del usuario
+    path('api/chat-directo/verificar/', chatbot_views.verificar_chat_directo, name='verificar_chat_directo'),
+    path('api/chat-directo/enviar-mensaje/', chatbot_views.enviar_mensaje_usuario_a_chat, name='enviar_mensaje_usuario_chat'),
+    path('api/chat-directo/obtener-mensajes/', chatbot_views.obtener_mensajes_chat_directo, name='obtener_mensajes_chat_directo'),
     
     # URLs para administración de solicitudes de soporte
     path('admin/solicitudes-soporte/', chatbot_views.listar_solicitudes_soporte, name='listar_solicitudes_soporte'),
     path('admin/solicitud-soporte/<int:solicitud_id>/', chatbot_views.gestionar_solicitud, name='gestionar_solicitud'),
+    
+    # URLs para chat directo usuario-admin
+    path('admin/conversaciones-activas/', chatbot_views.listar_conversaciones_activas, name='conversaciones_activas'),
+    path('chat-directo/<int:conversation_id>/', chatbot_views.chat_directo, name='chat_directo'),
+    path('chat-directo/<int:conversation_id>/enviar/', chatbot_views.enviar_mensaje_directo, name='enviar_mensaje_directo'),
+    path('chat-directo/<int:conversation_id>/finalizar/', chatbot_views.finalizar_chat_directo, name='finalizar_chat_directo'),
     
     # Aliases antiguos para compatibilidad - todos redirigen a chatbot_interface
     path('soportusu/', views.redirect_to_chatbot, name='soportusu'),

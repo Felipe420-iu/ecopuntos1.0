@@ -687,9 +687,26 @@ class ConversacionChatbot(models.Model):
         self.save()
     
     def escalar_a_humano(self, motivo="Solicitud de usuario"):
-        """Escala la conversación a un humano - Funcionalidad simplificada"""
+        """Escala la conversación a un humano - Funcionalidad completa"""
         if not self.escalado_a_humano:
-            # Simplemente marcamos como escalada y enviamos notificación por email
+            # Crear solicitud de soporte en la base de datos
+            try:
+                # Importar el modelo SolicitudSoporte para evitar importaciones circulares
+                from core.models import SolicitudSoporte
+                
+                # Crear la solicitud de soporte
+                solicitud = SolicitudSoporte.objects.create(
+                    usuario=self.usuario,
+                    estado='pendiente',
+                    mensaje=motivo
+                )
+                
+                print(f"✅ Solicitud de soporte creada con ID: {solicitud.id}")
+                
+            except Exception as e:
+                print(f"❌ Error creando solicitud de soporte: {e}")
+            
+            # Enviar notificación por email
             from django.core.mail import send_mail
             from django.conf import settings
             
@@ -842,10 +859,96 @@ class EstadisticasChatbot(models.Model):
         return f"Stats {self.fecha} - {self.total_conversaciones} conversaciones"
 
 class SolicitudSoporte(models.Model):
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('aceptada', 'Aceptada'), 
+        ('rechazada', 'Rechazada'),
+        ('en_chat', 'En Chat'),
+        ('finalizada', 'Finalizada')
+    ]
+    
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=20, choices=[('pendiente', 'Pendiente'), ('aceptada', 'Aceptada'), ('rechazada', 'Rechazada')], default='pendiente')
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
     mensaje = models.TextField(blank=True, null=True)
+    admin_asignado = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitudes_asignadas')
 
     def __str__(self):
         return f"Solicitud de {self.usuario.username} - {self.estado}"
+
+# ====================================
+# MODELOS DEL CHAT DIRECTO USUARIO-ADMIN
+# ====================================
+
+class ConversacionDirecta(models.Model):
+    """Conversación directa entre usuario y administrador"""
+    
+    ESTADOS = [
+        ('activa', 'Activa'),
+        ('pausada', 'Pausada'),
+        ('finalizada', 'Finalizada'),
+    ]
+    
+    solicitud_soporte = models.OneToOneField(SolicitudSoporte, on_delete=models.CASCADE, related_name='conversacion_directa')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='conversaciones_usuario')
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='conversaciones_admin')
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='activa')
+    session_id = models.CharField(max_length=100, unique=True)
+    
+    fecha_inicio = models.DateTimeField(auto_now_add=True)
+    fecha_fin = models.DateTimeField(null=True, blank=True)
+    fecha_ultima_actividad = models.DateTimeField(auto_now=True)
+    
+    # Metadatos
+    total_mensajes = models.IntegerField(default=0)
+    satisfaccion_usuario = models.IntegerField(null=True, blank=True, choices=[(i, i) for i in range(1, 6)])
+    notas_admin = models.TextField(blank=True)
+    
+    class Meta:
+        verbose_name = 'Conversación Directa'
+        verbose_name_plural = 'Conversaciones Directas'
+        ordering = ['-fecha_inicio']
+    
+    def __str__(self):
+        return f"Conversación {self.session_id} - {self.usuario.username} con {self.admin.username}"
+    
+    def finalizar(self, motivo="Conversación finalizada"):
+        """Finaliza la conversación"""
+        from django.utils import timezone
+        self.estado = 'finalizada'
+        self.fecha_fin = timezone.now()
+        self.solicitud_soporte.estado = 'finalizada'
+        self.solicitud_soporte.save()
+        self.save()
+
+class MensajeDirecto(models.Model):
+    """Mensaje individual en una conversación directa"""
+    
+    conversacion = models.ForeignKey(ConversacionDirecta, on_delete=models.CASCADE, related_name='mensajes')
+    autor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    contenido = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    leido = models.BooleanField(default=False)
+    
+    # Metadatos
+    es_admin = models.BooleanField()  # True si el autor es admin
+    editado = models.BooleanField(default=False)
+    fecha_edicion = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'Mensaje Directo'
+        verbose_name_plural = 'Mensajes Directos'
+        ordering = ['timestamp']
+    
+    def __str__(self):
+        tipo = "Admin" if self.es_admin else "Usuario"
+        return f"{tipo}: {self.contenido[:50]}..."
+    
+    def save(self, *args, **kwargs):
+        # Determinar si es admin basado en el rol del autor
+        self.es_admin = self.autor.role in ['admin', 'superuser']
+        super().save(*args, **kwargs)
+        
+        # Actualizar contador de mensajes
+        self.conversacion.total_mensajes = self.conversacion.mensajes.count()
+        self.conversacion.save()

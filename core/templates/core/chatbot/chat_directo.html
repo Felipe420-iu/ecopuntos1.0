@@ -1,0 +1,296 @@
+{% extends 'core/base_admin.html' %}
+
+{% block title %}
+    {% if es_admin %}
+        Chat con {{ conversacion.usuario.get_full_name|default:conversacion.usuario.username }}
+    {% else %}
+        Chat de Soporte - EcoPuntos
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header del Chat -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    {% if es_admin %}
+                        <h4 class="mb-2">
+                            <i class="fas fa-comments text-primary"></i> 
+                            Chat con {{ conversacion.usuario.get_full_name|default:conversacion.usuario.username }}
+                        </h4>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-clock"></i> Iniciado: {{ conversacion.fecha_inicio|date:"d/m/Y H:i" }}
+                            {% if conversacion.solicitud_soporte.mensaje %}
+                                | Motivo: {{ conversacion.solicitud_soporte.mensaje }}
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        <h4 class="mb-2">
+                            <i class="fas fa-headset text-success"></i> 
+                            Chat de Soporte
+                        </h4>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-user-tie"></i> 
+                            Conversando con: {{ conversacion.admin.get_full_name|default:conversacion.admin.username }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex gap-2">
+                    {% if es_admin and conversacion.estado == 'activa' %}
+                        <button type="button" class="btn btn-outline-danger" onclick="finalizarChat()">
+                            <i class="fas fa-stop-circle"></i> Finalizar Chat
+                        </button>
+                    {% endif %}
+                    
+                    <a href="{% if es_admin %}{% url 'listar_solicitudes_soporte' %}{% else %}{% url 'chatbot_interface' %}{% endif %}" 
+                       class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área del Chat -->
+    <div class="card border-0 shadow-sm" style="height: 70vh;">
+        <div class="card-header bg-gradient-primary text-white">
+            <h6 class="mb-0">
+                <i class="fas fa-comments"></i> Conversación
+                <span class="badge bg-light text-dark ms-2">{{ mensajes|length }} mensajes</span>
+            </h6>
+        </div>
+        
+        <!-- Mensajes -->
+        <div class="card-body d-flex flex-column p-0" style="height: 100%;">
+            <div id="chat-messages" class="flex-grow-1 p-3 overflow-auto" style="max-height: calc(100% - 80px);">
+                {% if not mensajes %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-comment-dots fa-3x mb-3 opacity-50"></i>
+                        <p>No hay mensajes aún. ¡Inicia la conversación!</p>
+                    </div>
+                {% else %}
+                    {% for mensaje in mensajes %}
+                        <div class="message-container mb-3 {% if mensaje.autor.username == user.username %}text-end{% endif %}">
+                            <div class="d-inline-block">
+                                <div class="message-bubble 
+                                    {% if mensaje.autor.username == user.username %}
+                                        bg-primary text-white
+                                    {% else %}
+                                        bg-light text-dark border
+                                    {% endif %} 
+                                    px-3 py-2 rounded-3"
+                                    style="max-width: 70%; min-width: 100px;">
+                                    
+                                    <div class="message-content">
+                                        {{ mensaje.contenido|linebreaks }}
+                                    </div>
+                                    
+                                    <small class="message-time d-block mt-1 
+                                        {% if mensaje.autor.username == user.username %}
+                                            text-white-50
+                                        {% else %}
+                                            text-muted
+                                        {% endif %}">
+                                        {% if mensaje.es_admin %}
+                                            <i class="fas fa-user-tie"></i> 
+                                        {% else %}
+                                            <i class="fas fa-user"></i> 
+                                        {% endif %}
+                                        {{ mensaje.autor.get_full_name|default:mensaje.autor.username }} 
+                                        - {{ mensaje.timestamp|date:"H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <!-- Input de Mensaje -->
+            {% if conversacion.estado == 'activa' %}
+                <div class="border-top p-3">
+                    <form id="chat-form" onsubmit="enviarMensaje(event)" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="text" id="mensaje-input" class="form-control" 
+                               placeholder="Escribe tu mensaje aquí..." 
+                               required maxlength="1000" autofocus>
+                        <button type="submit" class="btn btn-primary" id="enviar-btn">
+                            <i class="fas fa-paper-plane"></i> Enviar
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="border-top p-3 text-center text-muted">
+                    <i class="fas fa-lock"></i> Esta conversación ha finalizado
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .message-bubble {
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    
+    .message-content {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    #chat-messages {
+        background: #f8f9fa;
+    }
+    
+    .message-container:last-child {
+        margin-bottom: 0 !important;
+    }
+    
+    /* Auto-scroll smooth */
+    #chat-messages {
+        scroll-behavior: smooth;
+    }
+</style>
+
+<script>
+// Variables globales
+const conversationId = {{ conversacion.id }};
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+// Función para enviar mensajes
+async function enviarMensaje(event) {
+    event.preventDefault();
+    
+    const input = document.getElementById('mensaje-input');
+    const mensaje = input.value.trim();
+    
+    if (!mensaje) return;
+    
+    const enviarBtn = document.getElementById('enviar-btn');
+    enviarBtn.disabled = true;
+    enviarBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    
+    try {
+        const response = await fetch(`/chat-directo/${conversationId}/enviar/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `mensaje=${encodeURIComponent(mensaje)}`
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                input.value = '';
+                agregarMensajeAlChat(data.mensaje);
+                scrollToBottom();
+            } else {
+                alert('Error enviando mensaje: ' + data.error);
+            }
+        } else {
+            throw new Error('Error en la respuesta');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error enviando mensaje. Por favor, intenta de nuevo.');
+    } finally {
+        enviarBtn.disabled = false;
+        enviarBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
+        input.focus();
+    }
+}
+
+// Función para agregar mensaje al chat
+function agregarMensajeAlChat(mensaje) {
+    const chatMessages = document.getElementById('chat-messages');
+    
+    const esPropio = '{{ user.username }}' === mensaje.autor || 
+                     (mensaje.es_admin && {{ es_admin|yesno:"true,false" }}) ||
+                     (!mensaje.es_admin && {{ es_usuario|yesno:"true,false" }});
+    
+    const messageHtml = `
+        <div class="message-container mb-3 ${esPropio ? 'text-end' : ''}">
+            <div class="d-inline-block">
+                <div class="message-bubble ${esPropio ? 'bg-primary text-white' : 'bg-light text-dark border'} px-3 py-2 rounded-3"
+                     style="max-width: 70%; min-width: 100px;">
+                    <div class="message-content">
+                        ${mensaje.contenido.replace(/\n/g, '<br>')}
+                    </div>
+                    <small class="message-time d-block mt-1 ${esPropio ? 'text-white-50' : 'text-muted'}">
+                        <i class="fas fa-${mensaje.es_admin ? 'user-tie' : 'user'}"></i> 
+                        ${mensaje.autor} - ${mensaje.timestamp}
+                    </small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+}
+
+// Función para hacer scroll al final
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Función para finalizar chat (solo admin)
+async function finalizarChat() {
+    if (!confirm('¿Estás seguro de que quieres finalizar esta conversación?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/chat-directo/${conversationId}/finalizar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                alert('Conversación finalizada exitosamente.');
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error finalizando conversación.');
+    }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    scrollToBottom();
+    
+    // Auto-resize del input
+    const input = document.getElementById('mensaje-input');
+    if (input) {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+            }
+        });
+    }
+    
+    // Polling para nuevos mensajes cada 3 segundos
+    {% if conversacion.estado == 'activa' %}
+        setInterval(function() {
+            // Aquí podríamos implementar polling para nuevos mensajes
+            // Por simplicidad, se recarga la página cada 30 segundos
+        }, 30000);
+    {% endif %}
+});
+</script>
+{% endblock %}
