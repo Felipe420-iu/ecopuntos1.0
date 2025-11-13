@@ -37,6 +37,35 @@
     .action-btn {
         margin: 0.2rem;
     }
+    
+    /* Estilos para modal de éxito */
+    #exitoModal .modal-content {
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    #exitoModal .text-success {
+        animation: scaleIn 0.5s ease-out;
+    }
+    
+    @keyframes scaleIn {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.1);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    #exitoDetalles .alert-light {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
 </style>
 {% endblock %}
 
@@ -286,25 +315,29 @@
 
 <!-- Modal Crear Usuario -->
 <div class="modal fade" id="crearUsuarioModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-success text-white">
                 <h5 class="modal-title"><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="crearUsuarioForm">
+                    <!-- Información Básica -->
+                    <h6 class="mb-3 text-primary"><i class="fas fa-id-card"></i> Información Básica</h6>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Nombre de usuario *</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                                <input type="text" class="form-control" id="username" name="username" required 
+                                       placeholder="Ej: juanperez123">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email *</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                                <input type="email" class="form-control" id="email" name="email" required
+                                       placeholder="ejemplo@correo.com">
                             </div>
                         </div>
                     </div>
@@ -312,47 +345,84 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="first_name" class="form-label">Nombre</label>
-                                <input type="text" class="form-control" id="first_name" name="first_name">
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                       placeholder="Nombre(s)">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="last_name" class="form-label">Apellido</label>
-                                <input type="text" class="form-control" id="last_name" name="last_name">
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                       placeholder="Apellido(s)">
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Contraseña -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="password" class="form-label">Contraseña *</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                                <input type="password" class="form-control" id="password" name="password" required
+                                       placeholder="Mínimo 8 caracteres">
+                                <small class="text-muted">Debe tener al menos 8 caracteres</small>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="role" class="form-label">Rol *</label>
-                                <select class="form-select" id="role" name="role" required>
-                                    <option value="user">Usuario Regular</option>
-                                    <option value="admin">Administrador</option>
-                                    <option value="superuser">Superusuario</option>
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono" name="telefono"
+                                       placeholder="Ej: 3001234567">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Rol y Permisos -->
+                    <h6 class="mb-3 text-primary"><i class="fas fa-user-shield"></i> Rol y Permisos</h6>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Selecciona el Rol *</label>
+                                <select class="form-select form-select-lg" id="role" name="role" required onchange="mostrarPermisos()">
+                                    <option value="">-- Seleccionar Rol --</option>
+                                    <option value="user">👤 Usuario Regular</option>
+                                    <option value="conductor">🚛 Conductor</option>
+                                    <option value="admin">⚙️ Administrador</option>
+                                    <option value="superuser">👑 Superusuario</option>
                                 </select>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Permisos por Rol -->
+                    <div id="permisosInfo" style="display:none;">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Permisos de este rol:</h6>
+                            <div id="permisosLista"></div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Estado del Usuario -->
+                    <h6 class="mb-3 text-primary"><i class="fas fa-toggle-on"></i> Estado Inicial</h6>
                     <div class="mb-3">
-                        <div class="form-check">
+                        <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
                             <label class="form-check-label" for="is_active">
-                                Usuario activo
+                                <strong>Usuario activo</strong> - El usuario podrá iniciar sesión inmediatamente
                             </label>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="submitCrearUsuario()">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnCrearUsuario" onclick="submitCrearUsuario(event)">
                     <i class="fas fa-save"></i> Crear Usuario
                 </button>
             </div>
@@ -364,9 +434,9 @@
 <div class="modal fade" id="cambiarRolModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title"><i class="fas fa-user-cog"></i> Cambiar Rol de Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p>Cambiar rol del usuario: <strong id="username-to-change"></strong></p>
@@ -374,28 +444,36 @@
                     <input type="hidden" id="user-id-to-change" name="user_id">
                     <div class="mb-3">
                         <label for="new-role" class="form-label">Nuevo Rol</label>
-                        <select class="form-select" id="new-role" name="role" required>
-                            {% for role_code, role_name in roles %}
-                                <option value="{{ role_code }}">{{ role_name }}</option>
-                            {% endfor %}
+                        <select class="form-select form-select-lg" id="new-role" name="role" required>
+                            <option value="user">👤 Usuario Regular</option>
+                            <option value="conductor">🚛 Conductor</option>
+                            <option value="admin">⚙️ Administrador</option>
+                            <option value="superuser">👑 Superusuario</option>
                         </select>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atención:</strong> Cambiar el rol afectará los permisos del usuario inmediatamente.
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-warning" onclick="submitCambiarRol()">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitCambiarRol()">
                     <i class="fas fa-save"></i> Cambiar Rol
                 </button>
             </div>
         </div>
     </div>
+</div>
 
 <!-- Modal Editar Usuario -->
 <div class="modal fade" id="editarUsuarioModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title"><i class="fas fa-user-edit"></i> Editar Usuario</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -407,6 +485,7 @@
                             <div class="mb-3">
                                 <label for="edit_username" class="form-label">Nombre de usuario</label>
                                 <input type="text" class="form-control" id="edit_username" name="username" required readonly>
+                                <small class="text-muted">El nombre de usuario no se puede modificar</small>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -434,40 +513,71 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="edit_password" class="form-label">Nueva Contraseña (opcional)</label>
-                                <input type="password" class="form-control" id="edit_password" name="password">
+                                <input type="password" class="form-control" id="edit_password" name="password" 
+                                       placeholder="Dejar vacío para no cambiar">
+                                <small class="text-muted">Mínimo 8 caracteres</small>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="edit_role" class="form-label">Rol</label>
                                 <select class="form-select" id="edit_role" name="role" required>
-                                    <option value="user">Usuario Regular</option>
-                                    <option value="admin">Administrador</option>
-                                    <option value="superuser">Superusuario</option>
+                                    <option value="user">👤 Usuario Regular</option>
+                                    <option value="conductor">🚛 Conductor</option>
+                                    <option value="admin">⚙️ Administrador</option>
+                                    <option value="superuser">👑 Superusuario</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <div class="form-check">
+                        <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
                             <label class="form-check-label" for="edit_is_active">
-                                Usuario activo
+                                <strong>Usuario activo</strong> - Puede iniciar sesión en el sistema
                             </label>
                         </div>
-                        <div class="form-check">
+                        <div class="form-check form-switch mt-2">
                             <input class="form-check-input" type="checkbox" id="edit_suspended" name="suspended">
                             <label class="form-check-label" for="edit_suspended">
-                                Usuario suspendido
+                                <strong>Usuario suspendido</strong> - Bloqueado temporalmente
                             </label>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
                 <button type="button" class="btn btn-warning" onclick="submitEditarUsuario()">
                     <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div class="modal fade" id="exitoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle"></i> <span id="exitoTitulo">Operación Exitosa</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                <h4 class="mt-3" id="exitoMensajePrincipal">Usuario creado exitosamente</h4>
+                <div id="exitoDetalles" class="mt-3 text-start">
+                    <!-- Detalles dinámicos -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="recargarPagina()">
+                    <i class="fas fa-sync-alt"></i> Actualizar Lista
                 </button>
             </div>
         </div>
@@ -478,15 +588,115 @@
 
 {% block extra_js %}
 <script>
-function crearUsuarioModal() {
-    $('#crearUsuarioModal').modal('show');
+// Definir permisos por rol
+const permisosPorRol = {
+    'user': {
+        nombre: 'Usuario Regular',
+        permisos: [
+            'Ver y editar su perfil personal',
+            'Acumular puntos por reciclaje',
+            'Jugar minijuegos educativos',
+            'Canjear puntos por recompensas',
+            'Agendar rutas de recolección',
+            'Ver notificaciones del sistema',
+            'Participar en el ranking de usuarios'
+        ]
+    },
+    'conductor': {
+        nombre: 'Conductor',
+        permisos: [
+            'Todos los permisos de Usuario Regular',
+            'Acceder al Panel del Conductor',
+            'Ver rutas asignadas de recolección',
+            'Marcar rutas como completadas',
+            'Gestionar el estado de las rutas',
+            'Ver estadísticas de recolección',
+            'Registrar detalles de recolección'
+        ]
+    },
+    'admin': {
+        nombre: 'Administrador',
+        permisos: [
+            'Acceder al Panel de Administración',
+            'Gestionar usuarios regulares (crear, editar, desactivar)',
+            'Aprobar o rechazar canjes de puntos',
+            'Gestionar rutas de recolección',
+            'Ver estadísticas completas del sistema',
+            'Gestionar recompensas y materiales',
+            'Enviar notificaciones a usuarios',
+            'Monitorear sesiones activas'
+        ]
+    },
+    'superuser': {
+        nombre: 'Superusuario',
+        permisos: [
+            '🔥 Todos los permisos del sistema',
+            'Gestionar administradores y conductores',
+            'Crear, editar y eliminar cualquier usuario',
+            'Cambiar roles de usuarios',
+            'Acceder a configuración del sistema',
+            'Suspender o reactivar usuarios',
+            'Control total sobre la plataforma',
+            'Gestión de seguridad y permisos'
+        ]
+    }
+};
+
+function mostrarPermisos() {
+    const roleSelect = document.getElementById('role');
+    const selectedRole = roleSelect.value;
+    const permisosInfo = document.getElementById('permisosInfo');
+    const permisosLista = document.getElementById('permisosLista');
+    
+    if (selectedRole && permisosPorRol[selectedRole]) {
+        const roleData = permisosPorRol[selectedRole];
+        let html = '<ul class="mb-0">';
+        roleData.permisos.forEach(permiso => {
+            html += `<li>${permiso}</li>`;
+        });
+        html += '</ul>';
+        
+        permisosLista.innerHTML = html;
+        permisosInfo.style.display = 'block';
+    } else {
+        permisosInfo.style.display = 'none';
+    }
 }
-function submitCrearUsuario() {
+
+function crearUsuarioModal() {
+    // Limpiar el formulario
+    document.getElementById('crearUsuarioForm').reset();
+    document.getElementById('permisosInfo').style.display = 'none';
+    const modalElement = document.getElementById('crearUsuarioModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+
+function submitCrearUsuario(event) {
     const form = document.getElementById('crearUsuarioForm');
     const formData = new FormData(form);
     const data = Object.fromEntries(formData);
+    
+    // Validaciones
+    if (!data.username || !data.email || !data.password || !data.role) {
+        alert('Por favor completa todos los campos obligatorios (*)');
+        return;
+    }
+    
+    if (data.password.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres');
+        return;
+    }
+    
     // Convertir checkbox a boolean
     data.is_active = document.getElementById('is_active').checked;
+    
+    // Mostrar loading
+    const btn = event ? event.target : document.getElementById('btnCrearUsuario');
+    const btnText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+    
     fetch('{% url "crear_usuario_superuser" %}', {
         method: 'POST',
         headers: {
@@ -498,28 +708,59 @@ function submitCrearUsuario() {
     })
     .then(response => response.json())
     .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = btnText;
+        
         if (data.success) {
-            alert('Usuario creado exitosamente');
-            $('#crearUsuarioModal').modal('hide');
-            location.reload();
+            const roleValue = document.getElementById('role').value;
+            const roleName = permisosPorRol[roleValue] ? permisosPorRol[roleValue].nombre : roleValue;
+            
+            // Cerrar modal de creación
+            const modalElement = document.getElementById('crearUsuarioModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Mostrar modal de éxito
+            mostrarModalExito(
+                'Usuario Creado Exitosamente',
+                'El usuario ha sido creado correctamente',
+                `
+                    <div class="alert alert-light border">
+                        <p class="mb-2"><strong>👤 Usuario:</strong> ${document.getElementById('username').value}</p>
+                        <p class="mb-2"><strong>📧 Email:</strong> ${document.getElementById('email').value}</p>
+                        <p class="mb-2"><strong>🎭 Rol:</strong> ${roleName}</p>
+                        <p class="mb-0"><strong>✅ Estado:</strong> ${data.is_active ? 'Activo' : 'Inactivo'}</p>
+                    </div>
+                    <p class="text-muted mb-0"><i class="fas fa-info-circle"></i> El usuario puede iniciar sesión inmediatamente con sus credenciales.</p>
+                `
+            );
         } else {
-            alert('Error: ' + data.message);
+            alert('❌ Error al crear usuario:\n' + data.message);
         }
     })
     .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = btnText;
         console.error('Error:', error);
-        alert('Error al crear usuario');
+        alert('❌ Error al crear usuario. Por favor intenta nuevamente.');
     });
 }
+
 function cambiarRolModal(userId, username, currentRole) {
     document.getElementById('user-id-to-change').value = userId;
     document.getElementById('username-to-change').textContent = username;
     document.getElementById('new-role').value = currentRole;
-    $('#cambiarRolModal').modal('show');
+    const modalElement = document.getElementById('cambiarRolModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
 }
+
 function submitCambiarRol() {
     const userId = document.getElementById('user-id-to-change').value;
     const newRole = document.getElementById('new-role').value;
+    
     fetch(`/superuser/cambiar-rol/${userId}/`, {
         method: 'POST',
         headers: {
@@ -532,20 +773,28 @@ function submitCambiarRol() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Rol cambiado exitosamente');
-            $('#cambiarRolModal').modal('hide');
-            location.reload();
+            const modalElement = document.getElementById('cambiarRolModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+            mostrarModalExito(
+                'Rol Actualizado',
+                'El rol del usuario ha sido cambiado exitosamente',
+                `<p class="text-muted"><i class="fas fa-check"></i> Los permisos del usuario se han actualizado automáticamente.</p>`
+            );
         } else {
-            alert('Error: ' + data.message);
+            alert('❌ Error: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error al cambiar rol');
+        alert('❌ Error al cambiar rol');
     });
 }
+
 function eliminarUsuario(userId, username) {
-    if (confirm(`¿Estás seguro de que quieres eliminar permanentemente al usuario "${username}"? Esta acción no se puede deshacer.`)) {
+    if (confirm(`⚠️ ¿Estás seguro de que quieres eliminar permanentemente al usuario "${username}"?\n\nEsta acción NO se puede deshacer.\n\n- Se eliminarán todos sus datos\n- Se perderá todo su historial\n- Sus canjes y puntos serán eliminados`)) {
         fetch(`/superuser/eliminar-usuario/${userId}/`, {
             method: 'POST',
             headers: {
@@ -556,18 +805,22 @@ function eliminarUsuario(userId, username) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Usuario eliminado exitosamente');
-                location.reload();
+                mostrarModalExito(
+                    'Usuario Eliminado',
+                    'El usuario ha sido eliminado permanentemente',
+                    `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Esta acción no se puede deshacer.</div>`
+                );
             } else {
-                alert('Error: ' + data.message);
+                alert('❌ Error: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al eliminar usuario');
+            alert('❌ Error al eliminar usuario');
         });
     }
 }
+
 function editarUsuario(userId) {
     document.getElementById('editUsuarioForm').reset();
     fetch(`/superuser/obtener-usuario/${userId}/`, {
@@ -586,16 +839,19 @@ function editarUsuario(userId) {
                 document.getElementById('edit_role').value = data.user.role;
                 document.getElementById('edit_is_active').checked = data.user.is_active;
                 document.getElementById('edit_suspended').checked = data.user.suspended;
-                $('#editarUsuarioModal').modal('show');
+                const modalElement = document.getElementById('editarUsuarioModal');
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
             } else {
-                alert('Error: ' + data.message);
+                alert('❌ Error: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al obtener datos del usuario');
+            alert('❌ Error al obtener datos del usuario');
         });
 }
+
 function submitEditarUsuario() {
     const form = document.getElementById('editUsuarioForm');
     const formData = new FormData(form);
@@ -604,6 +860,7 @@ function submitEditarUsuario() {
     data.suspended = document.getElementById('edit_suspended').checked;
     if (!data.password) delete data.password;
     const userId = data.user_id;
+    
     fetch(`/superuser/editar-usuario/${userId}/`, {
         method: 'POST',
         headers: {
@@ -616,18 +873,26 @@ function submitEditarUsuario() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Usuario actualizado exitosamente');
-            $('#editarUsuarioModal').modal('hide');
-            location.reload();
+            const modalElement = document.getElementById('editarUsuarioModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+            mostrarModalExito(
+                'Usuario Actualizado',
+                'Los datos del usuario han sido actualizados correctamente',
+                `<p class="text-muted"><i class="fas fa-info-circle"></i> Los cambios están disponibles inmediatamente.</p>`
+            );
         } else {
-            alert('Error: ' + data.message);
+            alert('❌ Error: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error al actualizar usuario');
+        alert('❌ Error al actualizar usuario');
     });
 }
+
 function verDetallesUsuario(userId) {
     // Limpia los campos
     document.getElementById('detalle_id').textContent = '';
@@ -638,6 +903,7 @@ function verDetallesUsuario(userId) {
     document.getElementById('detalle_role').textContent = '';
     document.getElementById('detalle_is_active').textContent = '';
     document.getElementById('detalle_suspended').textContent = '';
+    
     fetch(`/superuser/obtener-usuario/${userId}/`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest'
@@ -654,16 +920,19 @@ function verDetallesUsuario(userId) {
                 document.getElementById('detalle_role').textContent = data.user.role;
                 document.getElementById('detalle_is_active').textContent = data.user.is_active ? 'Sí' : 'No';
                 document.getElementById('detalle_suspended').textContent = data.user.suspended ? 'Sí' : 'No';
-                $('#verDetallesUsuarioModal').modal('show');
+                const modalElement = document.getElementById('verDetallesUsuarioModal');
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
             } else {
-                alert('Error: ' + data.message);
+                alert('❌ Error: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al obtener detalles del usuario');
+            alert('❌ Error al obtener detalles del usuario');
         });
 }
+
 // Exponer funciones globalmente
 window.crearUsuarioModal = crearUsuarioModal;
 window.submitCrearUsuario = submitCrearUsuario;
@@ -671,8 +940,27 @@ window.cambiarRolModal = cambiarRolModal;
 window.submitCambiarRol = submitCambiarRol;
 window.eliminarUsuario = eliminarUsuario;
 window.editarUsuario = editarUsuario;
-
 window.submitEditarUsuario = submitEditarUsuario;
 window.verDetallesUsuario = verDetallesUsuario;
+window.mostrarPermisos = mostrarPermisos;
+
+// Función para mostrar modal de éxito
+function mostrarModalExito(titulo, mensajePrincipal, detalles) {
+    document.getElementById('exitoTitulo').textContent = titulo;
+    document.getElementById('exitoMensajePrincipal').textContent = mensajePrincipal;
+    document.getElementById('exitoDetalles').innerHTML = detalles;
+    
+    const modalElement = document.getElementById('exitoModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+
+// Función para recargar la página
+function recargarPagina() {
+    location.reload();
+}
+
+window.mostrarModalExito = mostrarModalExito;
+window.recargarPagina = recargarPagina;
 </script>
 {% endblock %}

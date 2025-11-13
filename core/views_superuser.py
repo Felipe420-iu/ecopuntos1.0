@@ -157,18 +157,33 @@ def crear_usuario_superuser(request):
                 'message': 'Username, email y contraseña son requeridos.'
             })
         
+        # Validar longitud de contraseña
+        if len(password) < 8:
+            return JsonResponse({
+                'success': False,
+                'message': 'La contraseña debe tener al menos 8 caracteres.'
+            })
+        
+        # Validar rol válido
+        valid_roles = [choice[0] for choice in Usuario.ROLES]
+        if role not in valid_roles:
+            return JsonResponse({
+                'success': False,
+                'message': f'Rol inválido. Roles válidos: {", ".join(valid_roles)}'
+            })
+        
         # Verificar que el username no existe
         if Usuario.objects.filter(username=username).exists():
             return JsonResponse({
                 'success': False,
-                'message': 'El nombre de usuario ya existe.'
+                'message': f'El nombre de usuario "{username}" ya existe.'
             })
         
         # Verificar que el email no existe
         if Usuario.objects.filter(email=email).exists():
             return JsonResponse({
                 'success': False,
-                'message': 'El email ya está registrado.'
+                'message': f'El email "{email}" ya está registrado.'
             })
         
         # Crear usuario
@@ -178,26 +193,51 @@ def crear_usuario_superuser(request):
             password=password,
             first_name=data.get('first_name', ''),
             last_name=data.get('last_name', ''),
+            telefono=data.get('telefono', ''),
             role=role,
             is_staff=role in ['admin', 'superuser'],
-            is_active=data.get('is_active', True)
+            is_active=data.get('is_active', True),
+            terminos_aceptados=True  # Usuario creado por admin tiene términos aceptados
         )
+        
+        # Definir permisos iniciales según el rol
+        permisos_mensaje = {
+            'user': 'Usuario regular con acceso a funciones básicas del sistema.',
+            'conductor': 'Conductor con acceso al panel de rutas y recolección.',
+            'admin': 'Administrador con permisos de gestión del sistema.',
+            'superuser': 'Superusuario con acceso total al sistema.'
+        }
         
         # Crear notificación
         Notificacion.objects.create(
             usuario=user,
-            titulo='Cuenta creada',
-            mensaje=f'Tu cuenta ha sido creada por el superusuario {request.user.username}.',
+            titulo='¡Bienvenido a EcoPuntos!',
+            mensaje=f'Tu cuenta ha sido creada por el superusuario {request.user.username}. {permisos_mensaje.get(role, "")}',
             tipo='sistema'
         )
         
         return JsonResponse({
             'success': True,
-            'message': f'Usuario {username} creado exitosamente.',
-            'user_id': user.id
+            'message': f'Usuario {username} creado exitosamente con rol {user.get_role_display()}.',
+            'user_id': user.id,
+            'user_data': {
+                'username': user.username,
+                'email': user.email,
+                'role': user.role,
+                'role_display': user.get_role_display()
+            }
         })
         
     except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Datos JSON inválidos.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al crear usuario: {str(e)}'
+        })
         return JsonResponse({
             'success': False,
             'message': 'Datos JSON inválidos.'
@@ -314,10 +354,12 @@ def gestion_admins_superuser(request):
     """Gestión específica de administradores"""
     admins = Usuario.objects.filter(role='admin').order_by('-fecha_registro')
     superusers = Usuario.objects.filter(role='superuser').order_by('-fecha_registro')
+    conductores = Usuario.objects.filter(role='conductor', is_active=True).order_by('-fecha_registro')
     
     context = {
         'admins': admins,
         'superusers': superusers,
+        'conductores': conductores,
     }
     
     return render(request, 'core/superuser/gestion_admins.html', context)

@@ -111,6 +111,81 @@
         </div>
     </div>
 
+    <!-- Conductores -->
+    <div class="row mt-4">
+        <div class="col-lg-12">
+            <div class="admin-card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-truck"></i> Conductores Activos</h5>
+                </div>
+                <div class="card-body">
+                    {% if conductores %}
+                        <div class="row">
+                            {% for conductor in conductores %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card border-info">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">
+                                                    <i class="fas fa-user-circle text-info"></i> {{ conductor.username }}
+                                                </h6>
+                                                <small class="text-muted d-block">
+                                                    <i class="fas fa-envelope"></i> {{ conductor.email }}
+                                                </small>
+                                                {% if conductor.telefono %}
+                                                <small class="text-muted d-block">
+                                                    <i class="fas fa-phone"></i> {{ conductor.telefono }}
+                                                </small>
+                                                {% endif %}
+                                                <small class="text-muted d-block mt-1">
+                                                    <i class="fas fa-calendar"></i> Desde: {{ conductor.fecha_registro|date:"d/m/Y" }}
+                                                </small>
+                                            </div>
+                                            <span class="role-badge bg-info text-white">
+                                                <i class="fas fa-truck"></i> Conductor
+                                            </span>
+                                        </div>
+                                        <hr>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-star"></i> {{ conductor.puntos }} pts
+                                                </span>
+                                            </div>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="verDetalleConductor({{ conductor.id }}, '{{ conductor.username }}')"
+                                                        title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-warning" 
+                                                        onclick="cambiarRolConductor({{ conductor.id }}, '{{ conductor.username }}')"
+                                                        title="Cambiar rol">
+                                                    <i class="fas fa-exchange-alt"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay conductores activos</h5>
+                            <p class="text-muted">Los conductores creados aparecerán aquí</p>
+                            <a href="{% url 'gestion_usuarios_superuser' %}" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Crear Conductor
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Acciones -->
     <div class="row mt-4">
         <div class="col-md-12">
@@ -213,6 +288,58 @@ function buscarUsuarios() {
     // Por simplicidad, redirijo a la gestión de usuarios
     $('#buscarUsuariosModal').modal('hide');
     window.location.href = '{% url "gestion_usuarios_superuser" %}?role=user';
+}
+
+function verDetalleConductor(conductorId, username) {
+    // Redirigir a la gestión de usuarios con filtro de conductor
+    window.location.href = `{% url "gestion_usuarios_superuser" %}?search=${username}`;
+}
+
+function cambiarRolConductor(conductorId, username) {
+    const roles = {
+        'user': '👤 Usuario Regular',
+        'conductor': '🚛 Conductor',
+        'admin': '⚙️ Administrador',
+        'superuser': '👑 Superusuario'
+    };
+    
+    const select = document.createElement('select');
+    select.className = 'form-select';
+    select.innerHTML = Object.entries(roles).map(([key, value]) => 
+        `<option value="${key}" ${key === 'conductor' ? 'selected' : ''}>${value}</option>`
+    ).join('');
+    
+    const confirmed = confirm(`Cambiar rol del conductor ${username}?\n\nNota: Esto afectará sus permisos inmediatamente.`);
+    
+    if (confirmed) {
+        const newRole = prompt(`Ingresa el nuevo rol para ${username}:\n\nOpciones:\n- user (Usuario Regular)\n- conductor (Conductor)\n- admin (Administrador)\n- superuser (Superusuario)`, 'user');
+        
+        if (newRole && ['user', 'conductor', 'admin', 'superuser'].includes(newRole)) {
+            fetch(`/superuser/cambiar-rol/${conductorId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({role: newRole})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Rol cambiado exitosamente');
+                    location.reload();
+                } else {
+                    alert('❌ Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al cambiar rol');
+            });
+        } else if (newRole) {
+            alert('❌ Rol inválido. Opciones válidas: user, conductor, admin, superuser');
+        }
+    }
 }
 </script>
 {% endblock %}
