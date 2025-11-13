@@ -1,0 +1,26 @@
+!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Soporte</title>
+    <link rel="stylesheet" href="/static/core/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Chatbot - Soporte Administrativo</h1>
+        <p>Esta es la interfaz para gestionar solicitudes de soporte humano.</p>
+
+        <div class="chatbot-actions">
+            <button id="escalar-humano" class="btn btn-warning">Escalar a Humano</button>
+        </div>
+
+        <script>
+            document.getElementById('escalar-humano').addEventListener('click', function() {
+                alert('Solicitud de soporte humano enviada.');
+                // Aquí puedes implementar la lógica para enviar la solicitud al servidor
+            });
+        </script>
+    </div>
+</body>
+</html>

@@ -841,4 +841,11 @@ class EstadisticasChatbot(models.Model):
     def __str__(self):
         return f"Stats {self.fecha} - {self.total_conversaciones} conversaciones"
 
-# Create your models here.
+class SolicitudSoporte(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    estado = models.CharField(max_length=20, choices=[('pendiente', 'Pendiente'), ('aceptada', 'Aceptada'), ('rechazada', 'Rechazada')], default='pendiente')
+    mensaje = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Solicitud de {self.usuario.username} - {self.estado}"

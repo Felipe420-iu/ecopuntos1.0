@@ -102,6 +102,11 @@ urlpatterns = [
     path('chatbot/historial/', chatbot_views.historial_conversaciones, name='historial_chatbot'),
     path('chatbot/conversacion/<int:conversacion_id>/', chatbot_views.ver_conversacion, name='ver_conversacion_chatbot'),
     path('chatbot/status/', chatbot_views.check_chatbot_status, name='chatbot_status'),
+    path('chatbot/soporte/', chatbot_views.chatbot_soporte, name='chat_soporte'),
+    
+    # URLs para administración de solicitudes de soporte
+    path('admin/solicitudes-soporte/', chatbot_views.listar_solicitudes_soporte, name='listar_solicitudes_soporte'),
+    path('admin/solicitud-soporte/<int:solicitud_id>/', chatbot_views.gestionar_solicitud, name='gestionar_solicitud'),
     
     # Aliases antiguos para compatibilidad - todos redirigen a chatbot_interface
     path('soportusu/', views.redirect_to_chatbot, name='soportusu'),

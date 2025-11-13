@@ -9,8 +9,9 @@ from django.utils import timezone
 from django.db.models import Count, Avg
 from django.conf import settings
 
-from core.models import ConversacionChatbot, MensajeChatbot, ContextoChatbot, EstadisticasChatbot, Usuario
+from core.models import ConversacionChatbot, MensajeChatbot, ContextoChatbot, EstadisticasChatbot, Usuario, SolicitudSoporte
 from core.ratelimit import smart_ratelimit
+from core.views import is_admin
 
 @login_required
 @smart_ratelimit(key='user', rate='60/m', method='GET')
@@ -148,6 +149,51 @@ def admin_conversaciones(request):
     return render(request, 'core/admin/conversaciones_chatbot.html', context)
 
 @login_required
+@user_passes_test(is_admin)
+def listar_solicitudes_soporte(request):
+    """Vista para listar las solicitudes de soporte humano"""
+    solicitudes = SolicitudSoporte.objects.all().order_by('-fecha_creacion')
+    
+    # Calcular estadísticas
+    solicitudes_pendientes = solicitudes.filter(estado='pendiente').count()
+    solicitudes_aceptadas = solicitudes.filter(estado='aceptada').count()
+    solicitudes_rechazadas = solicitudes.filter(estado='rechazada').count()
+    
+    context = {
+        'solicitudes': solicitudes,
+        'solicitudes_pendientes': solicitudes_pendientes,
+        'solicitudes_aceptadas': solicitudes_aceptadas,
+        'solicitudes_rechazadas': solicitudes_rechazadas,
+    }
+    
+    return render(request, 'core/chatbot/listar_solicitudes.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def gestionar_solicitud(request, solicitud_id):
+    """Vista para aceptar o rechazar una solicitud de soporte humano"""
+    solicitud = get_object_or_404(SolicitudSoporte, id=solicitud_id)
+    
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        respuesta = request.POST.get('respuesta', '')
+        
+        if accion == 'aceptar':
+            solicitud.estado = 'aceptada'
+            solicitud.respuesta_admin = respuesta
+            solicitud.save()
+            messages.success(request, f'Solicitud de {solicitud.usuario.username} ha sido aceptada exitosamente.')
+        elif accion == 'rechazar':
+            solicitud.estado = 'rechazada'
+            solicitud.respuesta_admin = respuesta
+            solicitud.save()
+            messages.warning(request, f'Solicitud de {solicitud.usuario.username} ha sido rechazada.')
+            
+        return redirect('listar_solicitudes_soporte')
+
+    return render(request, 'core/chatbot/gestionar_solicitud.html', {'solicitud': solicitud})
+
+@login_required
 @user_passes_test(lambda u: u.is_staff or u.role == 'admin')
 def toggle_chatbot(request):
     """API para habilitar/deshabilitar el chatbot"""
@@ -170,7 +216,29 @@ def check_chatbot_status(request):
     return JsonResponse({
         'enabled': getattr(settings, 'CHATBOT_ENABLED', True),
         'api_configured': bool(getattr(settings, 'GOOGLE_API_KEY', '')),
-        'user_has_conversations': ConversacionChatbot.objects.filter(
+        'user_has_conversaciones': ConversacionChatbot.objects.filter(
             usuario=request.user
         ).exists()
     })
+
+@login_required
+@smart_ratelimit(key='user', rate='60/m', method='GET')
+def chatbot_soporte(request):
+    """Vista del soporte del chatbot - redirige a administradores a las solicitudes"""
+    # Si es administrador, redirigir a la gestión de solicitudes
+    if is_admin(request.user):
+        return redirect('listar_solicitudes_soporte')
+    
+    # Si es usuario normal, mostrar el chatbot de soporte
+    return render(request, 'core/chatbot/chatbot_soporte.html')
+
+@login_required
+@smart_ratelimit(key='user', rate='60/m', method='POST')
+def escalar_a_humano(request):
+    """Escala la solicitud de soporte a un humano"""
+    if request.method == 'POST':
+        # Aquí puedes registrar la solicitud en la base de datos o enviar una notificación
+        messages.success(request, 'La solicitud de soporte humano ha sido enviada.')
+        return JsonResponse({'success': True, 'message': 'Solicitud enviada'})
+
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
