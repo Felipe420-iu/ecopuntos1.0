@@ -1,0 +1,817 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios | Eco Puntos</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <style>
+        /* Estilos para el avatar en admin */
+        .avatar-admin {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .avatar-admin svg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    {% block content %}
+    <!-- Barra de navegación superior -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'paneladmin' %}">
+                <i class="fas fa-leaf me-2"></i>Eco Puntos
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarAdmin">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'usuarioadmin' %}">
+                            <i class="fas fa-users me-1"></i>Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'canjeadmin' %}">
+                            <i class="fas fa-exchange-alt me-1"></i>Canjes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'retiroadmin' %}">
+                            <i class="fas fa-chart-bar me-1"></i>Retiros 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'estadisticasadmin' %}">
+                            <i class="fas fa-chart-bar me-1"></i>Estadísticas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'rutas' %}">
+                            <i class="fas fa-route me-1"></i>Rutas 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'stock_recompensas' %}">
+                            <i class="fas fa-boxes me-1"></i>Stock
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'monitor_sesiones' %}">
+                            <i class="fas fa-desktop me-1"></i>Monitor de Sesiones
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="{% url 'paneladmin' %}" class="btn btn-outline-light me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="card-title mb-0">
+                                <i class="fas fa-users me-2"></i>Gestión de Usuarios
+                            </h2>
+                            <div class="d-flex gap-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar usuarios...">
+                                </div>
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                    <i class="fas fa-user-plus me-1"></i>Nuevo Usuario
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="usersTable" class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Email</th>
+                                        <th>Rol</th>
+                                        <th>Puntos</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr id="user-row-{{ user.id }}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-admin me-2">
+                                                    {% if user.foto_perfil %}
+                                                        <img src="{{ user.foto_perfil.url }}" alt="Avatar" class="rounded-circle">
+                                                    {% else %}
+                                                        <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" preserveAspectRatio="xMidYMid slice" focusable="false">
+                                                            <rect width="100%" height="100%" fill="#868e96"></rect>
+                                                            <text x="50%" y="50%" fill="#dee2e6" dy=".3em">U</text>
+                                                        </svg>
+                                                    {% endif %}
+                                                </div>
+                                                {{ user.username }}
+                                            </div>
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            <span class="badge {% if user.role == 'admin' %}bg-danger{% else %}bg-success{% endif %}">
+                                                {{ user.get_role_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ user.puntos }}</td>
+                                        <td>
+                                            <span class="badge {% if user.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {% if user.is_active %}Activo{% else %}Inactivo{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ user.fecha_registro|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editUser{{ user.id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                {% if user.is_active and not user.suspended %}
+                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#deactivateUser{{ user.id }}">
+                                                    <i class="fas fa-user-times"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#suspendUser{{ user.id }}">
+                                                    <i class="fas fa-ban"></i>
+                                                </button>
+                                                {% elif not user.is_active and not user.suspended %}
+                                                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#reactivateUser{{ user.id }}">
+                                                    <i class="fas fa-user-check"></i>
+                                                </button>
+                                                {% elif user.suspended %}
+                                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#unsuspendUser{{ user.id }}">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </button>
+                                                {% endif %}
+                                                <!-- Modal Eliminar Usuario -->
+                                                <div class="modal fade" id="deleteUser{{ user.id }}" tabindex="-1">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Confirmar Eliminación</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p>¿Estás seguro de que deseas eliminar al usuario <strong>{{ user.username }}</strong>?</p>
+                                                                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                                <form method="POST" action="{% url 'delete_user' user.id %}" style="display: inline;">
+                                                                    {% csrf_token %}
+                                                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales para cada acción -->
+    {% for user in users %}
+    <!-- Modal Editar Usuario -->
+    <div class="modal fade" id="editUser{{ user.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{% url 'edit_user' user.id %}" class="edit-user-form">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Nombre de Usuario</label>
+                            <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Rol</label>
+                            <select class="form-select" name="role">
+                                <option value="user" {% if user.role == 'user' %}selected{% endif %}>Usuario</option>
+                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrador</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Desactivar Usuario -->
+    <div class="modal fade" id="deactivateUser{{ user.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Desactivar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas desactivar al usuario <strong>{{ user.username }}</strong>?</p>
+                    <p class="text-warning"><small>El usuario no podrá acceder al sistema hasta que sea reactivado.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning btn-deactivate-user" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                        Desactivar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Suspender Usuario -->
+    <div class="modal fade" id="suspendUser{{ user.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Suspender Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas suspender al usuario <strong>{{ user.username }}</strong>?</p>
+                    <p class="text-danger"><small>Esta acción bloqueará permanentemente al usuario.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger btn-suspend-user" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                        Suspender
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reactivar Usuario -->
+    <div class="modal fade" id="reactivateUser{{ user.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reactivar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas reactivar al usuario <strong>{{ user.username }}</strong>?</p>
+                    <p class="text-success"><small>El usuario podrá volver a acceder al sistema.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success btn-reactivate-user" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                        Reactivar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Quitar Suspensión -->
+    <div class="modal fade" id="unsuspendUser{{ user.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Quitar Suspensión</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas quitar la suspensión al usuario <strong>{{ user.username }}</strong>?</p>
+                    <p class="text-info"><small>El usuario podrá volver a acceder al sistema.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info btn-unsuspend-user" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                        Quitar Suspensión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% endblock %}
+
+    <!-- Scripts necesarios -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Configuración de toastr
+            toastr.options = {
+                closeButton: true,
+                progressBar: true,
+                positionClass: "toast-top-right",
+                timeOut: 3000,
+            };
+
+            // Búsqueda en tiempo real
+            $('#searchInput').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $("#usersTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+
+            // Manejo de formularios
+            $('.edit-user-form').on('submit', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error al procesar la solicitud');
+                    }
+                });
+            });
+
+            // Event listeners para botones de gestión de usuarios (data-attribute pattern)
+            $(document).on('click', '.btn-deactivate-user', function() {
+                const userId = $(this).data('user-id');
+                const username = $(this).data('username');
+                deactivateUser(userId, username);
+            });
+
+            $(document).on('click', '.btn-suspend-user', function() {
+                const userId = $(this).data('user-id');
+                const username = $(this).data('username');
+                suspendUser(userId, username);
+            });
+
+            $(document).on('click', '.btn-reactivate-user', function() {
+                const userId = $(this).data('user-id');
+                const username = $(this).data('username');
+                reactivateUser(userId, username);
+            });
+
+            $(document).on('click', '.btn-unsuspend-user', function() {
+                const userId = $(this).data('user-id');
+                const username = $(this).data('username');
+                unsuspendUser(userId, username);
+            });
+        });
+
+        // Función para desactivar usuario
+        function deactivateUser(userId, username) {
+            $.ajax({
+                url: '/deactivate_user/' + userId + '/',
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    $('#deactivateUser' + userId).modal('hide');
+                },
+                error: function() {
+                    toastr.error('Error al desactivar usuario');
+                }
+            });
+        }
+
+        // Función para suspender usuario
+        function suspendUser(userId, username) {
+            $.ajax({
+                url: '/suspend_user/' + userId + '/',
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    $('#suspendUser' + userId).modal('hide');
+                },
+                error: function() {
+                    toastr.error('Error al suspender usuario');
+                }
+            });
+        }
+
+        // Función para reactivar usuario
+        function reactivateUser(userId, username) {
+            $.ajax({
+                url: '/reactivate_user/' + userId + '/',
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    $('#reactivateUser' + userId).modal('hide');
+                },
+                error: function() {
+                    toastr.error('Error al reactivar usuario');
+                }
+            });
+        }
+
+        // Prevenir salir sin guardar cambios
+        window.onbeforeunload = function() {
+            if ($('.edit-user-form').data('modified')) {
+                return "¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.";
+            }
+        };
+
+        // Marcar formulario como modificado
+        $('.edit-user-form :input').on('change', function() {
+            $(this).closest('form').data('modified', true);
+        });
+    </script>
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+// Búsqueda en tiempo real
+    $('#searchInput').on('keyup', function() {
+        let searchText = $(this).val().toLowerCase();
+        $('#usersTable tbody tr').each(function() {
+        let found = false;
+            $(this).find('td').each(function() {
+                if ($(this).text().toLowerCase().indexOf(searchText) > -1) {
+                found = true;
+                    return false;
+            }
+            });
+            $(this).toggle(found);
+        });
+});
+
+// Configuración de toastr
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    positionClass: "toast-top-right",
+    timeOut: 3000,
+    showMethod: 'fadeIn',
+    hideMethod: 'fadeOut',
+    showDuration: 300,
+    hideDuration: 300,
+    showEasing: 'swing',
+    hideEasing: 'linear',
+    preventDuplicates: true,
+    newestOnTop: true
+};
+
+    // Manejo de formularios
+    $('form').on('submit', function(e) {
+        e.preventDefault();
+        let form = $(this);
+        let url = form.attr('action');
+        let formData = form.serialize();
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function() {
+                toastr.error('Ha ocurrido un error. Por favor, intente nuevamente.');
+            }
+        });
+    });
+
+    // Confirmación de eliminación
+    $('.btn-danger').on('click', function(e) {
+        if (!confirm('¿Está seguro de que desea eliminar este usuario?')) {
+            e.preventDefault();
+        }
+    });
+});
+// Función para desactivar usuario con AJAX
+function deactivateUser(userId, username) {
+    // Cerrar el modal
+    $('#deactivateUser' + userId).modal('hide');
+    
+    // Mostrar notificación de procesamiento
+    toastr.info('Desactivando usuario...', 'Procesando');
+    
+    // Realizar petición AJAX
+    $.ajax({
+        url: '/deactivate_user/' + userId + '/',
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        data: {
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                // Mostrar notificación de éxito
+                toastr.success('Usuario ' + username + ' desactivado exitosamente', 'Éxito');
+                
+                // Actualizar la fila del usuario en la tabla
+                let userRow = $('#user-row-' + userId);
+                userRow.find('.badge').removeClass('bg-success').addClass('bg-danger').text('Inactivo');
+                userRow.find('.btn-warning').remove(); // Remover botón de desactivar
+                
+                // Mostrar notificación prominente de desactivación
+                showUserDeactivatedNotification(username);
+            } else {
+                toastr.error(response.message || 'Error al desactivar usuario', 'Error');
+            }
+        },
+        error: function(xhr, status, error) {
+            toastr.error('Error de conexión. Intente nuevamente.', 'Error');
+        }
+    });
+}
+
+// Función para suspender usuario con AJAX
+function suspendUser(userId, username) {
+    // Cerrar el modal
+    $('#suspendUser' + userId).modal('hide');
+    
+    // Mostrar notificación de procesamiento
+    toastr.info('Suspendiendo usuario...', 'Procesando');
+    
+    // Realizar petición AJAX
+    $.ajax({
+        url: '/suspend_user/' + userId + '/',
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        data: {
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                // Mostrar notificación de éxito
+                toastr.success('Usuario ' + username + ' suspendido exitosamente', 'Éxito');
+                
+                // Actualizar la fila del usuario en la tabla
+                let userRow = $('#user-row-' + userId);
+                userRow.find('.badge').removeClass('bg-success').addClass('bg-danger').text('Suspendido');
+                userRow.find('.btn-secondary').remove(); // Remover botón de suspender
+                
+                // Mostrar notificación prominente de suspensión
+                showUserSuspendedNotification(username);
+            } else {
+                toastr.error(response.message || 'Error al suspender usuario', 'Error');
+            }
+        },
+        error: function(xhr, status, error) {
+            toastr.error('Error de conexión. Intente nuevamente.', 'Error');
+        }
+    });
+}
+
+// Función para mostrar notificación prominente de usuario desactivado
+function showUserDeactivatedNotification(username) {
+    // Crear modal de notificación prominente
+    let notificationModal = `
+        <div class="modal fade" id="userDeactivatedModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-warning text-dark border-0">
+                        <h4 class="modal-title w-100 text-center">
+                            <i class="fas fa-user-times me-2"></i>
+                            Usuario Desactivado
+                        </h4>
+                    </div>
+                    <div class="modal-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 5rem;"></i>
+                        </div>
+                        <h3 class="text-warning mb-3">¡Usuario Desactivado Exitosamente!</h3>
+                        <p class="fs-5 mb-4">
+                            El usuario <strong>${username}</strong> ha sido desactivado y no podrá acceder al sistema.
+                        </p>
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            El usuario recibirá una notificación la próxima vez que intente iniciar sesión.
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg" data-bs-dismiss="modal">
+                            <i class="fas fa-check me-2"></i>
+                            Entendido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Agregar modal al DOM y mostrarlo
+    $('body').append(notificationModal);
+    $('#userDeactivatedModal').modal('show');
+    
+    // Remover modal del DOM cuando se cierre
+    $('#userDeactivatedModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+
+// Función para reactivar usuario con AJAX
+function reactivateUser(userId, username) {
+    // Cerrar el modal
+    $('#reactivateUser' + userId).modal('hide');
+    
+    // Mostrar notificación de procesamiento
+    toastr.info('Reactivando usuario...', 'Procesando');
+    
+    // Realizar petición AJAX
+    $.ajax({
+        url: '/reactivate_user/' + userId + '/',
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        data: {
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                // Mostrar notificación de éxito
+                toastr.success('Usuario ' + username + ' reactivado exitosamente', 'Éxito');
+                
+                // Recargar la página para actualizar la vista
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                toastr.error(response.message || 'Error al reactivar usuario', 'Error');
+            }
+        },
+        error: function(xhr, status, error) {
+            toastr.error('Error de conexión. Intente nuevamente.', 'Error');
+        }
+    });
+}
+
+// Función para quitar suspensión con AJAX
+function unsuspendUser(userId, username) {
+    // Cerrar el modal
+    $('#unsuspendUser' + userId).modal('hide');
+    
+    // Mostrar notificación de procesamiento
+    toastr.info('Quitando suspensión...', 'Procesando');
+    
+    // Realizar petición AJAX
+    $.ajax({
+        url: '/unsuspend_user/' + userId + '/',
+        type: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        data: {
+            'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                // Mostrar notificación de éxito
+                toastr.success('Suspensión removida de ' + username + ' exitosamente', 'Éxito');
+                
+                // Recargar la página para actualizar la vista
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                toastr.error(response.message || 'Error al quitar suspensión', 'Error');
+            }
+        },
+        error: function(xhr, status, error) {
+             toastr.error('Error de conexión. Intente nuevamente.', 'Error');
+         }
+     });
+ }
+
+// Función para mostrar notificación prominente de usuario suspendido
+function showUserSuspendedNotification(username) {
+    // Crear modal de notificación prominente
+    let notificationModal = `
+        <div class="modal fade" id="userSuspendedModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-danger text-white border-0">
+                        <h4 class="modal-title w-100 text-center">
+                            <i class="fas fa-user-slash me-2"></i>
+                            Usuario Suspendido
+                        </h4>
+                    </div>
+                    <div class="modal-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-ban text-danger" style="font-size: 5rem;"></i>
+                        </div>
+                        <h3 class="text-danger mb-3">¡Usuario Suspendido Permanentemente!</h3>
+                        <p class="fs-5 mb-4">
+                            El usuario <strong>${username}</strong> ha sido suspendido permanentemente y no podrá acceder al sistema.
+                        </p>
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Esta cuenta no puede ser recuperada. El usuario deberá crear una nueva cuenta.
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg" data-bs-dismiss="modal">
+                            <i class="fas fa-check me-2"></i>
+                            Entendido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Agregar modal al DOM y mostrarlo
+    $('body').append(notificationModal);
+    $('#userSuspendedModal').modal('show');
+    
+    // Remover modal del DOM cuando se cierre
+    $('#userSuspendedModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+</script>
+{% endblock %}

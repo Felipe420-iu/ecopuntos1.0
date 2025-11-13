@@ -1,0 +1,678 @@
+{# NOTA: Los errores de 'JSX element ... has no corresponding closing tag' y similares son falsos positivos del analizador, ya que este archivo es HTML Django, no JSX. Los <input> en HTML no requieren etiqueta de cierre. #}
+{% extends 'core/superuser/base_superuser.html' %}
+{% load static %}
+
+{% block title %}Gestión de Usuarios - Superusuario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .superuser-header {
+        background: linear-gradient(135deg, #dc3545, #fd7e14);
+        color: white;
+        padding: 1rem 0;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    .filter-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .user-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    .user-card:hover {
+        transform: translateY(-2px);
+    }
+    .role-badge {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+    }
+    .action-btn {
+        margin: 0.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="superuser-header text-center">
+        <div class="container">
+            <h1><i class="fas fa-users-cog"></i> Gestión de Usuarios</h1>
+            <p class="lead mb-0">Control total sobre usuarios del sistema</p>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-card">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search }}" placeholder="Username, email, nombre...">
+            </div>
+            <div class="col-md-3">
+                <label for="role" class="form-label">Rol</label>
+                <select class="form-select" id="role" name="role">
+                    <option value="">Todos los roles</option>
+                    {% for role_code, role_name in roles %}
+                        <option value="{{ role_code }}" {% if role_filter == role_code %}selected{% endif %}>
+                            {{ role_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Estado</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">Todos los estados</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivos</option>
+                    <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspendidos</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-primary">{{ total_users }}</h4>
+                    <p class="mb-0">Total Usuarios</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-success">{{ users.paginator.count }}</h4>
+                    <p class="mb-0">Resultados</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <button class="btn btn-success" onclick="crearUsuarioModal()">
+                        <i class="fas fa-user-plus"></i> Crear Usuario
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <a href="{% url 'panel_superuser' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Usuarios -->
+    <div class="user-card">
+        <div class="card-header">
+            <h5><i class="fas fa-list"></i> Lista de Usuarios</h5>
+        </div>
+        <div class="card-body">
+            {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Puntos</th>
+                                <th>Fecha Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_item in users %}
+                            <tr>
+                                <td>
+                                    <strong>{{ user_item.username }}</strong>
+                                    {% if user_item == user %}
+                                        <span class="badge bg-info">Tú</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user_item.email }}</td>
+                                <td>{{ user_item.first_name }} {{ user_item.last_name }}</td>
+                                <td>
+                                    <span class="role-badge
+                                        {% if user_item.role == 'superuser' %}bg-danger text-white
+                                        {% elif user_item.role == 'admin' %}bg-warning text-dark
+                                        {% else %}bg-success text-white{% endif %}">
+                                        {{ user_item.get_role_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if user_item.suspended %}
+                                        <span class="badge bg-danger">Suspendido</span>
+                                    {% elif user_item.is_active %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user_item.puntos }}</td>
+                                <td>{{ user_item.fecha_registro|date:"d/m/Y" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- Ver Detalles -->
+                                        <button class="btn btn-sm btn-outline-info action-btn" 
+                                                onclick="verDetallesUsuario({{ user_item.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <!-- Cambiar Rol -->
+                                        <button class="btn btn-sm btn-outline-primary action-btn" 
+                                                onclick="cambiarRolModal({{ user_item.id }}, '{{ user_item.username }}', '{{ user_item.role }}')">
+                                            <i class="fas fa-user-cog"></i>
+                                        </button>
+                                        <!-- Editar -->
+                                        <button class="btn btn-sm btn-outline-warning action-btn" 
+                                                onclick="editarUsuario({{ user_item.id }})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <!-- Eliminar (solo si no es el usuario actual) -->
+                                        {% if user_item != user %}
+                                        <button class="btn btn-sm btn-outline-danger action-btn" 
+                                                onclick="eliminarUsuario({{ user_item.id }}, '{{ user_item.username }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+<!-- Modal Ver Detalles Usuario -->
+<div class="modal fade" id="verDetallesUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-eye"></i> Detalles del Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>ID:</strong> <span id="detalle_id"></span></li>
+                    <li class="list-group-item"><strong>Usuario:</strong> <span id="detalle_username"></span></li>
+                    <li class="list-group-item"><strong>Email:</strong> <span id="detalle_email"></span></li>
+                    <li class="list-group-item"><strong>Nombre:</strong> <span id="detalle_first_name"></span></li>
+                    <li class="list-group-item"><strong>Apellido:</strong> <span id="detalle_last_name"></span></li>
+                    <li class="list-group-item"><strong>Rol:</strong> <span id="detalle_role"></span></li>
+                    <li class="list-group-item"><strong>Activo:</strong> <span id="detalle_is_active"></span></li>
+                    <li class="list-group-item"><strong>Suspendido:</strong> <span id="detalle_suspended"></span></li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                {% if users.has_other_pages %}
+                <nav aria-label="Paginación">
+                    <ul class="pagination justify-content-center">
+                        {% if users.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    Anterior
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in users.paginator.page_range %}
+                            {% if users.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if users.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ users.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    Siguiente
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5>No se encontraron usuarios</h5>
+                    <p class="text-muted">Ajusta los filtros o crea un nuevo usuario</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Usuario -->
+<div class="modal fade" id="crearUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearUsuarioForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Nombre de usuario *</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="first_name" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="last_name" class="form-label">Apellido</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña *</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Rol *</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="user">Usuario Regular</option>
+                                    <option value="admin">Administrador</option>
+                                    <option value="superuser">Superusuario</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">
+                                Usuario activo
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitCrearUsuario()">
+                    <i class="fas fa-save"></i> Crear Usuario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cambiar Rol -->
+<div class="modal fade" id="cambiarRolModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-cog"></i> Cambiar Rol de Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Cambiar rol del usuario: <strong id="username-to-change"></strong></p>
+                <form id="cambiarRolForm">
+                    <input type="hidden" id="user-id-to-change" name="user_id">
+                    <div class="mb-3">
+                        <label for="new-role" class="form-label">Nuevo Rol</label>
+                        <select class="form-select" id="new-role" name="role" required>
+                            {% for role_code, role_name in roles %}
+                                <option value="{{ role_code }}">{{ role_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="submitCambiarRol()">
+                    <i class="fas fa-save"></i> Cambiar Rol
+                </button>
+            </div>
+        </div>
+    </div>
+
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="editarUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-edit"></i> Editar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUsuarioForm">
+                    <input type="hidden" id="edit_user_id" name="user_id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_username" class="form-label">Nombre de usuario</label>
+                                <input type="text" class="form-control" id="edit_username" name="username" required readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="edit_email" name="email" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_first_name" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="edit_first_name" name="first_name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_last_name" class="form-label">Apellido</label>
+                                <input type="text" class="form-control" id="edit_last_name" name="last_name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_password" class="form-label">Nueva Contraseña (opcional)</label>
+                                <input type="password" class="form-control" id="edit_password" name="password">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_role" class="form-label">Rol</label>
+                                <select class="form-select" id="edit_role" name="role" required>
+                                    <option value="user">Usuario Regular</option>
+                                    <option value="admin">Administrador</option>
+                                    <option value="superuser">Superusuario</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
+                            <label class="form-check-label" for="edit_is_active">
+                                Usuario activo
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="edit_suspended" name="suspended">
+                            <label class="form-check-label" for="edit_suspended">
+                                Usuario suspendido
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="submitEditarUsuario()">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function crearUsuarioModal() {
+    $('#crearUsuarioModal').modal('show');
+}
+function submitCrearUsuario() {
+    const form = document.getElementById('crearUsuarioForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    // Convertir checkbox a boolean
+    data.is_active = document.getElementById('is_active').checked;
+    fetch('{% url "crear_usuario_superuser" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Usuario creado exitosamente');
+            $('#crearUsuarioModal').modal('hide');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al crear usuario');
+    });
+}
+function cambiarRolModal(userId, username, currentRole) {
+    document.getElementById('user-id-to-change').value = userId;
+    document.getElementById('username-to-change').textContent = username;
+    document.getElementById('new-role').value = currentRole;
+    $('#cambiarRolModal').modal('show');
+}
+function submitCambiarRol() {
+    const userId = document.getElementById('user-id-to-change').value;
+    const newRole = document.getElementById('new-role').value;
+    fetch(`/superuser/cambiar-rol/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({role: newRole})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Rol cambiado exitosamente');
+            $('#cambiarRolModal').modal('hide');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cambiar rol');
+    });
+}
+function eliminarUsuario(userId, username) {
+    if (confirm(`¿Estás seguro de que quieres eliminar permanentemente al usuario "${username}"? Esta acción no se puede deshacer.`)) {
+        fetch(`/superuser/eliminar-usuario/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Usuario eliminado exitosamente');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar usuario');
+        });
+    }
+}
+function editarUsuario(userId) {
+    document.getElementById('editUsuarioForm').reset();
+    fetch(`/superuser/obtener-usuario/${userId}/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('edit_user_id').value = data.user.id;
+                document.getElementById('edit_username').value = data.user.username;
+                document.getElementById('edit_email').value = data.user.email;
+                document.getElementById('edit_first_name').value = data.user.first_name;
+                document.getElementById('edit_last_name').value = data.user.last_name;
+                document.getElementById('edit_role').value = data.user.role;
+                document.getElementById('edit_is_active').checked = data.user.is_active;
+                document.getElementById('edit_suspended').checked = data.user.suspended;
+                $('#editarUsuarioModal').modal('show');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al obtener datos del usuario');
+        });
+}
+function submitEditarUsuario() {
+    const form = document.getElementById('editUsuarioForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    data.is_active = document.getElementById('edit_is_active').checked;
+    data.suspended = document.getElementById('edit_suspended').checked;
+    if (!data.password) delete data.password;
+    const userId = data.user_id;
+    fetch(`/superuser/editar-usuario/${userId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Usuario actualizado exitosamente');
+            $('#editarUsuarioModal').modal('hide');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar usuario');
+    });
+}
+function verDetallesUsuario(userId) {
+    // Limpia los campos
+    document.getElementById('detalle_id').textContent = '';
+    document.getElementById('detalle_username').textContent = '';
+    document.getElementById('detalle_email').textContent = '';
+    document.getElementById('detalle_first_name').textContent = '';
+    document.getElementById('detalle_last_name').textContent = '';
+    document.getElementById('detalle_role').textContent = '';
+    document.getElementById('detalle_is_active').textContent = '';
+    document.getElementById('detalle_suspended').textContent = '';
+    fetch(`/superuser/obtener-usuario/${userId}/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('detalle_id').textContent = data.user.id;
+                document.getElementById('detalle_username').textContent = data.user.username;
+                document.getElementById('detalle_email').textContent = data.user.email;
+                document.getElementById('detalle_first_name').textContent = data.user.first_name;
+                document.getElementById('detalle_last_name').textContent = data.user.last_name;
+                document.getElementById('detalle_role').textContent = data.user.role;
+                document.getElementById('detalle_is_active').textContent = data.user.is_active ? 'Sí' : 'No';
+                document.getElementById('detalle_suspended').textContent = data.user.suspended ? 'Sí' : 'No';
+                $('#verDetallesUsuarioModal').modal('show');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al obtener detalles del usuario');
+        });
+}
+// Exponer funciones globalmente
+window.crearUsuarioModal = crearUsuarioModal;
+window.submitCrearUsuario = submitCrearUsuario;
+window.cambiarRolModal = cambiarRolModal;
+window.submitCambiarRol = submitCambiarRol;
+window.eliminarUsuario = eliminarUsuario;
+window.editarUsuario = editarUsuario;
+
+window.submitEditarUsuario = submitEditarUsuario;
+window.verDetallesUsuario = verDetallesUsuario;
+</script>
+{% endblock %}

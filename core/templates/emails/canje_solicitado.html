@@ -1,0 +1,59 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Canje Solicitado - Eco Puntos{% endblock %}
+
+{% block header_subtitle %}Canje #{{ canje.id }} recibido{% endblock %}
+
+{% block content %}
+<h2>¡Hola {{ usuario.username }}! 👋</h2>
+
+<p>Hemos recibido tu solicitud de canje exitosamente. Nuestro equipo está revisando tu material.</p>
+
+<div class="highlight-box">
+    <h3 style="margin-top: 0; color: #4caf50;">📋 Detalles de tu canje:</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Número de canje:</div>
+            <div class="info-value">#{{ canje.id }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Material:</div>
+            <div class="info-value">{{ material }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Peso estimado:</div>
+            <div class="info-value">{{ peso }} kg</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Fecha de solicitud:</div>
+            <div class="info-value">{{ canje.fecha_solicitud|date:"d/m/Y H:i" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Estado:</div>
+            <div class="info-value">{{ canje.get_estado_display }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="points">
+    <p class="number">{{ puntos_estimados }}</p>
+    <p class="text">puntos estimados</p>
+    <small style="color: #856404;">*Los puntos finales pueden variar según la verificación del peso real</small>
+</div>
+
+<h3>📋 ¿Qué sigue?</h3>
+<ol>
+    <li><strong>Revisión:</strong> Nuestro equipo verificará tu material y peso</li>
+    <li><strong>Aprobación:</strong> Te notificaremos el resultado de la evaluación</li>
+    <li><strong>Puntos:</strong> Si es aprobado, los puntos se añadirán a tu cuenta</li>
+</ol>
+
+<a href="http://127.0.0.1:8000/canjes/" class="button">Ver mis canjes</a>
+
+<p><strong>💡 Tip:</strong> Mientras esperas, puedes solicitar recolección domiciliaria en la sección de <a href="http://127.0.0.1:8000/rutasusuario/" style="color: #4caf50;">Rutas de Usuario</a>.</p>
+
+<p>Gracias por reciclar con nosotros y contribuir a un planeta más verde. 🌍</p>
+
+<p>Saludos,<br>
+<strong>El equipo de Eco Puntos</strong></p>
+{% endblock %}

@@ -1,0 +1,81 @@
+/* Estilos para el monitor de sesión */
+.session-monitor-modal .modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.session-monitor-modal .modal-header {
+    border-bottom: none;
+    border-radius: 15px 15px 0 0;
+}
+
+.session-monitor-modal .modal-footer {
+    border-top: none;
+    border-radius: 0 0 15px 15px;
+}
+
+.session-monitor-modal .countdown-text {
+    font-weight: 600;
+    color: #f57c00;
+}
+
+/* Animación para el ícono de advertencia */
+.session-monitor-modal .warning-icon {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Overlay de bloqueo */
+#session-blocked-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    z-index: 9998 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: white !important;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    pointer-events: auto !important;
+}
+
+/* Modal con z-index máximo */
+.session-monitor-modal {
+    z-index: 9999 !important;
+}
+
+/* Bloquear interacciones */
+.session-blocked .btn,
+.session-blocked a,
+.session-blocked button {
+    pointer-events: none !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+/* Estilos responsivos */
+@media (max-width: 576px) {
+    .session-monitor-modal .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .session-monitor-modal .modal-body {
+        padding: 2rem 1.5rem;
+    }
+}

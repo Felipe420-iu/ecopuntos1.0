@@ -1,0 +1,603 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}Eco Puntos{% endblock %}</title>
+  
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <!-- Toastr CSS para notificaciones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <!-- Session Monitor CSS -->
+  {% if user.is_authenticated %}
+  <link rel="stylesheet" href="{% static 'core/css/session-monitor.css' %}">
+  {% endif %}
+  <style>
+    :root {
+      --primary: #4caf50;
+      --primary-dark: #388e3c;
+      --primary-light: #c8e6c9;
+      --accent: #8bc34a;
+      --text-dark: #263238;
+      --text-light: #f5f5f5;
+      --gray-light: #f9f9f9;
+      --gray: #e0e0e0;
+      --success: #66bb6a;
+      --info: #29b6f6;
+      --warning: #ffa726;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--gray-light);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      background-image: url('{% static "core/img/eco-background.jpg" %}');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      position: relative;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.92);
+      z-index: -1;
+    }
+    
+    /* Navbar Dashboard Style */
+    .navbar-dashboard {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 15px 0;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+    
+    .navbar-brand-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white !important;
+      text-decoration: none;
+    }
+    
+    .navbar-brand-dashboard:hover {
+      color: white !important;
+      text-decoration: none;
+    }
+    
+    .logo-dashboard {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      transition: transform 0.3s ease;
+    }
+    
+    .brand-text-dashboard {
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: white;
+      margin: 0;
+      transition: all 0.3s ease;
+    }
+    
+    /* Navigation Menu */
+    .nav-dashboard {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .nav-item-dashboard {
+      position: relative;
+    }
+    
+    .nav-link-dashboard {
+      color: rgba(255, 255, 255, 0.9) !important;
+      font-weight: 500;
+      padding: 8px 16px !important;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .nav-link-dashboard:hover {
+      color: white !important;
+      background-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .nav-link-dashboard.active {
+      color: white !important;
+      background-color: rgba(255, 255, 255, 0.2);
+      font-weight: 600;
+    }
+    
+    .nav-link-dashboard i {
+      font-size: 1.1em;
+    }
+    
+    /* Dropdown Menu */
+    .dropdown-menu-dashboard {
+      background: white;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      margin-top: 10px;
+      min-width: 200px;
+    }
+    
+    .dropdown-item-dashboard {
+      color: var(--text-dark);
+      padding: 10px 15px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    
+    .dropdown-item-dashboard:hover {
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+      transform: translateX(5px);
+    }
+    
+    .dropdown-item-dashboard i {
+      width: 16px;
+      text-align: center;
+    }
+    
+    /* User Profile Dropdown */
+    .user-profile-dropdown {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+    }
+    
+    .user-profile-dropdown:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+    }
+    
+    .user-avatar {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+    
+    .avatar-nav {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      border: 2px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .avatar-nav svg {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+    
+    .user-info-nav {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .user-name-nav {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .user-points-nav {
+      font-size: 0.7rem;
+      opacity: 0.8;
+      margin: 0;
+    }
+    
+    /* Main Content */
+    .main-content {
+      margin-top: 80px;
+      padding: 30px;
+      min-height: calc(100vh - 80px);
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .navbar-dashboard {
+        padding: 10px 0;
+      }
+      
+      .brand-text-dashboard {
+        font-size: 1.4rem;
+      }
+      
+      .nav-dashboard {
+        flex-direction: column;
+        gap: 5px;
+        width: 100%;
+      }
+      
+      .nav-link-dashboard {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .main-content {
+        margin-top: 70px;
+        padding: 20px;
+      }
+      
+      .user-info-nav {
+        display: none;
+      }
+    }
+    
+    /* Logout Button */
+    .btn-logout {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-logout:hover {
+      background-color: #c82333;
+      color: white;
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+    
+    /* Footer Styles */
+    .eco-footer {
+      background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+      color: white;
+      padding: 40px 0 20px;
+      margin-top: 60px;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .footer-brand h5 {
+      color: #81c784;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    
+    .footer-brand p {
+      color: #c8e6c9;
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+    
+    .footer-links h6 {
+      color: #81c784;
+      font-weight: 600;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .footer-links ul li {
+      margin-bottom: 8px;
+    }
+    
+    .footer-links ul li a {
+      color: #c8e6c9;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+    }
+    
+    .footer-links ul li a:hover {
+      color: white;
+      transform: translateX(5px);
+    }
+    
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin-top: 30px;
+      padding-top: 20px;
+      text-align: center;
+    }
+    
+    .footer-bottom p {
+      margin: 0;
+      color: #c8e6c9;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      .eco-footer {
+        text-align: center;
+        padding: 30px 0 15px;
+      }
+      
+      .footer-links {
+        margin-top: 20px;
+      }
+    }
+  </style>
+  
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% csrf_token %}
+  <!-- Dashboard Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dashboard">
+    <div class="container">
+      <!-- Logo y nombre -->
+      <a class="navbar-brand-dashboard" href="{% url 'dashusuario' %}">
+        <img src="{% static 'core/img/eco.jpg' %}" alt="Logo Eco Puntos" class="logo-dashboard">
+        <h1 class="brand-text-dashboard">Eco Puntos</h1>
+      </a>
+      
+      <!-- Botón de hamburguesa -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDashboard" aria-controls="navbarDashboard" aria-expanded="false" aria-label="Toggle navigation" style="border: none; background: none;">
+        <i class="fas fa-bars" style="color: white; font-size: 1.5rem;"></i>
+      </button>
+      
+      <!-- Menú de navegación -->
+      <div class="collapse navbar-collapse" id="navbarDashboard">
+        <ul class="navbar-nav mx-auto nav-dashboard">
+          <li class="nav-item-dashboard">
+            <a class="nav-link-dashboard" href="{% url 'dashusuario' %}">
+              <i class="fas fa-home"></i> Inicio
+            </a>
+          </li>
+          
+          <!-- Mi Cuenta -->
+          <li class="nav-item-dashboard dropdown">
+            <a class="nav-link-dashboard dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user"></i> Mi Cuenta
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dashboard">
+              <li><a class="dropdown-item-dashboard" href="{% url 'perfil' %}"><i class="fas fa-id-card"></i> Perfil</a></li>
+            </ul>
+          </li>
+          
+          <!-- Reciclaje -->
+          <li class="nav-item-dashboard dropdown">
+            <a class="nav-link-dashboard dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-recycle"></i> Reciclaje
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dashboard">
+              <li><a class="dropdown-item-dashboard" href="{% url 'categorias' %}"><i class="fas fa-boxes"></i> Categorías</a></li>
+              <li><a class="dropdown-item-dashboard" href="{% url 'solicitar_canje' %}"><i class="fas fa-exchange-alt"></i> Solicitar Canje</a></li>
+              <li><a class="dropdown-item-dashboard" href="{% url 'rutasusuario' %}"><i class="fas fa-route"></i> Rutas</a></li>
+            </ul>
+          </li>
+          
+          <!-- Mis Puntos -->
+          <li class="nav-item-dashboard dropdown">
+            <a class="nav-link-dashboard dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-coins"></i> Mis Puntos
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dashboard">
+              <li><a class="dropdown-item-dashboard" href="{% url 'historial' %}"><i class="fas fa-history"></i> Historial</a></li>
+              <li><a class="dropdown-item-dashboard" href="{% url 'recompensas' %}"><i class="fas fa-gift"></i> Recompensas</a></li>
+              <li><a class="dropdown-item-dashboard" href="{% url 'pagos' %}"><i class="fas fa-money-bill-wave"></i> Retiros</a></li>
+            </ul>
+          </li>
+          
+          <!-- Progreso -->
+          <li class="nav-item-dashboard dropdown">
+            <a class="nav-link-dashboard dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-trophy"></i> Progreso
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dashboard">
+              <li><a class="dropdown-item-dashboard" href="{% url 'logros' %}"><i class="fas fa-medal"></i> Logros</a></li>
+              <li><a class="dropdown-item-dashboard" href="{% url 'ranking' %}"><i class="fas fa-chart-line"></i> Ranking</a></li>
+            </ul>
+          </li>
+          
+          <!-- Ayuda -->
+          <li class="nav-item-dashboard">
+            <a class="nav-link-dashboard" href="{% url 'chatbot_interface' %}">
+              <i class="fas fa-headset"></i> Ayuda
+            </a>
+          </li>
+        </ul>
+        
+        <!-- User Profile and Logout -->
+        <div class="d-flex align-items-center gap-3">
+          {% if user.is_authenticated %}
+            <!-- Notification System -->
+            {% include 'core/includes/notification_system.html' %}
+            
+            <!-- User Profile Dropdown -->
+            <div class="dropdown">
+              <a class="user-profile-dropdown dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if user.foto_perfil %}
+                  <img src="{{ user.foto_perfil.url }}?v={{ user.last_login|date:'U'|default:'0' }}" alt="Foto de Perfil" class="user-avatar">
+                {% else %}
+                  <div class="user-avatar avatar-nav">
+                    {{ user.get_avatar_svg|safe }}
+                  </div>
+                {% endif %}
+                <div class="user-info-nav">
+                  <p class="user-name-nav">{{ user.username }}</p>
+                  <p class="user-points-nav">{{ user.puntos }} puntos</p>
+                </div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dashboard">
+                <li><a class="dropdown-item-dashboard" href="{% url 'perfil' %}"><i class="fas fa-user"></i> Mi Perfil</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item-dashboard" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+              </ul>
+            </div>
+          {% else %}
+            <!-- Login/Register Buttons -->
+            <a href="{% url 'iniciosesion' %}" class="btn btn-outline-light me-2">
+              <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </a>
+            <a href="{% url 'registrate' %}" class="btn btn-light">
+              <i class="fas fa-user-plus"></i> Registrarse
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Main Content -->
+  <main class="main-content">
+    {% block content %}
+    {% endblock %}
+  </main>
+  
+  <!-- Logout Modal -->
+  {% if user.is_authenticated %}
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">Confirmar Cierre de Sesión</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          ¿Estás seguro de que deseas cerrar sesión?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar Sesión</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- jQuery (requerido por toastr) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Toastr JS para notificaciones -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  <script>
+    // Configuración global de toastr
+    if (typeof toastr !== 'undefined') {
+      toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+      };
+    }
+  </script>
+  
+  <!-- Monitor de Sesión -->
+  {% if user.is_authenticated %}
+  <script>
+    // Agregar data attribute para que el monitor sepa que el usuario está autenticado
+    document.body.dataset.userAuthenticated = 'true';
+  </script>
+  <script src="{% static 'core/js/session-monitor.js' %}"></script>
+  {% endif %}
+  
+  <!-- Footer Global -->
+  <footer class="eco-footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="footer-brand">
+            <h5><i class="fas fa-leaf me-2"></i>EcoPuntos</h5>
+            <p>Transformando el mundo a través del reciclaje responsable</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="footer-links">
+            <h6>Enlaces Legales</h6>
+            <ul>
+              <li><a href="{% url 'terminos_condiciones' %}">Términos y Condiciones</a></li>
+              <li><a href="{% url 'politica_privacidad' %}">Política de Privacidad</a></li>
+              <li><a href="mailto:legal@ecopuntos.com">Contacto Legal</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 EcoPuntos. Todos los derechos reservados. | Versión 1.0</p>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Botón Flotante del Chatbot - Solo para usuarios autenticados y no en la página del chatbot -->
+  {% if user.is_authenticated %}
+    {% if request.resolver_match.url_name != 'chatbot_interface' %}
+      {% include 'core/components/floating_chatbot.html' %}
+    {% endif %}
+  {% endif %}
+  
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

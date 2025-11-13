@@ -1,0 +1,52 @@
+# EcoPuntos - Dependencias para Desarrollo Local (sin PostgreSQL)
+# Framework principal
+Django==5.2.1
+
+# Formularios y UI
+django-crispy-forms==2.1
+crispy-bootstrap5==2024.2
+
+# Integración con Supabase (opcional para desarrollo)
+supabase==2.3.4
+
+# Manejo de imágenes
+Pillow==10.2.0
+
+# Variables de entorno
+python-decouple==3.8
+
+# Base de datos URL parser
+dj-database-url==2.1.0
+
+# API REST Framework
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.0
+
+# CORS para API
+django-cors-headers==4.3.1
+
+# Cache (opcional para desarrollo)
+django-redis==5.4.0
+redis==5.0.1
+
+# WebSockets
+channels==4.0.0
+channels-redis==4.2.0
+
+# Logging y monitoreo
+django-extensions==3.2.3
+
+# Testing
+pytest==7.4.4
+pytest-django==4.8.0
+pytest-cov==4.1.0
+
+# Seguridad
+django-ratelimit==4.1.0
+
+# Producción
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Debug para desarrollo
+django-debug-toolbar==4.2.0

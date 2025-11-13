@@ -1,0 +1,1006 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Fundición Magnética - EcoPuntos{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+        font-family: 'Orbitron', monospace;
+        overflow-x: hidden;
+        color: #fff;
+    }
+
+    .game-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(255, 140, 0, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 69, 0, 0.3) 0%, transparent 50%),
+            linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%);
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .foundry-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 140, 0, 0.1) 2px, rgba(255, 140, 0, 0.1) 4px),
+            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 69, 0, 0.1) 2px, rgba(255, 69, 0, 0.1) 4px);
+        animation: gridPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes gridPulse {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.7; }
+    }
+
+    .game-header {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 100;
+    }
+
+    .game-title {
+        font-size: 3rem;
+        font-weight: bold;
+        background: linear-gradient(45deg, #ff8c00, #ff4500, #ffd700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px rgba(255, 140, 0, 0.8);
+        margin-bottom: 10px;
+        animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+        from { filter: drop-shadow(0 0 20px rgba(255, 140, 0, 0.8)); }
+        to { filter: drop-shadow(0 0 40px rgba(255, 69, 0, 1)); }
+    }
+
+    .stats-panel {
+        position: absolute;
+        top: 120px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid #ff8c00;
+        border-radius: 15px;
+        padding: 20px;
+        min-width: 250px;
+        box-shadow: 0 0 30px rgba(255, 140, 0, 0.5);
+        z-index: 100;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        color: #ffd700;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        color: #ff8c00;
+    }
+
+    .canje-panel {
+        position: absolute;
+        top: 120px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid #ffd700;
+        border-radius: 15px;
+        padding: 20px;
+        min-width: 280px;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        z-index: 100;
+    }
+
+    .canje-title {
+        color: #ffd700;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .canje-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 1rem;
+        color: #ffd700;
+    }
+
+    .btn-canje {
+        width: 100%;
+        background: linear-gradient(45deg, #ffd700, #ff8c00);
+        color: #000;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+
+    .btn-canje:hover {
+        background: linear-gradient(45deg, #ff8c00, #ffd700);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 25px rgba(255, 215, 0, 0.6);
+    }
+
+    .btn-canje:disabled {
+        background: #666;
+        color: #999;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .foundry-area {
+        position: absolute;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 300px;
+        background: linear-gradient(180deg, rgba(255, 140, 0, 0.2) 0%, rgba(255, 69, 0, 0.4) 100%);
+        border: 3px solid #ff8c00;
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        box-shadow: 
+            0 0 50px rgba(255, 140, 0, 0.6),
+            inset 0 0 30px rgba(255, 69, 0, 0.3);
+    }
+
+    .furnace {
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(circle, #ff4500 0%, #8b0000 70%);
+        border: 3px solid #ffd700;
+        border-radius: 50%;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 30px rgba(255, 69, 0, 0.8);
+    }
+
+    .furnace:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 50px rgba(255, 140, 0, 1);
+    }
+
+    .furnace.active {
+        animation: furnaceActive 0.5s ease;
+        box-shadow: 0 0 60px rgba(255, 215, 0, 1);
+    }
+
+    @keyframes furnaceActive {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1.1); }
+    }
+
+    .furnace::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        background: radial-gradient(circle, #ffd700 0%, #ff8c00 100%);
+        border-radius: 50%;
+        animation: innerGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes innerGlow {
+        0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    }
+
+    .metal-item {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 50;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+
+    .metal-item:hover {
+        transform: scale(1.2);
+        z-index: 60;
+    }
+
+    .metal-aluminum {
+        background: linear-gradient(45deg, #c0c0c0, #e6e6e6);
+        box-shadow: 0 0 15px rgba(192, 192, 192, 0.8);
+    }
+
+    .metal-copper {
+        background: linear-gradient(45deg, #b87333, #cd853f);
+        box-shadow: 0 0 15px rgba(184, 115, 51, 0.8);
+    }
+
+    .metal-steel {
+        background: linear-gradient(45deg, #708090, #a9a9a9);
+        box-shadow: 0 0 15px rgba(112, 128, 144, 0.8);
+    }
+
+    .metal-gold {
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+
+    .metal-iron {
+        background: linear-gradient(45deg, #696969, #808080);
+        box-shadow: 0 0 15px rgba(105, 105, 105, 0.8);
+    }
+
+    .combo-display {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 4rem;
+        font-weight: bold;
+        color: #ffd700;
+        text-shadow: 0 0 30px rgba(255, 215, 0, 1);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 200;
+    }
+
+    .combo-display.show {
+        animation: comboShow 1s ease-out;
+    }
+
+    @keyframes comboShow {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .controls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 20px;
+        z-index: 100;
+    }
+
+    .btn-foundry {
+        padding: 15px 30px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-start {
+        background: linear-gradient(45deg, #ff8c00, #ff4500);
+        color: white;
+        box-shadow: 0 0 20px rgba(255, 140, 0, 0.5);
+    }
+
+    .btn-start:hover {
+        background: linear-gradient(45deg, #ff4500, #ff8c00);
+        box-shadow: 0 0 30px rgba(255, 140, 0, 0.8);
+        transform: translateY(-2px);
+    }
+
+    .btn-stop {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        color: white;
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
+    }
+
+    .btn-stop:hover {
+        background: linear-gradient(45deg, #c82333, #dc3545);
+        box-shadow: 0 0 30px rgba(220, 53, 69, 0.8);
+        transform: translateY(-2px);
+    }
+
+    .btn-exit {
+        background: linear-gradient(45deg, #6c757d, #495057);
+        color: white;
+        box-shadow: 0 0 20px rgba(108, 117, 125, 0.5);
+    }
+
+    .btn-exit:hover {
+        background: linear-gradient(45deg, #495057, #6c757d);
+        box-shadow: 0 0 30px rgba(108, 117, 125, 0.8);
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .level-indicator {
+        position: absolute;
+        top: 120px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid #ffd700;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        min-width: 200px;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    }
+
+    .level-title {
+        font-size: 1.5rem;
+        color: #ffd700;
+        margin-bottom: 10px;
+    }
+
+    .level-progress {
+        width: 100%;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .level-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #ff8c00, #ffd700);
+        transition: width 0.5s ease;
+        border-radius: 10px;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #ffd700;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 150;
+    }
+
+    .magnetic-field {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .magnetic-wave {
+        position: absolute;
+        border: 2px solid rgba(255, 140, 0, 0.3);
+        border-radius: 50%;
+        animation: magneticPulse 3s ease-out infinite;
+    }
+
+    @keyframes magneticPulse {
+        0% {
+            width: 0;
+            height: 0;
+            opacity: 1;
+        }
+        100% {
+            width: 300px;
+            height: 300px;
+            opacity: 0;
+        }
+    }
+
+    .achievement-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(255, 140, 0, 0.1));
+        border: 3px solid #ffd700;
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        z-index: 1000;
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+        display: none;
+    }
+
+    .achievement-title {
+        font-size: 2.5rem;
+        color: #ffd700;
+        margin-bottom: 20px;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    }
+
+    .achievement-message {
+        font-size: 1.3rem;
+        color: #fff;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .btn-continue {
+        background: linear-gradient(45deg, #ffd700, #ff8c00);
+        color: #000;
+        border: none;
+        padding: 15px 40px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-continue:hover {
+        background: linear-gradient(45deg, #ff8c00, #ffd700);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 140, 0, 0.5);
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="foundry-background"></div>
+    <div class="magnetic-field" id="magneticField"></div>
+    
+    <div class="game-header">
+        <h1 class="game-title">⚡ FUNDICIÓN MAGNÉTICA ⚡</h1>
+    </div>
+    
+    <div class="stats-panel">
+        <div class="stat-item">
+            <span>🔥 Metales Fundidos:</span>
+            <span class="stat-value" id="metalesFundidos">0</span>
+        </div>
+        <div class="stat-item">
+            <span>⚡ Puntos:</span>
+            <span class="stat-value" id="puntos">0</span>
+        </div>
+        <div class="stat-item">
+            <span>🔗 Combo:</span>
+            <span class="stat-value" id="combo">0x</span>
+        </div>
+        <div class="stat-item">
+            <span>⛏️ Minería Ahorrada:</span>
+            <span class="stat-value" id="mineriaAhorrada">0 ton</span>
+        </div>
+        <div class="stat-item">
+            <span>🏆 Puntos Canjeables:</span>
+            <span class="stat-value" id="puntosCanjeables">{{ user.puntos }}</span>
+        </div>
+    </div>
+    
+    <div class="canje-panel">
+        <div class="canje-title">💰 Canje de Puntos</div>
+        <div class="canje-info">
+            <span>🎮 Puntos de Juego:</span>
+            <span class="stat-value" id="puntosJuegoMetales">{{ puntos_juego_metales|default:0 }}</span>
+        </div>
+        <div class="canje-info">
+            <span>💎 EcoPuntos Reales:</span>
+            <span class="stat-value" id="ecopuntosReales">{{ user.puntos }}</span>
+        </div>
+        <div class="canje-info">
+            <span>🔄 Tasa de Cambio:</span>
+            <span class="stat-value">2:1</span>
+        </div>
+        <button class="btn-canje" id="btnCanje" onclick="canjearPuntos()">
+            💰 Canjear Puntos
+        </button>
+    </div>
+    
+    <div class="level-indicator">
+        <div class="level-title">Nivel <span id="nivelActual">1</span></div>
+        <div class="level-progress">
+            <div class="level-progress-bar" id="levelProgressBar" style="width: 0%"></div>
+        </div>
+        <div id="levelDescription">Fundición Básica</div>
+    </div>
+    
+    <div class="foundry-area" id="foundryArea">
+        <div class="furnace" data-type="aluminum" title="Horno de Aluminio"></div>
+        <div class="furnace" data-type="copper" title="Horno de Cobre"></div>
+        <div class="furnace" data-type="steel" title="Horno de Acero"></div>
+        <div class="furnace" data-type="gold" title="Horno de Oro"></div>
+        <div class="furnace" data-type="iron" title="Horno de Hierro"></div>
+    </div>
+    
+    <div class="combo-display" id="comboDisplay"></div>
+    
+    <div class="controls">
+        <button class="btn-foundry btn-start" id="startBtn" onclick="startFoundry()">🔥 Iniciar Fundición</button>
+        <button class="btn-foundry btn-stop" id="stopBtn" onclick="stopFoundry()" style="display: none;">⏹️ Detener Fundición</button>
+        <a href="{% url 'categorias' %}" class="btn-foundry btn-exit">🚪 Salir</a>
+    </div>
+</div>
+
+<div class="achievement-popup" id="achievementPopup">
+    <h2 class="achievement-title" id="achievementTitle"></h2>
+    <p class="achievement-message" id="achievementMessage"></p>
+    <button class="btn-continue" onclick="closeAchievement()">¡Continuar Fundiendo!</button>
+</div>
+
+<script>
+let gameActive = false;
+let metalesFundidos = 0;
+let puntos = 0;
+let combo = 0;
+let comboTimer = null;
+let nivel = 1;
+let spawnInterval = null;
+let comboMaximo = 0;
+let metalTypes = ['aluminum', 'copper', 'steel', 'gold', 'iron'];
+let metalValues = {
+    aluminum: 1,
+    copper: 2,
+    steel: 3,
+    gold: 5,
+    iron: 2
+};
+let levelThresholds = [0, 100, 300, 600];
+let levelDescriptions = [
+    'Fundición Básica',
+    'Fundición Avanzada',
+    'Fundición Magnética',
+    'Fundición Cuántica'
+];
+
+function startFoundry() {
+    gameActive = true;
+    document.getElementById('startBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = 'inline-block';
+    
+    // Crear campo magnético
+    createMagneticField();
+    
+    // Comenzar a generar metales
+    spawnInterval = setInterval(spawnMetal, 1000 - (nivel * 200));
+    
+    // Efectos visuales
+    document.querySelectorAll('.furnace').forEach(furnace => {
+        furnace.style.animation = 'innerGlow 1s ease-in-out infinite';
+    });
+}
+
+function stopFoundry() {
+    gameActive = false;
+    document.getElementById('startBtn').style.display = 'inline-block';
+    document.getElementById('stopBtn').style.display = 'none';
+    
+    if (spawnInterval) {
+        clearInterval(spawnInterval);
+    }
+    
+    // Guardar progreso
+    saveProgress();
+    
+    // Mostrar logros
+    showAchievement();
+}
+
+function createMagneticField() {
+    const field = document.getElementById('magneticField');
+    
+    setInterval(() => {
+        if (!gameActive) return;
+        
+        const wave = document.createElement('div');
+        wave.className = 'magnetic-wave';
+        wave.style.left = Math.random() * window.innerWidth + 'px';
+        wave.style.top = Math.random() * window.innerHeight + 'px';
+        
+        field.appendChild(wave);
+        
+        setTimeout(() => {
+            if (field.contains(wave)) {
+                field.removeChild(wave);
+            }
+        }, 3000);
+    }, 2000);
+}
+
+function spawnMetal() {
+    if (!gameActive) return;
+    
+    const metalType = metalTypes[Math.floor(Math.random() * metalTypes.length)];
+    const metal = document.createElement('div');
+    metal.className = `metal-item metal-${metalType}`;
+    metal.dataset.type = metalType;
+    
+    // Posición aleatoria en la parte superior
+    const gameContainer = document.querySelector('.game-container');
+    const containerWidth = gameContainer.offsetWidth;
+    metal.style.left = Math.random() * (containerWidth - 40) + 'px';
+    metal.style.top = '0px';
+    
+    // Agregar al contenedor del juego
+    gameContainer.appendChild(metal);
+    
+    // Animación de caída con magnetismo
+    animateMetalFall(metal);
+    
+    // Hacer clickeable y draggable
+    makeMetalInteractive(metal);
+    
+    // Auto-remover después de 8 segundos
+    setTimeout(() => {
+        if (gameContainer.contains(metal)) {
+            gameContainer.removeChild(metal);
+        }
+    }, 8000);
+}
+
+function animateMetalFall(metal) {
+    let position = 0;
+    const fallSpeed = 2 + Math.random() * 3;
+    const gameContainer = document.querySelector('.game-container');
+    
+    const fall = setInterval(() => {
+        if (!gameContainer.contains(metal)) {
+            clearInterval(fall);
+            return;
+        }
+        
+        position += fallSpeed;
+        metal.style.top = position + 'px';
+        
+        // Efecto magnético cerca de los hornos
+        const furnaces = document.querySelectorAll('.furnace');
+        furnaces.forEach(furnace => {
+            const furnaceRect = furnace.getBoundingClientRect();
+            const metalRect = metal.getBoundingClientRect();
+            const distance = Math.sqrt(
+                Math.pow(furnaceRect.left - metalRect.left, 2) + 
+                Math.pow(furnaceRect.top - metalRect.top, 2)
+            );
+            
+            if (distance < 100) {
+                const attraction = (100 - distance) / 100;
+                const deltaX = (furnaceRect.left - metalRect.left) * attraction * 0.1;
+                const deltaY = (furnaceRect.top - metalRect.top) * attraction * 0.1;
+                
+                metal.style.left = (metalRect.left + deltaX) + 'px';
+                metal.style.top = (metalRect.top + deltaY) + 'px';
+            }
+        });
+        
+        if (position > gameContainer.offsetHeight) {
+            clearInterval(fall);
+            if (gameContainer.contains(metal)) {
+                gameContainer.removeChild(metal);
+            }
+        }
+    }, 16);
+}
+
+function makeMetalInteractive(metal) {
+    let isDragging = false;
+    
+    // Click para fundir
+    metal.addEventListener('click', () => {
+        if (!isDragging) {
+            processMetal(metal);
+        }
+    });
+    
+    // Drag and drop
+    metal.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        const startX = e.clientX - metal.offsetLeft;
+        const startY = e.clientY - metal.offsetTop;
+        
+        function onMouseMove(e) {
+            metal.style.left = (e.clientX - startX) + 'px';
+            metal.style.top = (e.clientY - startY) + 'px';
+        }
+        
+        function onMouseUp(e) {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            // Verificar si se soltó sobre un horno
+            const furnaces = document.querySelectorAll('.furnace');
+            let processed = false;
+            
+            furnaces.forEach(furnace => {
+                const furnaceRect = furnace.getBoundingClientRect();
+                const metalRect = metal.getBoundingClientRect();
+                
+                if (metalRect.left < furnaceRect.right && 
+                    metalRect.right > furnaceRect.left && 
+                    metalRect.top < furnaceRect.bottom && 
+                    metalRect.bottom > furnaceRect.top) {
+                    
+                    processMetal(metal, furnace);
+                    processed = true;
+                }
+            });
+            
+            setTimeout(() => { isDragging = false; }, 100);
+        }
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+}
+
+function processMetal(metal, furnace = null) {
+    if (!gameActive) return;
+    
+    const metalType = metal.dataset.type;
+    const baseValue = metalValues[metalType];
+    
+    // Bonus por horno correcto
+    let bonus = 1;
+    if (furnace && furnace.dataset.type === metalType) {
+        bonus = 2;
+        furnace.classList.add('active');
+        setTimeout(() => furnace.classList.remove('active'), 500);
+    }
+    
+    // Incrementar combo
+    combo++;
+    if (combo > comboMaximo) comboMaximo = combo;
+    
+    // Resetear timer de combo
+    if (comboTimer) clearTimeout(comboTimer);
+    comboTimer = setTimeout(() => {
+        combo = 0;
+        updateDisplay();
+    }, 3000);
+    
+    // Calcular puntos con combo
+    const comboMultiplier = Math.min(combo, 30);
+    const puntosGanados = baseValue * bonus * comboMultiplier;
+    
+    metalesFundidos++;
+    puntos += puntosGanados;
+    
+    // Efectos visuales
+    createParticles(metal.offsetLeft, metal.offsetTop, metalType);
+    showCombo(comboMultiplier);
+    
+    // Remover metal
+    const gameContainer = document.querySelector('.game-container');
+    if (gameContainer.contains(metal)) {
+        gameContainer.removeChild(metal);
+    }
+    
+    // Actualizar nivel
+    updateLevel();
+    updateDisplay();
+}
+
+function createParticles(x, y, metalType) {
+    const colors = {
+        aluminum: '#c0c0c0',
+        copper: '#b87333',
+        steel: '#708090',
+        gold: '#ffd700',
+        iron: '#696969'
+    };
+    
+    const gameContainer = document.querySelector('.game-container');
+    
+    for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.background = colors[metalType];
+        particle.style.boxShadow = `0 0 10px ${colors[metalType]}`;
+        
+        gameContainer.appendChild(particle);
+        
+        const angle = (Math.PI * 2 * i) / 15;
+        const velocity = 50 + Math.random() * 50;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        let px = x, py = y;
+        let life = 1;
+        
+        const animate = () => {
+            px += vx * 0.02;
+            py += vy * 0.02;
+            life -= 0.02;
+            
+            particle.style.left = px + 'px';
+            particle.style.top = py + 'px';
+            particle.style.opacity = life;
+            
+            if (life > 0) {
+                requestAnimationFrame(animate);
+            } else {
+                if (gameContainer.contains(particle)) {
+                    gameContainer.removeChild(particle);
+                }
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    }
+}
+
+function showCombo(multiplier) {
+    const comboDisplay = document.getElementById('comboDisplay');
+    comboDisplay.textContent = `${multiplier}x COMBO!`;
+    comboDisplay.classList.add('show');
+    
+    setTimeout(() => {
+        comboDisplay.classList.remove('show');
+    }, 1000);
+}
+
+function updateLevel() {
+    const newLevel = levelThresholds.findIndex(threshold => metalesFundidos < threshold);
+    const targetLevel = newLevel === -1 ? levelThresholds.length : newLevel;
+    
+    if (targetLevel > nivel) {
+        nivel = targetLevel;
+        
+        // Aumentar velocidad de spawn
+        if (spawnInterval) {
+            clearInterval(spawnInterval);
+            spawnInterval = setInterval(spawnMetal, Math.max(300, 1000 - (nivel * 200)));
+        }
+    }
+    
+    // Actualizar barra de progreso
+    const currentThreshold = levelThresholds[nivel - 1] || 0;
+    const nextThreshold = levelThresholds[nivel] || levelThresholds[levelThresholds.length - 1];
+    const progress = ((metalesFundidos - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+    
+    document.getElementById('levelProgressBar').style.width = Math.min(progress, 100) + '%';
+}
+
+function updateDisplay() {
+    document.getElementById('metalesFundidos').textContent = metalesFundidos;
+    document.getElementById('puntos').textContent = puntos;
+    document.getElementById('combo').textContent = combo + 'x';
+    document.getElementById('mineriaAhorrada').textContent = Math.floor(metalesFundidos / 50) + ' ton';
+    document.getElementById('nivelActual').textContent = nivel;
+    document.getElementById('levelDescription').textContent = levelDescriptions[nivel - 1] || 'Maestro Fundidor';
+}
+
+function saveProgress() {
+    if (puntos === 0) return;
+    
+    fetch('{% url "juego_metales" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `puntos=${puntos}&nivel=${nivel}&combo_maximo=${comboMaximo}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('puntosCanjeables').textContent = data.puntos_totales;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function showAchievement() {
+    let title, message;
+    
+    if (metalesFundidos >= 500) {
+        title = '🏆 ¡MAESTRO FUNDIDOR!';
+        message = `¡Increíble! Has fundido ${metalesFundidos} metales y alcanzado el combo máximo de ${comboMaximo}x. Tu fundición magnética ha ahorrado ${Math.floor(metalesFundidos / 50)} toneladas de minería. ¡Eres una leyenda del reciclaje!`;
+    } else if (metalesFundidos >= 200) {
+        title = '⚡ ¡FUNDIDOR EXPERTO!';
+        message = `¡Excelente trabajo! Has procesado ${metalesFundidos} metales con un combo máximo de ${comboMaximo}x. Tu contribución al medio ambiente es extraordinaria.`;
+    } else if (metalesFundidos >= 50) {
+        title = '🔥 ¡FUNDIDOR AVANZADO!';
+        message = `¡Muy bien! Has fundido ${metalesFundidos} metales. Tu fundición está funcionando perfectamente y contribuyes significativamente al reciclaje.`;
+    } else {
+        title = '🌟 ¡BUEN COMIENZO!';
+        message = `Has procesado ${metalesFundidos} metales. ¡Sigue así! Cada metal fundido ayuda a reducir la minería y proteger el planeta.`;
+    }
+    
+    document.getElementById('achievementTitle').textContent = title;
+    document.getElementById('achievementMessage').textContent = message;
+    document.getElementById('achievementPopup').style.display = 'block';
+}
+
+function closeAchievement() {
+    document.getElementById('achievementPopup').style.display = 'none';
+}
+
+function canjearPuntos() {
+    const puntosJuego = parseInt(document.getElementById('puntosJuegoMetales').textContent);
+    
+    if (puntosJuego < 2) {
+        alert('Necesitas al menos 2 puntos de juego para canjear.');
+        return;
+    }
+    
+    const ecopuntosAGanar = Math.floor(puntosJuego / 2);
+    
+    if (confirm(`¿Quieres canjear ${puntosJuego} puntos de juego por ${ecopuntosAGanar} EcoPuntos reales?`)) {
+        fetch('{% url "juego_metales" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `canje=true&puntos_canje=${puntosJuego}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('puntosJuegoMetales').textContent = data.puntos_juego_restantes;
+                document.getElementById('ecopuntosReales').textContent = data.ecopuntos_totales;
+                document.getElementById('puntosCanjeables').textContent = data.ecopuntos_totales;
+                alert(`¡Canje exitoso! Has ganado ${ecopuntosAGanar} EcoPuntos reales.`);
+                
+                // Deshabilitar botón si no hay suficientes puntos
+                if (data.puntos_juego_restantes < 2) {
+                    document.getElementById('btnCanje').disabled = true;
+                }
+            } else {
+                alert('Error en el canje: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error de conexión. Inténtalo de nuevo.');
+        });
+    }
+}
+
+function actualizarBotonCanje() {
+    const puntosJuego = parseInt(document.getElementById('puntosJuegoMetales').textContent);
+    const btnCanje = document.getElementById('btnCanje');
+    
+    if (puntosJuego < 2) {
+        btnCanje.disabled = true;
+        btnCanje.textContent = '💰 Necesitas 2+ puntos';
+    } else {
+        btnCanje.disabled = false;
+        btnCanje.textContent = '💰 Canjear Puntos';
+    }
+}
+
+// Inicializar display
+updateDisplay();
+
+// Cargar puntos iniciales del usuario
+document.getElementById('puntosCanjeables').textContent = {{ user.puntos }};
+
+// Actualizar estado del botón de canje al cargar
+actualizarBotonCanje();
+</script>
+{% endblock %}

@@ -1,0 +1,1501 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock de Recompensas | Eco Puntos</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        /* Eliminar estilos de fondo de imagen */
+        body::before {
+            display: none;
+        }
+        .container, .table-container {
+            position: relative;
+            z-index: 1;
+        }
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        .custom-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+        }
+        .custom-table td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .header-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .header-subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        .back-button {
+            color: #2ecc71;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-button:hover {
+            background: #2ecc71;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .stock-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .stock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .recompensa-imagen {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .categoria-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .stock-high { background: #d4edda; color: #155724; }
+        .stock-medium { background: #fff3cd; color: #856404; }
+        .stock-low { background: #f8d7da; color: #721c24; }
+        .btn-edit { background: #3498db; color: white; }
+        .btn-edit:hover { background: #2980b9; color: white; }
+        
+        /* Estilos para pestañas de seguimientos */
+        .nav-tabs .nav-link {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+        
+        /* Timeline para seguimientos */
+        .timeline-seguimiento {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline-item-seguimiento {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 40px;
+        }
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6c757d;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 2px #6c757d;
+        }
+        .timeline-item-seguimiento.active .timeline-marker {
+            background: #28a745;
+            box-shadow: 0 0 0 2px #28a745;
+        }
+        .timeline-content-seguimiento {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #6c757d;
+        }
+        .timeline-item-seguimiento.active .timeline-content-seguimiento {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        /* Conectar elementos del timeline */
+        .timeline-seguimiento::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+    <!-- Barra de navegación superior -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="margin-bottom:0;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'paneladmin' %}">
+                <i class="fas fa-leaf me-2"></i>Eco Puntos
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarAdmin">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'usuarioadmin' %}">
+                            <i class="fas fa-users me-1"></i>Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'canjeadmin' %}">
+                            <i class="fas fa-exchange-alt me-1"></i>Canjes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'retiroadmin' %}">
+                            <i class="fas fa-money-bill-wave me-1"></i>Retiros 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'estadisticasadmin' %}">
+                            <i class="fas fa-chart-bar me-1"></i>Estadísticas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'rutas' %}">
+                            <i class="fas fa-route me-1"></i>Rutas 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'stock_recompensas' %}">
+                            <i class="fas fa-boxes me-1"></i>Stock
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'monitor_sesiones' %}">
+                            <i class="fas fa-desktop me-1"></i>Monitor de Sesiones
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="{% url 'paneladmin' %}" class="btn btn-outline-light me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 20px;">
+        <!-- Header -->
+        <div class="header-section">
+            <h1 class="header-title">
+                <i class="fas fa-cogs me-3" style="color: #2ecc71;"></i>
+                Gestión de Inventario
+            </h1>
+            <p class="header-subtitle">Administra recompensas, stock y seguimientos de entregas</p>
+        </div>
+
+        <!-- Navegación por pestañas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="stock-tab" data-bs-toggle="tab" data-bs-target="#stock-content" type="button" role="tab">
+                            <i class="fas fa-boxes me-2"></i>Stock de Recompensas
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="seguimientos-tab" data-bs-toggle="tab" data-bs-target="#seguimientos-content" type="button" role="tab">
+                            <i class="fas fa-shipping-fast me-2"></i>Seguimientos
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Contenido de las pestañas -->
+        <div class="tab-content" id="adminTabsContent">
+            
+            <!-- PESTAÑA 1: STOCK DE RECOMPENSAS -->
+            <div class="tab-pane fade show active" id="stock-content" role="tabpanel">
+        
+        <!-- Sección de mensajes -->
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Alertas y Notificaciones -->
+        {% if recompensas_criticas %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>¡Atención! Stock Crítico</h5>
+            <p class="mb-2">Las siguientes recompensas tienen stock muy bajo (≤3 unidades):</p>
+            <ul class="mb-0">
+                {% for recompensa in recompensas_criticas %}
+                <li><strong>{{ recompensa.nombre }}</strong> - Solo {{ recompensa.stock }} unidad{{ recompensa.stock|pluralize:"a,as" }} restante{{ recompensa.stock|pluralize:",s" }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        <!-- Estadísticas rápidas -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">{{ total_recompensas }}</h3>
+                        <p class="text-muted">Total</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">{{ activas }}</h3>
+                        <p class="text-muted">Activas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">{{ stock_bajo }}</h3>
+                        <p class="text-muted">Stock Bajo</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-danger">{{ agotadas }}</h3>
+                        <p class="text-muted">Agotadas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">{{ valor_total_inventario|floatformat:0 }}</h3>
+                        <p class="text-muted">Valor (pts)</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-secondary">{{ recompensas_criticas|length }}</h3>
+                        <p class="text-muted">Críticas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recompensas Populares -->
+        {% if recompensas_populares %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-fire me-2 text-danger"></i>Recompensas Más Populares</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for recompensa in recompensas_populares %}
+                    <div class="col-md-2-4 mb-2">
+                        <div class="d-flex align-items-center">
+                            <img src="{% static recompensa.imagen %}" alt="{{ recompensa.nombre }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 5px;" class="me-2">
+                            <div>
+                                <small class="fw-bold">{{ recompensa.nombre|truncatechars:20 }}</small><br>
+                                <small class="text-muted">{{ recompensa.veces_canjeada }} canjes</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Lista de Recompensas -->
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3><i class="fas fa-list me-2"></i>Inventario de Recompensas</h3>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRecompensaModal">
+                    <i class="fas fa-plus me-2"></i>Agregar Recompensa
+                </button>
+            </div>
+
+            {% if recompensas %}
+            <div class="table-responsive">
+                <table class="table table-hover custom-table">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Puntos</th>
+                            <th>Stock Actual</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recompensa in recompensas %}
+                        <tr>
+                            <td>
+                                {% if recompensa.imagen %}
+                                <img src="{% static recompensa.imagen %}" alt="{{ recompensa.nombre }}" class="recompensa-imagen">
+                                {% else %}
+                                <img src="{% static 'core/img/recom.jpg' %}" alt="{{ recompensa.nombre }}" class="recompensa-imagen">
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ recompensa.nombre }}</strong>
+                                {% if recompensa.descripcion %}
+                                <br><small class="text-muted">{{ recompensa.descripcion|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="categoria-badge bg-primary text-white">{{ recompensa.categoria }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success fs-6">{{ recompensa.puntos_requeridos }} pts</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="fs-5 fw-bold me-2">
+                                        {% if recompensa.stock or recompensa.stock == 0 %}
+                                            {{ recompensa.stock }}
+                                        {% else %}
+                                            ∞
+                                        {% endif %}
+                                    </span>
+                                    {% if recompensa.stock == 0 %}
+                                        <span class="badge bg-danger">Agotado</span>
+                                    {% elif recompensa.stock <= 5 and recompensa.stock > 0 %}
+                                        <span class="badge bg-warning">Bajo</span>
+                                    {% elif recompensa.stock > 20 %}
+                                        <span class="badge bg-success">Alto</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if recompensa.activa %}
+                                    <span class="status-badge bg-success text-white">Activa</span>
+                                {% else %}
+                                    <span class="status-badge bg-danger text-white">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-edit me-2" title="Editar Stock" 
+                                        data-action="editar" 
+                                        data-recompensa-id="{{ recompensa.id }}" 
+                                        data-stock-actual="{{ recompensa.stock }}" 
+                                        data-nombre="{{ recompensa.nombre }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning me-2" title="Reabastecer" 
+                                        data-action="reabastecer" 
+                                        data-recompensa-id="{{ recompensa.id }}" 
+                                        data-nombre="{{ recompensa.nombre }}">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button class="btn btn-sm btn-info me-2" title="Historial" 
+                                        data-action="historial" 
+                                        data-recompensa-id="{{ recompensa.id }}">
+                                    <i class="fas fa-history"></i>
+                                </button>
+                                <button class="btn btn-sm {% if recompensa.activa %}btn-success{% else %}btn-secondary{% endif %}" 
+                                        title="{% if recompensa.activa %}Desactivar{% else %}Activar{% endif %}" 
+                                        data-action="toggle" 
+                                        data-recompensa-id="{{ recompensa.id }}" 
+                                        data-estado-actual="{{ recompensa.activa|yesno:'true,false' }}" 
+                                        data-nombre="{{ recompensa.nombre }}">
+                                    <i class="fas {% if recompensa.activa %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No hay recompensas registradas</h4>
+                <p class="text-muted">Comienza agregando tu primera recompensa al sistema</p>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRecompensaModal">
+                    <i class="fas fa-plus me-2"></i>Agregar Primera Recompensa
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal Editar Stock -->
+    <div class="modal fade" id="editStockModal" tabindex="-1" aria-labelledby="editStockModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStockModalLabel">Editar Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editStockForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="recompensaName" class="form-label">Recompensa:</label>
+                            <input type="text" class="form-control" id="recompensaName" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="stockActual" class="form-label">Stock Actual:</label>
+                            <input type="number" class="form-control" id="stockActual" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nuevoStock" class="form-label">Nuevo Stock:</label>
+                            <input type="number" class="form-control" id="nuevoStock" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivoEdicion" class="form-label">Motivo:</label>
+                            <textarea class="form-control" id="motivoEdicion" rows="3" placeholder="Describe el motivo del cambio..."></textarea>
+                        </div>
+                        <input type="hidden" id="recompensaId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-guardar-stock">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reabastecer -->
+    <div class="modal fade" id="restockModal" tabindex="-1" aria-labelledby="restockModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="restockModalLabel">Reabastecer Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="restockForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="restockRecompensaName" class="form-label">Recompensa:</label>
+                            <input type="text" class="form-control" id="restockRecompensaName" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidadAgregar" class="form-label">Cantidad a Agregar:</label>
+                            <input type="number" class="form-control" id="cantidadAgregar" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="proveedor" class="form-label">Proveedor (opcional):</label>
+                            <input type="text" class="form-control" id="proveedor" placeholder="Nombre del proveedor">
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivoRestock" class="form-label">Motivo:</label>
+                            <textarea class="form-control" id="motivoRestock" rows="3" placeholder="Reabastecimiento de inventario"></textarea>
+                        </div>
+                        <input type="hidden" id="restockRecompensaId">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success btn-guardar-restock">Reabastecer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Recompensa -->
+    <div class="modal fade" id="addRecompensaModal" tabindex="-1" aria-labelledby="addRecompensaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRecompensaModalLabel">Agregar Nueva Recompensa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addRecompensaForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombreRecompensa" class="form-label">Nombre:</label>
+                                    <input type="text" class="form-control" id="nombreRecompensa" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="puntosRequeridos" class="form-label">Puntos Requeridos:</label>
+                                    <input type="number" class="form-control" id="puntosRequeridos" min="1" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcionRecompensa" class="form-label">Descripción:</label>
+                            <textarea class="form-control" id="descripcionRecompensa" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="stockInicial" class="form-label">Stock Inicial:</label>
+                                    <input type="number" class="form-control" id="stockInicial" min="0" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="imagenRecompensa" class="form-label">Imagen:</label>
+                                    <select class="form-control" id="imagenRecompensa">
+                                        <option value="core/img/recom.jpg">Imagen por defecto</option>
+                                        <option value="core/img/recompesas.jpg">recompesas.jpg</option>
+                                        <option value="core/img/recompesas1.jpg">recompesas1.jpg</option>
+                                        <option value="core/img/recompesas2.jpg">recompesas2.jpg</option>
+                                        <option value="core/img/recompesas3.jpg">recompesas3.jpg</option>
+                                        <option value="core/img/recompesas4.jpg">recompesas4.jpg</option>
+                                        <option value="core/img/recompesas5.jpg">recompesas5.jpg</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success btn-guardar-recompensa">Crear Recompensa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        // Configuración de Toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "timeOut": "3000"
+        };
+
+        // Event listeners para botones de acción
+        document.addEventListener('DOMContentLoaded', function() {
+            const actionButtons = document.querySelectorAll('[data-action]');
+            actionButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    const recompensaId = this.dataset.recompensaId;
+                    const nombre = this.dataset.nombre;
+                    
+                    switch(action) {
+                        case 'editar':
+                            const stockActual = this.dataset.stockActual;
+                            editarStock(recompensaId, stockActual, nombre);
+                            break;
+                        case 'reabastecer':
+                            reabastecer(recompensaId, nombre);
+                            break;
+                        case 'historial':
+                            verHistorial(recompensaId);
+                            break;
+                        case 'toggle':
+                            const estadoActual = this.dataset.estadoActual === 'true';
+                            toggleEstado(recompensaId, estadoActual, nombre);
+                            break;
+                    }
+                });
+            });
+
+            // Event listeners para botones de los modales
+            document.querySelector('.btn-guardar-stock').addEventListener('click', guardarStock);
+            document.querySelector('.btn-guardar-restock').addEventListener('click', guardarRestock);
+            document.querySelector('.btn-guardar-recompensa').addEventListener('click', guardarRecompensa);
+        });
+
+        function editarStock(id, stockActual, nombre) {
+            document.getElementById('recompensaId').value = id;
+            document.getElementById('recompensaName').value = nombre;
+            document.getElementById('stockActual').value = stockActual;
+            document.getElementById('nuevoStock').value = stockActual;
+            document.getElementById('motivoEdicion').value = '';
+            new bootstrap.Modal(document.getElementById('editStockModal')).show();
+        }
+
+        function guardarStock() {
+            const recompensaId = document.getElementById('recompensaId').value;
+            const nuevoStock = document.getElementById('nuevoStock').value;
+            const motivo = document.getElementById('motivoEdicion').value;
+
+            if (!nuevoStock || nuevoStock < 0) {
+                toastr.error('El stock debe ser un número mayor o igual a 0');
+                return;
+            }
+
+            fetch(`/stock/editar/${recompensaId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams({
+                    'nuevo_stock': nuevoStock,
+                    'motivo': motivo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success(data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('editStockModal')).hide();
+                    location.reload();
+                } else {
+                    toastr.error(data.message);
+                }
+            })
+            .catch(error => {
+                toastr.error('Error de conexión');
+            });
+        }
+
+        function reabastecer(id, nombre) {
+            document.getElementById('restockRecompensaId').value = id;
+            document.getElementById('restockRecompensaName').value = nombre;
+            document.getElementById('cantidadAgregar').value = '';
+            document.getElementById('proveedor').value = '';
+            document.getElementById('motivoRestock').value = 'Reabastecimiento de inventario';
+            new bootstrap.Modal(document.getElementById('restockModal')).show();
+        }
+
+        function guardarRestock() {
+            const recompensaId = document.getElementById('restockRecompensaId').value;
+            const cantidadAgregar = document.getElementById('cantidadAgregar').value;
+            const proveedor = document.getElementById('proveedor').value;
+            const motivo = document.getElementById('motivoRestock').value;
+
+            if (!cantidadAgregar || cantidadAgregar <= 0) {
+                toastr.error('La cantidad debe ser mayor a 0');
+                return;
+            }
+
+            fetch(`/stock/reabastecer/${recompensaId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams({
+                    'cantidad_agregar': cantidadAgregar,
+                    'proveedor': proveedor,
+                    'motivo': motivo
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success(data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('restockModal')).hide();
+                    location.reload();
+                } else {
+                    toastr.error(data.message);
+                }
+            })
+            .catch(error => {
+                toastr.error('Error de conexión');
+            });
+        }
+
+        function toggleEstado(id, estadoActual, nombre) {
+            const accion = estadoActual ? 'desactivar' : 'activar';
+            if (confirm(`¿Estás seguro de que deseas ${accion} la recompensa "${nombre}"?`)) {
+                fetch(`/stock/toggle/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success(data.message);
+                        location.reload();
+                    } else {
+                        toastr.error(data.message);
+                    }
+                })
+                .catch(error => {
+                    toastr.error('Error de conexión');
+                });
+            }
+        }
+
+        function verHistorial(id) {
+            window.open(`/stock/historial/${id}/`, '_blank');
+        }
+
+        function guardarRecompensa() {
+            const nombre = document.getElementById('nombreRecompensa').value;
+            const descripcion = document.getElementById('descripcionRecompensa').value;
+            const puntosRequeridos = document.getElementById('puntosRequeridos').value;
+            const stockInicial = document.getElementById('stockInicial').value;
+            const imagen = document.getElementById('imagenRecompensa').value;
+
+            if (!nombre || !puntosRequeridos || puntosRequeridos <= 0) {
+                toastr.error('Por favor, completa todos los campos requeridos');
+                return;
+            }
+
+            fetch('/stock/agregar/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams({
+                    'nombre': nombre,
+                    'descripcion': descripcion,
+                    'puntos_requeridos': puntosRequeridos,
+                    'stock': stockInicial,
+                    'imagen': imagen
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success(data.message);
+                    bootstrap.Modal.getInstance(document.getElementById('addRecompensaModal')).hide();
+                    location.reload();
+                } else {
+                    toastr.error(data.message);
+                }
+            })
+            .catch(error => {
+                toastr.error('Error de conexión');
+            });
+        }
+    </script>
+
+            </div> <!-- Fin pestaña Stock -->
+
+            <!-- PESTAÑA 2: SEGUIMIENTOS -->
+            <div class="tab-pane fade" id="seguimientos-content" role="tabpanel">
+                
+                <!-- Estadísticas de Seguimientos -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-primary" id="total-seguimientos">{{ total_seguimientos|default:0 }}</h3>
+                                <p class="text-muted">Total Pedidos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-warning" id="seguimientos-pendientes">{{ seguimientos_pendientes|default:0 }}</h3>
+                                <p class="text-muted">Pendientes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-info" id="seguimientos-proceso">{{ seguimientos_proceso|default:0 }}</h3>
+                                <p class="text-muted">En Proceso</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-success" id="seguimientos-completados">{{ seguimientos_completados|default:0 }}</h3>
+                                <p class="text-muted">Completados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros de Seguimientos -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="filtro-estado" class="form-label">Filtrar por Estado</label>
+                                <select id="filtro-estado" class="form-select">
+                                    <option value="">Todos los estados</option>
+                                    <option value="SOLICITADO">Solicitado</option>
+                                    <option value="PREPARANDO">Preparando</option>
+                                    <option value="EN_CAMINO">En Camino</option>
+                                    <option value="ENTREGADO">Entregado</option>
+                                    <option value="CANCELADO">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="filtro-fecha" class="form-label">Filtrar por Fecha</label>
+                                <select id="filtro-fecha" class="form-select">
+                                    <option value="">Todas las fechas</option>
+                                    <option value="hoy">Hoy</option>
+                                    <option value="semana">Esta semana</option>
+                                    <option value="mes">Este mes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="buscar-seguimiento" class="form-label">Buscar</label>
+                                <input type="text" id="buscar-seguimiento" class="form-control" placeholder="Código, usuario o recompensa...">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-outline-secondary d-block w-100" onclick="limpiarFiltros()">
+                                    <i class="fas fa-times"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Seguimientos -->
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3><i class="fas fa-shipping-fast me-2"></i>Gestión de Seguimientos</h3>
+                        <button id="btn-actualizar-seguimientos" class="btn btn-primary">
+                            <i class="fas fa-sync-alt me-2"></i>Actualizar
+                        </button>
+                    </div>
+
+                    <div id="loading-seguimientos" class="text-center py-5" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Cargando seguimientos...</p>
+                    </div>
+
+                    <div class="table-responsive" id="tabla-seguimientos-container">
+                        {% if seguimientos_data %}
+                        <table class="table table-hover custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Usuario</th>
+                                    <th>Recompensa</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Solicitud</th>
+                                    <th>Dirección</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for seguimiento in seguimientos_data %}
+                                <tr>
+                                    <td>
+                                        <code class="bg-light p-1 rounded">{{ seguimiento.codigo }}</code>
+                                    </td>
+                                    <td>
+                                        <strong>{{ seguimiento.usuario }}</strong>
+                                        {% if seguimiento.telefono %}
+                                        <br><small class="text-muted">{{ seguimiento.telefono }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ seguimiento.recompensa }}</strong>
+                                        <br><small class="text-muted">{{ seguimiento.puntos }} pts</small>
+                                    </td>
+                                    <td>
+                                        {% if seguimiento.estado == 'SOLICITADO' %}
+                                        <span class="badge bg-warning text-dark">{{ seguimiento.estado_display }}</span>
+                                        {% elif seguimiento.estado == 'PREPARANDO' %}
+                                        <span class="badge bg-info text-white">{{ seguimiento.estado_display }}</span>
+                                        {% elif seguimiento.estado == 'EN_CAMINO' %}
+                                        <span class="badge bg-primary text-white">{{ seguimiento.estado_display }}</span>
+                                        {% elif seguimiento.estado == 'ENTREGADO' %}
+                                        <span class="badge bg-success text-white">{{ seguimiento.estado_display }}</span>
+                                        {% elif seguimiento.estado == 'CANCELADO' %}
+                                        <span class="badge bg-danger text-white">{{ seguimiento.estado_display }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary text-white">{{ seguimiento.estado_display }}</span>
+                                        {% endif %}
+                                        <br><small class="text-muted">{{ seguimiento.progreso }}% completado</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ seguimiento.fecha_solicitud }}</small>
+                                        {% if seguimiento.fecha_estimada %}
+                                        <br><small class="text-info">Est: {{ seguimiento.fecha_estimada }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ seguimiento.direccion }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm">
+                                            <button class="btn btn-primary btn-sm mb-1" onclick="cambiarEstado({{ seguimiento.id }}, '{{ seguimiento.codigo }}', '{{ seguimiento.recompensa }}')" title="Cambiar Estado">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" onclick="verDetallesSeguimiento('{{ seguimiento.codigo }}')" title="Ver Detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-shipping-fast fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No hay seguimientos disponibles</h4>
+                            <p class="text-muted">Los seguimientos aparecerán aquí cuando los usuarios hagan canjes</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div> <!-- Fin pestaña Seguimientos -->
+
+        </div> <!-- Fin tab-content -->
+
+    </div> <!-- Fin container -->
+
+    <!-- Modales para Seguimientos -->
+    
+    <!-- Modal Cambiar Estado -->
+    <div class="modal fade" id="cambiarEstadoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Estado del Seguimiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Seguimiento:</label>
+                        <p class="fw-bold" id="seguimiento-info"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevo-estado" class="form-label">Nuevo Estado</label>
+                        <select id="nuevo-estado" class="form-select">
+                            <option value="SOLICITADO">Solicitado</option>
+                            <option value="PREPARANDO">Preparando</option>
+                            <option value="EN_CAMINO">En Camino</option>
+                            <option value="ENTREGADO">Entregado</option>
+                            <option value="CANCELADO">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comentario-estado" class="form-label">Comentario (opcional)</label>
+                        <textarea id="comentario-estado" class="form-control" rows="3" placeholder="Agregar comentario sobre el cambio de estado..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ubicacion-estado" class="form-label">Ubicación (opcional)</label>
+                        <input type="text" id="ubicacion-estado" class="form-control" placeholder="Ej: Centro de distribución, En ruta hacia...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarCambioEstado()">Guardar Cambio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Detalles Seguimiento -->
+    <div class="modal fade" id="detallesSeguimientoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalles del Seguimiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detalles-seguimiento-content">
+                    <!-- Contenido cargado dinámicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        console.log('=== SCRIPT DE SEGUIMIENTOS INICIADO ===');
+        
+        // Variables globales - INICIALIZADAS CON DATOS DEL SERVIDOR
+        let seguimientoActual = null;
+        let seguimientos = [];
+        
+        {% if seguimientos_data %}
+        // Cargar datos de seguimientos desde el servidor
+        seguimientos = [
+            {% for s in seguimientos_data %}
+            {
+                id: {{ s.id }},
+                codigo: "{{ s.codigo }}",
+                usuario: "{{ s.usuario }}",
+                telefono: "{{ s.telefono }}",
+                recompensa: "{{ s.recompensa|escapejs }}",
+                puntos: {{ s.puntos }},
+                estado: "{{ s.estado }}",
+                estado_display: "{{ s.estado_display|escapejs }}",
+                progreso: {{ s.progreso }},
+                fecha_solicitud: "{{ s.fecha_solicitud }}",
+                fecha_estimada: {% if s.fecha_estimada %}"{{ s.fecha_estimada }}"{% else %}null{% endif %},
+                direccion: "{{ s.direccion|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        {% endif %}
+        
+        console.log('Seguimientos cargados desde el servidor:', seguimientos.length);
+
+        // TEST: Verificar que el script se está cargando
+        window.testSeguimientos = function() {
+            console.log('Test de seguimientos - Script funcionando correctamente');
+            console.log('Total seguimientos cargados:', seguimientos.length);
+            alert('¡El script de seguimientos está funcionando! Total: ' + seguimientos.length);
+        };
+
+        // Función para cargar seguimientos (GLOBAL)
+        window.cargarSeguimientos = function() {
+            console.log('=== INICIANDO CARGA DE SEGUIMIENTOS ===');
+            document.getElementById('loading-seguimientos').style.display = 'block';
+            document.getElementById('tabla-seguimientos-container').style.display = 'none';
+
+            console.log('Enviando request a: /admin/seguimientos/');
+            
+            fetch('/admin/seguimientos/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                console.log('Respuesta recibida:', response);
+                console.log('Status:', response.status);
+                console.log('OK:', response.ok);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos JSON recibidos:', data);
+                if (data.success) {
+                    console.log('Datos exitosos - Seguimientos:', data.seguimientos);
+                    console.log('Estadísticas:', data.estadisticas);
+                    seguimientos = data.seguimientos;
+                    actualizarEstadisticas(data.estadisticas);
+                    mostrarTablaSeguimientos(seguimientos);
+                } else {
+                    console.error('Error en respuesta:', data);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Error al cargar seguimientos: ' + data.message);
+                    } else {
+                        alert('Error al cargar seguimientos: ' + data.message);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error completo:', error);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Error de conexión al cargar seguimientos');
+                } else {
+                    alert('Error de conexión al cargar seguimientos');
+                }
+            })
+            .finally(() => {
+                console.log('Finalizando carga...');
+                document.getElementById('loading-seguimientos').style.display = 'none';
+                document.getElementById('tabla-seguimientos-container').style.display = 'block';
+            });
+        };
+
+        // Función para actualizar estadísticas (GLOBAL)
+        window.actualizarEstadisticas = function(stats) {
+            document.getElementById('total-seguimientos').textContent = stats.total || 0;
+            document.getElementById('seguimientos-pendientes').textContent = stats.pendientes || 0;
+            document.getElementById('seguimientos-proceso').textContent = stats.proceso || 0;
+            document.getElementById('seguimientos-completados').textContent = stats.completados || 0;
+        };
+
+        // Función para mostrar tabla de seguimientos (GLOBAL)
+        window.mostrarTablaSeguimientos = function(data) {
+            let html = '';
+            
+            if (data && data.length > 0) {
+                html = `
+                    <table class="table table-hover custom-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Usuario</th>
+                                <th>Recompensa</th>
+                                <th>Estado</th>
+                                <th>Fecha Solicitud</th>
+                                <th>Dirección</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach(seguimiento => {
+                    const estadoColor = getEstadoColor(seguimiento.estado);
+                    html += `
+                        <tr>
+                            <td>
+                                <code class="bg-light p-1 rounded">${seguimiento.codigo}</code>
+                            </td>
+                            <td>
+                                <strong>${seguimiento.usuario}</strong>
+                                ${seguimiento.telefono ? '<br><small class="text-muted">' + seguimiento.telefono + '</small>' : ''}
+                            </td>
+                            <td>
+                                <strong>${seguimiento.recompensa}</strong>
+                                <br><small class="text-muted">${seguimiento.puntos} pts</small>
+                            </td>
+                            <td>
+                                <span class="badge ${estadoColor}">${seguimiento.estado_display}</span>
+                                <br><small class="text-muted">${seguimiento.progreso}% completado</small>
+                            </td>
+                            <td>
+                                <small>${seguimiento.fecha_solicitud}</small>
+                                ${seguimiento.fecha_estimada ? '<br><small class="text-info">Est: ' + seguimiento.fecha_estimada + '</small>' : ''}
+                            </td>
+                            <td>
+                                <small>${seguimiento.direccion}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group-vertical btn-group-sm">
+                                    <button class="btn btn-primary btn-sm mb-1" onclick="cambiarEstado(${seguimiento.id}, '${seguimiento.codigo}', '${seguimiento.recompensa}')" title="Cambiar Estado">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-info btn-sm" onclick="verDetallesSeguimiento('${seguimiento.codigo}')" title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                html = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-shipping-fast fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No hay seguimientos disponibles</h4>
+                        <p class="text-muted">Los seguimientos aparecerán aquí cuando los usuarios hagan canjes</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('tabla-seguimientos-container').innerHTML = html;
+        };
+
+        // Función para obtener color del estado (GLOBAL)
+        window.getEstadoColor = function(estado) {
+            const colores = {
+                'SOLICITADO': 'bg-warning text-dark',
+                'PREPARANDO': 'bg-info text-white',
+                'EN_CAMINO': 'bg-primary text-white',
+                'ENTREGADO': 'bg-success text-white',
+                'CANCELADO': 'bg-danger text-white'
+            };
+            return colores[estado] || 'bg-secondary text-white';
+        };
+
+        // Función para cambiar estado (GLOBAL)
+        window.cambiarEstado = function(seguimientoId, codigo, recompensa) {
+            seguimientoActual = seguimientoId;
+            document.getElementById('seguimiento-info').textContent = `${codigo} - ${recompensa}`;
+            
+            // Limpiar campos
+            document.getElementById('comentario-estado').value = '';
+            document.getElementById('ubicacion-estado').value = '';
+            
+            // Mostrar modal
+            new bootstrap.Modal(document.getElementById('cambiarEstadoModal')).show();
+        };
+
+        // Función para guardar cambio de estado (GLOBAL)
+        window.guardarCambioEstado = function() {
+            const nuevoEstado = document.getElementById('nuevo-estado').value;
+            const comentario = document.getElementById('comentario-estado').value;
+            const ubicacion = document.getElementById('ubicacion-estado').value;
+
+            if (!nuevoEstado) {
+                toastr.error('Selecciona un estado');
+                return;
+            }
+
+            fetch(`/api/seguimiento/actualizar/${seguimientoActual}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    estado: nuevoEstado,
+                    comentario: comentario,
+                    ubicacion: ubicacion
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success('Estado actualizado correctamente');
+                    bootstrap.Modal.getInstance(document.getElementById('cambiarEstadoModal')).hide();
+                    cargarSeguimientos(); // Recargar tabla
+                } else {
+                    toastr.error('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error('Error de conexión');
+            });
+        }
+
+        // Función para ver detalles (GLOBAL)
+        window.verDetallesSeguimiento = function(codigo) {
+            fetch(`/seguimiento/${codigo}/`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarDetallesEnModal(data.seguimiento, data.historial);
+                } else {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Error al cargar detalles: ' + data.message);
+                    } else {
+                        alert('Error al cargar detalles: ' + data.message);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Error de conexión');
+                } else {
+                    alert('Error de conexión');
+                }
+            });
+        };
+
+        // Función para mostrar detalles en modal (GLOBAL)
+        window.mostrarDetallesEnModal = function(seguimiento, historial) {
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle me-2"></i>Información del Pedido</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Código:</strong></td><td>${seguimiento.codigo}</td></tr>
+                            <tr><td><strong>Recompensa:</strong></td><td>${seguimiento.recompensa}</td></tr>
+                            <tr><td><strong>Usuario:</strong></td><td>${seguimiento.usuario || 'N/A'}</td></tr>
+                            <tr><td><strong>Estado:</strong></td><td><span class="badge ${getEstadoColor(seguimiento.estado)}">${seguimiento.estado}</span></td></tr>
+                            <tr><td><strong>Progreso:</strong></td><td>${seguimiento.porcentaje}%</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-shipping-fast me-2"></i>Información de Entrega</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Dirección:</strong></td><td>${seguimiento.direccion}</td></tr>
+                            <tr><td><strong>Teléfono:</strong></td><td>${seguimiento.telefono || 'N/A'}</td></tr>
+                            <tr><td><strong>Fecha Solicitud:</strong></td><td>${seguimiento.fecha_solicitud}</td></tr>
+                            <tr><td><strong>Fecha Estimada:</strong></td><td>${seguimiento.fecha_estimada || 'No definida'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6><i class="fas fa-history me-2"></i>Historial de Estados</h6>
+                <div class="timeline-seguimiento">
+            `;
+
+            historial.forEach((item, index) => {
+                const isActive = index === 0;
+                html += `
+                    <div class="timeline-item-seguimiento ${isActive ? 'active' : ''}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content-seguimiento">
+                            <div class="fw-bold">${item.estado}</div>
+                            <small class="text-muted">${item.fecha}</small>
+                            ${item.comentario ? `<div class="mt-1"><small>${item.comentario}</small></div>` : ''}
+                            ${item.ubicacion ? `<div class="mt-1"><small class="text-info"><i class="fas fa-map-marker-alt me-1"></i>${item.ubicacion}</small></div>` : ''}
+                            ${item.responsable ? `<div class="mt-1"><small class="text-secondary">Por: ${item.responsable}</small></div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            document.getElementById('detalles-seguimiento-content').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('detallesSeguimientoModal')).show();
+        }
+
+        // Funciones de filtrado (GLOBAL)
+        window.filtrarSeguimientos = function() {
+            const estadoFiltro = document.getElementById('filtro-estado').value;
+            const fechaFiltro = document.getElementById('filtro-fecha').value;
+            
+            let seguimientosFiltrados = [...seguimientos];
+            
+            if (estadoFiltro) {
+                seguimientosFiltrados = seguimientosFiltrados.filter(s => s.estado === estadoFiltro);
+            }
+            
+            if (fechaFiltro) {
+                const hoy = new Date();
+                seguimientosFiltrados = seguimientosFiltrados.filter(s => {
+                    const fechaSeguimiento = new Date(s.fecha_solicitud);
+                    switch(fechaFiltro) {
+                        case 'hoy':
+                            return fechaSeguimiento.toDateString() === hoy.toDateString();
+                        case 'semana':
+                            const semanaAtras = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            return fechaSeguimiento >= semanaAtras;
+                        case 'mes':
+                            const mesAtras = new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            return fechaSeguimiento >= mesAtras;
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            mostrarTablaSeguimientos(seguimientosFiltrados);
+        };
+
+        window.buscarSeguimientos = function() {
+            const termino = document.getElementById('buscar-seguimiento').value.toLowerCase();
+            
+            if (!termino) {
+                mostrarTablaSeguimientos(seguimientos);
+                return;
+            }
+            
+            const seguimientosFiltrados = seguimientos.filter(s => 
+                s.codigo.toLowerCase().includes(termino) ||
+                s.usuario.toLowerCase().includes(termino) ||
+                s.recompensa.toLowerCase().includes(termino)
+            );
+            
+            mostrarTablaSeguimientos(seguimientosFiltrados);
+        };
+
+        window.limpiarFiltros = function() {
+            document.getElementById('filtro-estado').value = '';
+            document.getElementById('filtro-fecha').value = '';
+            document.getElementById('buscar-seguimiento').value = '';
+            mostrarTablaSeguimientos(seguimientos);
+        };
+
+        // Inicialización cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Loaded - Configurando event listeners...');
+            
+            // Event listeners para filtros
+            const filtroEstado = document.getElementById('filtro-estado');
+            const filtroFecha = document.getElementById('filtro-fecha');
+            const buscarInput = document.getElementById('buscar-seguimiento');
+            const btnActualizar = document.getElementById('btn-actualizar-seguimientos');
+            
+            if (filtroEstado) filtroEstado.addEventListener('change', filtrarSeguimientos);
+            if (filtroFecha) filtroFecha.addEventListener('change', filtrarSeguimientos);
+            if (buscarInput) buscarInput.addEventListener('keyup', buscarSeguimientos);
+            if (btnActualizar) {
+                btnActualizar.addEventListener('click', function() {
+                    console.log('Botón actualizar clickeado - Cargando seguimientos...');
+                    cargarSeguimientos();
+                });
+            }
+            
+            // Cargar seguimientos al mostrar la pestaña
+            const seguimientosTab = document.getElementById('seguimientos-tab');
+            if (seguimientosTab) {
+                seguimientosTab.addEventListener('shown.bs.tab', function() {
+                    console.log('Pestaña seguimientos mostrada - Cargando datos...');
+                    cargarSeguimientos();
+                });
+            }
+            
+            console.log('Event listeners configurados correctamente');
+        });
+
+        // Script original del stock (funciones existentes)...
+</body>
+</html>

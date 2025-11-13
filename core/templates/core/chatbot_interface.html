@@ -1,0 +1,942 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}EcoBot - Asistente IA - EcoPuntos{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+    }
+
+    .chat-container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        background: white;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 12px 16px;
+        text-align: center;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .chat-header h2 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 28px;
+    }
+
+    .ai-indicator {
+        font-size: 24px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    .chat-status {
+        background: rgba(255,255,255,0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .chat-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: center;
+    }
+
+    .control-btn {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.3s;
+    }
+
+    .control-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        padding-top: 16px;
+        padding-bottom: 20px;
+        background: #f8f9fa;
+        scroll-behavior: smooth;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .message {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        animation: slideIn 0.3s ease-out;
+        max-width: 85%;
+        word-wrap: break-word;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message.user {
+        justify-content: flex-end;
+    }
+
+    .message.bot {
+        justify-content: flex-start;
+    }
+
+    .message.system {
+        justify-content: center;
+    }
+
+    .message-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        margin-right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+        order: 2;
+        margin-right: 0;
+        margin-left: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .message.bot .message-avatar {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .message-content {
+        max-width: 100%;
+        padding: 16px 20px;
+        border-radius: 18px;
+        word-wrap: break-word;
+        position: relative;
+        line-height: 1.55;
+        font-size: 16px;
+        font-weight: 400;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .message.user .message-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message.bot .message-content {
+        background: #e9ecef;
+        color: #333;
+        border-bottom-left-radius: 5px;
+        border: 1px solid #dee2e6;
+    }
+
+    .message.system .message-content {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+        text-align: center;
+        font-style: italic;
+    }
+
+    .message-meta {
+        font-size: 11px;
+        opacity: 0.7;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .confidence-indicator {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+
+    .confidence-high { background: #d4edda; color: #155724; }
+    .confidence-medium { background: #fff3cd; color: #856404; }
+    .confidence-low { background: #f8d7da; color: #721c24; }
+
+    .typing-indicator {
+        display: none !important;
+        visibility: hidden;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #28a745;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+
+    .chat-input {
+        padding: 12px 16px;
+        background: white;
+        border-top: 1px solid #e9ecef;
+        flex-shrink: 0;
+        position: sticky;
+        bottom: 0;
+        z-index: 3;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 30px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        border: 2px solid #dee2e6;
+    }
+
+    .message-input {
+        flex: 1;
+        padding: 12px 18px;
+        border: 2px solid #adb5bd;
+        border-radius: 20px;
+        outline: none;
+        font-family: 'Poppins', sans-serif;
+        resize: none;
+        max-height: 100px;
+        min-height: 48px;
+        transition: all 0.3s;
+        font-size: 22px;
+        font-weight: 600;
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        line-height: 1.3;
+    }
+
+    .message-input:focus {
+        border-color: #28a745;
+        border-width: 3px;
+        box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.2);
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    .message-input::placeholder {
+        color: #495057 !important;
+        opacity: 1;
+        font-size: 18px;
+        font-weight: 400;
+    }
+
+    .input-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    .send-btn, .human-btn {
+        border: none;
+        padding: 18px 28px;
+        border-radius: 24px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.2s;
+        font-size: 17px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+        white-space: nowrap;
+        min-height: 60px;
+    }
+
+    .send-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .human-btn {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: white;
+    }
+
+    .send-btn:hover, .human-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .send-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .quick-action {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.2);
+        padding: 8px 12px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+
+    .quick-action:hover {
+        background: rgba(40, 167, 69, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .connection-status {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .status-connected {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-disconnected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .escalation-notice {
+        background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+        color: white;
+        padding: 15px;
+        margin: 10px 20px;
+        border-radius: 10px;
+        text-align: center;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .conversation-ender {
+        text-align: center;
+        padding: 20px;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+    }
+
+    .end-conversation-btn {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.3s;
+    }
+
+    .end-conversation-btn:hover {
+        background: #5a6268;
+    }
+
+    @media (max-width: 768px) {
+        .chat-container {
+            margin: 10px;
+            height: 90vh;
+        }
+        
+        .message-content {
+            max-width: 85%;
+        }
+        
+        .quick-actions {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Connection Status -->
+    <div id="connectionStatus" class="connection-status status-disconnected">
+        Conectando...
+    </div>
+    
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <h2>
+            <span class="ai-indicator">🤖</span>
+            EcoBot - Asistente Inteligente
+        </h2>
+        <div class="chat-status" id="chatStatus">
+            {% if user.is_authenticated %}
+                <strong>{{ user.nombre }}</strong> | 💰 {{ user.puntos|default:0 }} puntos
+            {% else %}
+                Listo para ayudarte
+            {% endif %}
+        </div>
+        <div class="chat-controls">
+            <button class="control-btn" onclick="clearChat()">
+                🗑️ Limpiar Chat
+            </button>
+            <button class="control-btn" onclick="showHistory()">
+                📜 Historial
+            </button>
+            <button class="control-btn" onclick="showHelp()">
+                ❓ Ayuda
+            </button>
+        </div>
+    </div>
+    
+    <!-- Chat Messages -->
+    <div class="chat-messages" id="chatMessages">
+        <!-- Los mensajes se cargarán aquí dinámicamente -->
+    </div>
+    
+    <!-- Typing Indicator -->
+    <div class="typing-indicator" id="typingIndicator">
+        <div class="message-avatar">🤖</div>
+        <span>EcoBot está escribiendo</span>
+        <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    </div>
+    
+    <!-- Chat Input -->
+    <div class="chat-input">
+        <!-- Quick Actions -->
+        <div class="quick-actions" id="quickActions">
+            <div class="quick-action" onclick="sendQuickMessage('¿Cuántos puntos tengo?')">
+                💰 Mis Puntos
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('¿Cómo canjear materiales?')">
+                🔄 Canjear
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('¿Qué materiales aceptan?')">
+                ♻️ Materiales
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('¿Cuál es mi nivel?')">
+                🏆 Mi Nivel
+            </div>
+            <div class="quick-action" onclick="sendQuickMessage('Juegos disponibles')">
+                🎮 Juegos
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <textarea 
+                id="messageInput" 
+                class="message-input" 
+                placeholder="Escribe tu mensaje aquí... (máximo 1000 caracteres)"
+                maxlength="1000"
+                rows="1"
+            ></textarea>
+            <div class="input-actions">
+                <button id="humanBtn" class="human-btn" onclick="requestHuman()">
+                    👤 Humano
+                </button>
+                <button id="sendBtn" class="send-btn" onclick="sendMessage()">
+                    ✈️ Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Conversation Ender -->
+    <div class="conversation-ender">
+        <button class="end-conversation-btn" onclick="endConversation()">
+            ✋ Terminar Conversación
+        </button>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+// Variables globales
+let chatSocket = null;
+let isConnected = false;
+let userId = "{{ user.id|default:'0' }}";
+let messageHistory = [];
+
+// Configuración de toastr
+toastr.options = {
+    "closeButton": true,
+    "progressBar": true,
+    "positionClass": "toast-top-right",
+    "timeOut": "5000"
+};
+
+// Inicializar chat al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    initializeChat();
+    setupInputHandlers();
+    loadChatHistory();
+});
+
+// Inicializar conexión WebSocket
+function initializeChat() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/chatbot/`;
+    
+    console.log('[WebSocket] Intentando conectar a:', wsUrl);
+    
+    try {
+        chatSocket = new WebSocket(wsUrl);
+        console.log('[WebSocket] Objeto creado:', chatSocket);
+        
+        chatSocket.onopen = function(e) {
+            console.log('Conectado al chatbot');
+            isConnected = true;
+            updateConnectionStatus(true);
+            toastr.success('Conectado al asistente IA');
+        };
+        
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            handleIncomingMessage(data);
+        };
+        
+        chatSocket.onclose = function(e) {
+            console.log('Desconectado del chatbot');
+            isConnected = false;
+            updateConnectionStatus(false);
+            toastr.warning('Conexión perdida. Reintentando...');
+            
+            // Reconectar después de 3 segundos
+            setTimeout(initializeChat, 3000);
+        };
+        
+        chatSocket.onerror = function(e) {
+            console.error('Error en WebSocket:', e);
+            toastr.error('Error de conexión');
+        };
+        
+    } catch (error) {
+        console.error('Error creando WebSocket:', error);
+        toastr.error('No se pudo conectar al servicio de chat');
+    }
+}
+
+// Manejar mensajes entrantes
+function handleIncomingMessage(data) {
+    switch(data.type) {
+        case 'bot_message':
+            displayBotMessage(data);
+            break;
+        case 'system_message':
+            displaySystemMessage(data.message);
+            break;
+        case 'error_message':
+            displayErrorMessage(data.message);
+            break;
+        case 'typing_indicator':
+            toggleTypingIndicator(data.is_typing);
+            break;
+        case 'escalation_success':
+            displayEscalationNotice(data);
+            break;
+        case 'conversation_ended':
+            displaySystemMessage(data.message);
+            disableChat();
+            break;
+        default:
+            console.log('Tipo de mensaje desconocido:', data.type);
+    }
+}
+
+// Mostrar mensaje del bot
+function displayBotMessage(data) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message bot';
+    
+    const confidenceClass = getConfidenceClass(data.confidence);
+    const isWelcome = data.is_welcome ? ' (Mensaje de bienvenida)' : '';
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+            ${formatMessage(data.message)}
+            <div class="message-meta">
+                <span>${formatTime(data.timestamp)}</span>
+                <span class="confidence-indicator ${confidenceClass}">
+                    ${Math.round(data.confidence * 100)}% confianza
+                </span>
+                ${data.intent ? `<span>📊 ${data.intent}</span>` : ''}
+                ${isWelcome}
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+    
+    // Guardar en historial
+    messageHistory.push({
+        type: 'bot',
+        content: data.message,
+        timestamp: data.timestamp,
+        confidence: data.confidence,
+        intent: data.intent
+    });
+}
+
+// Mostrar mensaje del usuario
+function displayUserMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user';
+    
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            ${formatMessage(message)}
+            <div class="message-meta">
+                <span>${formatTime(new Date().toISOString())}</span>
+            </div>
+        </div>
+        <div class="message-avatar">👤</div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+    
+    // Guardar en historial
+    messageHistory.push({
+        type: 'user',
+        content: message,
+        timestamp: new Date().toISOString()
+    });
+}
+
+// Mostrar mensaje del sistema
+function displaySystemMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message system';
+    
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            ${formatMessage(message)}
+            <div class="message-meta">
+                <span>${formatTime(new Date().toISOString())}</span>
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+// Mostrar mensaje de error
+function displayErrorMessage(message) {
+    toastr.error(message);
+    displaySystemMessage(`❌ Error: ${message}`);
+}
+
+// Mostrar aviso de escalamiento
+function displayEscalationNotice(data) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    const noticeDiv = document.createElement('div');
+    noticeDiv.className = 'escalation-notice';
+    
+    noticeDiv.innerHTML = `
+        <h4>🎫 Ticket de Soporte Creado</h4>
+        <p>${data.message}</p>
+        <small>Ticket #${data.ticket_number}</small>
+    `;
+    
+    messagesContainer.appendChild(noticeDiv);
+    scrollToBottom();
+    
+    toastr.info(`Ticket creado: #${data.ticket_number}`);
+}
+
+// Enviar mensaje
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message || !isConnected) {
+        return;
+    }
+    
+    // Mostrar mensaje del usuario
+    displayUserMessage(message);
+    
+    // Enviar a través de WebSocket
+    chatSocket.send(JSON.stringify({
+        'type': 'chat_message',
+        'message': message
+    }));
+    
+    // Limpiar input
+    input.value = '';
+    adjustTextareaHeight(input);
+    
+    // Deshabilitar botón temporalmente
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.disabled = true;
+    setTimeout(() => {
+        sendBtn.disabled = false;
+    }, 1000);
+}
+
+// Enviar mensaje rápido
+function sendQuickMessage(message) {
+    const input = document.getElementById('messageInput');
+    input.value = message;
+    sendMessage();
+}
+
+// Solicitar agente humano
+function requestHuman() {
+    if (!isConnected) {
+        toastr.error('No hay conexión');
+        return;
+    }
+    
+    const reason = prompt('¿Por qué necesitas hablar con un humano? (opcional)') || 'Solicitud directa del usuario';
+    
+    chatSocket.send(JSON.stringify({
+        'type': 'request_human',
+        'reason': reason
+    }));
+    
+    toastr.info('Solicitando agente humano...');
+}
+
+// Terminar conversación
+function endConversation() {
+    if (!confirm('¿Estás seguro de que quieres terminar la conversación?')) {
+        return;
+    }
+    
+    if (isConnected) {
+        chatSocket.send(JSON.stringify({
+            'type': 'end_conversation'
+        }));
+    }
+    
+    toastr.success('Conversación terminada');
+}
+
+// Configurar manejadores de eventos
+function setupInputHandlers() {
+    const input = document.getElementById('messageInput');
+    
+    // Auto-resize textarea
+    input.addEventListener('input', function() {
+        adjustTextareaHeight(this);
+    });
+    
+    // Enviar con Enter (Shift+Enter para nueva línea)
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+}
+
+// Funciones de utilidad
+function adjustTextareaHeight(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+}
+
+function updateConnectionStatus(connected) {
+    const status = document.getElementById('connectionStatus');
+    
+    if (connected) {
+        status.className = 'connection-status status-connected';
+        status.textContent = '✓ Conectado';
+    } else {
+        status.className = 'connection-status status-disconnected';
+        status.textContent = '⚠ Reconectando...';
+    }
+}
+
+function toggleTypingIndicator(show) {
+    // Indicador deshabilitado para mejor UX
+    return;
+}
+
+function getConfidenceClass(confidence) {
+    if (confidence >= 0.8) return 'confidence-high';
+    if (confidence >= 0.6) return 'confidence-medium';
+    return 'confidence-low';
+}
+
+function formatMessage(message) {
+    // Convertir URLs en links
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    message = message.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+    
+    // Convertir saltos de línea
+    message = message.replace(/\n/g, '<br>');
+    
+    return message;
+}
+
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('es-CO', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('chatMessages');
+    if (!messagesContainer) return;
+    setTimeout(() => {
+        const needsScroll = messagesContainer.scrollHeight > messagesContainer.clientHeight + 10;
+        if (!needsScroll) {
+            // Si el contenido no supera la altura del contenedor, mantenerse arriba
+            messagesContainer.scrollTop = 0;
+            return;
+        }
+        const last = messagesContainer.lastElementChild;
+        if (last && typeof last.scrollIntoView === 'function') {
+            last.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        } else {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }, 50);
+}
+
+function disableChat() {
+    document.getElementById('messageInput').disabled = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('humanBtn').disabled = true;
+}
+
+function clearChat() {
+    if (confirm('¿Estás seguro de que quieres limpiar el chat?')) {
+        document.getElementById('chatMessages').innerHTML = '';
+        messageHistory = [];
+        toastr.info('Chat limpiado');
+    }
+}
+
+function showHistory() {
+    window.open('{% url "historial_chatbot" %}', '_blank');
+}
+
+function showHelp() {
+    displaySystemMessage(`
+        <strong>🤖 Comandos y Funciones de EcoBot:</strong><br><br>
+        
+        <strong>💬 Preguntas frecuentes:</strong><br>
+        • "¿Cuántos puntos tengo?"<br>
+        • "¿Cómo canjear materiales?"<br>
+        • "¿Qué materiales aceptan?"<br>
+        • "¿Cuál es mi nivel?"<br><br>
+        
+        <strong>🎮 Juegos y Actividades:</strong><br>
+        • "Juegos disponibles"<br>
+        • "¿Cómo jugar?"<br><br>
+        
+        <strong>👤 Ayuda Humana:</strong><br>
+        • Usa el botón "👤 Humano" para hablar con una persona<br>
+        • Di "quiero hablar con una persona"<br><br>
+        
+        <strong>⚡ Acciones Rápidas:</strong><br>
+        • Usa los botones de acción rápida<br>
+        • Presiona Enter para enviar mensajes<br>
+        • Shift+Enter para nueva línea
+    `);
+}
+
+function loadChatHistory() {
+    // Aquí podrías cargar mensajes recientes de conversaciones anteriores
+    // Por ahora, solo mostramos un mensaje de bienvenida si no hay mensajes
+    setTimeout(() => {
+        const messagesContainer = document.getElementById('chatMessages');
+        if (messagesContainer.children.length === 0) {
+            displaySystemMessage('¡Hola! Espera un momento mientras EcoBot se conecta...');
+        }
+    }, 1000);
+}
+</script>
+{% endblock %}

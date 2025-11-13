@@ -1,0 +1,689 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad | Eco Puntos</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+<style>
+    :root {
+        --primary: #4caf50;
+        --primary-dark: #388e3c;
+        --primary-light: #c8e6c9;
+        --accent: #8bc34a;
+        --text-dark: #263238;
+        --text-light: #f5f5f5;
+        --gray-light: #f9f9f9;
+        --gray: #e0e0e0;
+        --success: #66bb6a;
+        --info: #29b6f6;
+        --warning: #ffa726;
+        --gradient-1: linear-gradient(135deg, #43a047 0%, #7cb342 100%);
+        --gradient-2: linear-gradient(135deg, #2e7d32 0%, #558b2f 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    }
+    
+    body {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 50%, #e8f5e8 100%);
+        font-family: 'Poppins', sans-serif;
+        color: var(--text-dark);
+        line-height: 1.7;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .top-nav {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(33, 150, 243, 0.2);
+        padding: 15px 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .top-nav .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .brand-link {
+        color: #2196f3;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .brand-link:hover {
+        color: #1976d2;
+        text-decoration: none;
+        transform: scale(1.05);
+    }
+    
+    .back-link {
+        color: #666;
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 8px 15px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        transition: all 0.3s ease;
+    }
+    
+    .back-link:hover {
+        background: #2196f3;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+    
+    .main-container {
+        padding: 40px 0;
+        min-height: 100vh;
+    }
+    
+    .privacy-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
+        border-radius: 25px;
+        box-shadow: var(--card-shadow);
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .privacy-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+        animation: float 20s infinite linear;
+        pointer-events: none;
+    }
+    
+    @keyframes float {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(-50px, -50px) rotate(360deg); }
+    }
+    
+    .privacy-header h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .privacy-header p {
+        font-size: 1.3rem;
+        opacity: 0.95;
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .privacy-content {
+        background: white;
+        border-radius: 20px;
+        padding: 50px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 30px;
+        border-left: 5px solid #2196f3;
+    }
+    
+    .privacy-section {
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid var(--gray-light);
+    }
+    
+    .privacy-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .section-title {
+        color: #1976d2;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .section-title i {
+        background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
+        color: white;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .privacy-text {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        text-align: justify;
+    }
+    
+    .privacy-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .privacy-list li {
+        background: #e3f2fd;
+        margin: 10px 0;
+        padding: 15px 20px;
+        border-radius: 10px;
+        border-left: 4px solid #2196f3;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .privacy-list li:hover {
+        background: #bbdefb;
+        transform: translateX(5px);
+    }
+    
+    .privacy-list li::before {
+        content: '🔒';
+        position: absolute;
+        left: -15px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #2196f3;
+        color: white;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .data-table th {
+        background: var(--gradient-1);
+        color: white;
+        font-weight: 600;
+    }
+    
+    .data-table tr:hover {
+        background: #f5f5f5;
+    }
+    
+    .highlight-box {
+        background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+        border: 2px solid #2196f3;
+        border-radius: 15px;
+        padding: 25px;
+        margin: 25px 0;
+        position: relative;
+    }
+    
+    .highlight-box::before {
+        content: '🛡️';
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        background: #2196f3;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 25px;
+        font-size: 1.2rem;
+    }
+    
+    .contact-info {
+        background: var(--gradient-2);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        margin-top: 30px;
+    }
+    
+    .contact-info h3 {
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+    }
+    
+    .contact-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .contact-item {
+        background: rgba(255,255,255,0.1);
+        padding: 15px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .last-updated {
+        text-align: center;
+        color: var(--gray);
+        font-style: italic;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-light);
+    }
+    
+    @media (max-width: 768px) {
+        .privacy-header h1 {
+            font-size: 2.5rem;
+        }
+        
+        .privacy-content {
+            padding: 30px 25px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+        }
+        
+        .privacy-text {
+            font-size: 1rem;
+        }
+        
+        .data-table {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+</head>
+
+<body>
+<!-- Barra superior minimalista -->
+<nav class="top-nav">
+    <div class="container">
+        <a href="{% url 'index' %}" class="brand-link">
+            <i class="fas fa-leaf me-2"></i>
+            <strong>EcoPuntos</strong>
+        </a>
+        <a href="{% url 'index' %}" class="back-link">
+            <i class="fas fa-arrow-left me-2"></i>
+            Volver al inicio
+        </a>
+    </div>
+</nav>
+
+<div class="main-container">
+    <div class="container">
+        <!-- Header de Privacidad -->
+        <div class="privacy-header animate__animated animate__fadeInDown">
+            <h1><i class="fas fa-shield-alt me-3"></i>Política de Privacidad</h1>
+            <p>Tu privacidad es importante para nosotros. Conoce cómo protegemos tus datos personales</p>
+        </div>
+
+        <!-- Contenido de Privacidad -->
+        <div class="privacy-content animate__animated animate__fadeInUp">
+            
+            <!-- Sección 1: Introducción -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    1. Introducción
+                </h2>
+                <p class="privacy-text">
+                    En <strong>EcoPuntos</strong>, valoramos y respetamos tu privacidad. Esta Política de Privacidad 
+                    describe cómo recopilamos, utilizamos, compartimos y protegemos tu información personal cuando 
+                    utilizas nuestros servicios de reciclaje y plataforma de recompensas.
+                </p>
+                <p class="privacy-text">
+                    Al utilizar nuestros servicios, aceptas las prácticas descritas en esta política. Te recomendamos 
+                    leer este documento completo para entender nuestros compromisos con tu privacidad.
+                </p>
+            </div>
+
+            <!-- Sección 2: Información que Recopilamos -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-database"></i>
+                    2. Información que Recopilamos
+                </h2>
+                
+                <h4>Información Personal Directa:</h4>
+                <ul class="privacy-list">
+                    <li>Nombre de usuario y contraseña</li>
+                    <li>Dirección de correo electrónico</li>
+                    <li>Información de perfil (nombre, foto, biografía)</li>
+                    <li>Historial de canjes y transacciones</li>
+                    <li>Preferencias de recompensas</li>
+                </ul>
+                
+                <h4>Información Técnica Automática:</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo de Dato</th>
+                            <th>Propósito</th>
+                            <th>Retención</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Dirección IP</td>
+                            <td>Seguridad y geolocalización</td>
+                            <td>90 días</td>
+                        </tr>
+                        <tr>
+                            <td>Información del dispositivo</td>
+                            <td>Optimización de experiencia</td>
+                            <td>1 año</td>
+                        </tr>
+                        <tr>
+                            <td>Cookies de sesión</td>
+                            <td>Funcionalidad de la plataforma</td>
+                            <td>Hasta cerrar sesión</td>
+                        </tr>
+                        <tr>
+                            <td>Logs de actividad</td>
+                            <td>Debugging y mejoras</td>
+                            <td>6 meses</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sección 3: Cómo Utilizamos tu Información -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-cogs"></i>
+                    3. Cómo Utilizamos tu Información
+                </h2>
+                <ul class="privacy-list">
+                    <li>Gestionar tu cuenta y proporcionar servicios de reciclaje</li>
+                    <li>Calcular y otorgar EcoPuntos por tus actividades</li>
+                    <li>Procesar canjes y entregar recompensas</li>
+                    <li>Comunicar actualizaciones importantes del servicio</li>
+                    <li>Mejorar nuestros servicios mediante análisis de uso</li>
+                    <li>Detectar y prevenir fraudes o actividades sospechosas</li>
+                    <li>Cumplir con obligaciones legales y regulatorias</li>
+                </ul>
+            </div>
+
+            <!-- Sección 4: Compartir Información -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-share-alt"></i>
+                    4. Cuándo Compartimos tu Información
+                </h2>
+                <div class="highlight-box">
+                    <strong>Compromiso de No Venta:</strong> Nunca vendemos tu información personal a terceros 
+                    para fines comerciales o publicitarios.
+                </div>
+                
+                <p class="privacy-text">Compartimos información únicamente en estos casos limitados:</p>
+                <ul class="privacy-list">
+                    <li>Con proveedores de servicios que nos ayudan a operar la plataforma</li>
+                    <li>Cuando sea requerido por ley o autoridades competentes</li>
+                    <li>Para proteger nuestros derechos, seguridad o la de otros usuarios</li>
+                    <li>En caso de fusión, adquisición o venta de activos (con notificación previa)</li>
+                </ul>
+            </div>
+
+            <!-- Sección 5: Seguridad de Datos -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-lock"></i>
+                    5. Seguridad y Protección
+                </h2>
+                <p class="privacy-text">
+                    Implementamos múltiples capas de seguridad para proteger tu información:
+                </p>
+                <ul class="privacy-list">
+                    <li>Encriptación SSL/TLS para todas las comunicaciones</li>
+                    <li>Cifrado de contraseñas con algoritmos seguros</li>
+                    <li>Monitoreo continuo de sesiones y actividades sospechosas</li>
+                    <li>Acceso restringido a datos personales por parte del personal</li>
+                    <li>Copias de seguridad regulares en servidores seguros</li>
+                    <li>Auditorías de seguridad periódicas</li>
+                </ul>
+            </div>
+
+            <!-- Sección 6: Tus Derechos -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-user-check"></i>
+                    6. Tus Derechos sobre tu Información
+                </h2>
+                <p class="privacy-text">Tienes los siguientes derechos sobre tu información personal:</p>
+                <ul class="privacy-list">
+                    <li><strong>Acceso:</strong> Solicitar una copia de tu información personal</li>
+                    <li><strong>Rectificación:</strong> Corregir información inexacta o incompleta</li>
+                    <li><strong>Eliminación:</strong> Solicitar la eliminación de tu información</li>
+                    <li><strong>Portabilidad:</strong> Obtener tus datos en formato transferible</li>
+                    <li><strong>Oposición:</strong> Oponerte a ciertos usos de tu información</li>
+                    <li><strong>Limitación:</strong> Restringir el procesamiento en ciertos casos</li>
+                </ul>
+                
+                <div class="highlight-box">
+                    <strong>Cómo Ejercer tus Derechos:</strong> Puedes ejercer cualquiera de estos derechos 
+                    contactándonos a través de nuestros canales oficiales. Responderemos a tu solicitud 
+                    dentro de los 30 días hábiles siguientes.
+                </div>
+            </div>
+
+            <!-- Sección 7: Cookies y Tecnologías -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-cookie-bite"></i>
+                    7. Cookies y Tecnologías de Seguimiento
+                </h2>
+                <p class="privacy-text">Utilizamos las siguientes tecnologías:</p>
+                <ul class="privacy-list">
+                    <li><strong>Cookies Esenciales:</strong> Necesarias para el funcionamiento básico</li>
+                    <li><strong>Cookies de Sesión:</strong> Para mantener tu sesión activa</li>
+                    <li><strong>Cookies de Preferencias:</strong> Para recordar tus configuraciones</li>
+                    <li><strong>LocalStorage:</strong> Para mejorar el rendimiento de la aplicación</li>
+                </ul>
+                <p class="privacy-text">
+                    Puedes configurar tu navegador para rechazar cookies, aunque esto puede afectar 
+                    la funcionalidad de algunos servicios.
+                </p>
+            </div>
+
+            <!-- Sección 8: Transferencias Internacionales -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-globe-americas"></i>
+                    8. Transferencias Internacionales
+                </h2>
+                <p class="privacy-text">
+                    Nuestros servidores están ubicados en Colombia. Si accedes a nuestros servicios desde 
+                    otros países, tu información puede ser transferida y procesada en Colombia bajo las 
+                    leyes locales de protección de datos.
+                </p>
+                <p class="privacy-text">
+                    Garantizamos el mismo nivel de protección independientemente de la ubicación del procesamiento.
+                </p>
+            </div>
+
+            <!-- Sección 9: Retención de Datos -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    9. Retención de Información
+                </h2>
+                <ul class="privacy-list">
+                    <li>Información de cuenta: Mientras mantengas tu cuenta activa</li>
+                    <li>Historial de transacciones: 5 años (por requerimientos fiscales)</li>
+                    <li>Logs de seguridad: 2 años</li>
+                    <li>Datos de marketing: Hasta que solicites eliminación</li>
+                    <li>Información de soporte: 3 años después de resolver el caso</li>
+                </ul>
+            </div>
+
+            <!-- Sección 10: Cambios en la Política -->
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-edit"></i>
+                    10. Cambios en esta Política
+                </h2>
+                <p class="privacy-text">
+                    Podemos actualizar esta Política de Privacidad ocasionalmente. Te notificaremos sobre 
+                    cambios importantes por correo electrónico o mediante un aviso prominente en nuestra plataforma.
+                </p>
+                <p class="privacy-text">
+                    La fecha de "Última actualización" al final de esta política indica cuándo fue modificada por última vez.
+                </p>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="contact-info">
+                <h3><i class="fas fa-phone-alt me-2"></i>Contacto para Privacidad</h3>
+                <p>Para consultas sobre privacidad y protección de datos:</p>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope me-2"></i>
+                        <strong>Email:</strong> ecopuntos2@gmail.com
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone me-2"></i>
+                        <strong>Teléfono:</strong> +57 324 960 5589
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-user-shield me-2"></i>
+                        <strong>Oficial de Privacidad:</strong> ECO PUNTOS S.A.S
+                    </div>
+                </div>
+            </div>
+
+            <!-- Última Actualización -->
+            <div class="last-updated">
+                <p>Última actualización: {{ fecha_actualizacion|default:"31 de agosto de 2025" }}</p>
+                <p>Versión: 1.0</p>
+            </div>
+
+            <!-- Botón de Regreso -->
+            <div class="text-center mt-4">
+                <a href="{% url 'iniciosesion' %}" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Monitor de Sesión -->
+{% if user.is_authenticated %}
+<link rel="stylesheet" href="{% static 'core/css/session-monitor.css' %}">
+<script>
+    document.body.dataset.userAuthenticated = 'true';
+</script>
+<script src="{% static 'core/js/session-monitor.js' %}"></script>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animaciones suaves al hacer scroll
+    const sections = document.querySelectorAll('.privacy-section');
+    
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    sections.forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'all 0.6s ease';
+        observer.observe(section);
+    });
+    
+    // Efecto hover para las filas de la tabla
+    document.querySelectorAll('.data-table tr').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.02)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+});
+</script>
+
+</body>
+</html>

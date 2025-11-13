@@ -1,0 +1,70 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}¡Canje Aprobado! - Eco Puntos{% endblock %}
+
+{% block header_subtitle %}¡Felicitaciones! 🎉{% endblock %}
+
+{% block content %}
+<h2>¡Excelentes noticias, {{ usuario.username }}! 🎉</h2>
+
+<p>Tu canje ha sido <strong style="color: #4caf50;">APROBADO</strong> exitosamente. ¡Has contribuido al cuidado del medio ambiente!</p>
+
+<div class="points">
+    <p class="number">{{ puntos }}</p>
+    <p class="text">puntos ganados</p>
+    <small style="color: #856404;">¡Ya están disponibles en tu cuenta!</small>
+</div>
+
+<div class="highlight-box">
+    <h3 style="margin-top: 0; color: #4caf50;">✅ Resumen del canje aprobado:</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Número de canje:</div>
+            <div class="info-value">#{{ canje.id }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Material:</div>
+            <div class="info-value">{{ material }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Peso verificado:</div>
+            <div class="info-value">{{ peso }} kg</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Puntos por kg:</div>
+            <div class="info-value">{{ canje.material.precio_por_kg }} puntos</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Total de puntos:</div>
+            <div class="info-value"><strong>{{ puntos }} puntos</strong></div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Fecha de aprobación:</div>
+            <div class="info-value">{{ canje.fecha_aprobacion|date:"d/m/Y H:i"|default:"Ahora" }}</div>
+        </div>
+    </div>
+</div>
+
+<h3>🎁 ¿Qué puedes hacer ahora?</h3>
+<ul>
+    <li><strong>Ver tus puntos:</strong> Consulta tu saldo actualizado</li>
+    <li><strong>Solicitar retiros:</strong> Canjea tus puntos por recompensas</li>
+    <li><strong>Seguir reciclando:</strong> ¡Continúa sumando puntos!</li>
+</ul>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="http://127.0.0.1:8000/mispuntos/" class="button">Ver mis puntos</a>
+    <br><br>
+    <a href="http://127.0.0.1:8000/canjes/" style="color: #4caf50; text-decoration: none;">Solicitar otro canje</a>
+</div>
+
+<div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+    <h4 style="color: #4caf50; margin-top: 0;">🌱 ¡Gracias por tu compromiso!</h4>
+    <p style="margin-bottom: 0;">Con tu aporte has ayudado a reducir {{ peso }} kg de residuos del medio ambiente. ¡Eres parte del cambio hacia un planeta más sostenible!</p>
+</div>
+
+<p>Gracias por confiar en Eco Puntos. ¡Sigamos reciclando juntos! 🌍♻️</p>
+
+<p>Saludos,<br>
+<strong>El equipo de Eco Puntos</strong></p>
+{% endblock %}

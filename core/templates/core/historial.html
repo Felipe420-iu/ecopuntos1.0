@@ -1,0 +1,682 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Historial de Reciclaje | Eco Puntos{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<style>
+  :root {
+    --primary: #4caf50;
+    --primary-dark: #388e3c;
+    --primary-light: #c8e6c9;
+    --accent: #8bc34a;
+    --text-dark: #263238;
+    --text-light: #f5f5f5;
+    --gray-light: #f9f9f9;
+    --gray: #e0e0e0;
+    --success: #66bb6a;
+    --info: #29b6f6;
+    --warning: #ffa726;
+    --bg-primary: #f8fff8;
+    --bg-secondary: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.95);
+    --shadow-light: 0 8px 32px rgba(76, 175, 80, 0.1);
+    --shadow-medium: 0 12px 40px rgba(76, 175, 80, 0.15);
+    --gradient-primary: linear-gradient(135deg, #4caf50 0%, #66bb6a 50%, #8bc34a 100%);
+    --gradient-accent: linear-gradient(135deg, #29b6f6 0%, #42a5f5 50%, #64b5f6 100%);
+    --border-radius: 20px;
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--gray-light);
+    color: var(--text-dark);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-image: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 50%, #f9fbe7 100%);
+  }
+
+  .main-container {
+    position: relative;
+    z-index: 10;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Header Mejorado */
+  .page-header {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    border: 2px solid var(--gray);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .page-title {
+    color: var(--text-dark);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: none;
+  }
+
+  .page-subtitle {
+    color: rgba(38, 50, 56, 0.7);
+    font-size: 1.1rem;
+    margin-top: 10px;
+    font-weight: 300;
+  }
+
+  /* Dashboard de Estadísticas */
+  .stats-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    border: 2px solid var(--gray);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-light);
+  }
+
+  .stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--primary);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .stat-value {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    text-shadow: none;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .stat-label {
+    color: var(--text-dark);
+    opacity: 0.7;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Sección de Gráficas */
+  .charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+  }
+
+  .chart-container {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 30px;
+    border: 2px solid var(--gray);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: relative;
+  }
+
+  .chart-title {
+    color: var(--text-dark);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+
+  .chart-canvas {
+    position: relative;
+    height: 400px;
+    width: 100%;
+  }
+
+  /* Tabla de Historial Mejorada */
+  .history-section {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 30px;
+    border: 2px solid var(--gray);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+  }
+
+  .section-title {
+    color: var(--text-dark);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    text-shadow: none;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--gray);
+  }
+
+  .history-table th {
+    background: var(--primary);
+    color: white;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .history-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--gray);
+    color: var(--text-dark);
+    background: white;
+  }
+
+  .history-table tr:hover {
+    background: var(--primary-light);
+  }
+
+  .status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .status-aprobado {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--primary-dark);
+    border: 1px solid var(--primary);
+  }
+
+  .status-pendiente {
+    background: rgba(255, 167, 38, 0.2);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+  }
+
+  .status-rechazado {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border: 1px solid #dc3545;
+  }
+
+  /* Animaciones */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .stat-card, .chart-container, .history-section {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .stat-card:nth-child(2) { animation-delay: 0.1s; }
+  .stat-card:nth-child(3) { animation-delay: 0.2s; }
+  .stat-card:nth-child(4) { animation-delay: 0.3s; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .charts-section {
+      grid-template-columns: 1fr;
+    }
+    
+    .stats-dashboard {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .page-title {
+      font-size: 2rem;
+    }
+    
+    .chart-canvas {
+      height: 300px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stats-dashboard {
+      grid-template-columns: 1fr;
+    }
+    
+    .main-container {
+      padding: 15px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">
+      <i class="fas fa-chart-line"></i>
+      Historial de Reciclaje
+    </h1>
+    <p class="page-subtitle">Tu impacto ambiental en tiempo real</p>
+  </div>
+
+  <!-- Dashboard de Estadísticas -->
+  <div class="stats-dashboard">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-recycle"></i>
+      </div>
+      <div class="stat-value">{{ total_canjes }}</div>
+      <div class="stat-label">Canjes Aprobados</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-coins"></i>
+      </div>
+      <div class="stat-value">{{ total_puntos|floatformat:0 }}</div>
+      <div class="stat-label">Puntos Ganados</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-weight"></i>
+      </div>
+      <div class="stat-value">{{ total_peso_reciclado|floatformat:1 }} kg</div>
+      <div class="stat-label">Peso Reciclado</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div class="stat-value">${{ total_dinero|floatformat:0 }}</div>
+      <div class="stat-label">Dinero Ganado</div>
+    </div>
+  </div>
+
+  <!-- Gráficas Avanzadas -->
+  <div class="charts-section">
+    <!-- Gráfica de Evolución Temporal -->
+    <div class="chart-container">
+      <h3 class="chart-title">
+        <i class="fas fa-chart-area"></i>
+        Evolución de Puntos por Mes
+      </h3>
+      <div class="chart-canvas">
+        <canvas id="puntosChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfica de Materiales -->
+    <div class="chart-container">
+      <h3 class="chart-title">
+        <i class="fas fa-chart-pie"></i>
+        Distribución por Material
+      </h3>
+      <div class="chart-canvas">
+        <canvas id="materialesChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfica de Comparación -->
+    <div class="chart-container">
+      <h3 class="chart-title">
+        <i class="fas fa-chart-bar"></i>
+        Puntos vs Peso por Material
+      </h3>
+      <div class="chart-canvas">
+        <canvas id="comparacionChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfica de Tendencia -->
+    <div class="chart-container">
+      <h3 class="chart-title">
+        <i class="fas fa-chart-line"></i>
+        Tendencia de Canjes
+      </h3>
+      <div class="chart-canvas">
+        <canvas id="tendenciaChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial Detallado -->
+  <div class="history-section">
+    <h2 class="section-title">
+      <i class="fas fa-history"></i>
+      Historial Detallado de Canjes
+    </h2>
+    
+    {% if canjes %}
+    <div class="table-responsive">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th><i class="fas fa-calendar"></i> Fecha</th>
+            <th><i class="fas fa-leaf"></i> Material</th>
+            <th><i class="fas fa-weight"></i> Peso</th>
+            <th><i class="fas fa-coins"></i> Puntos</th>
+            <th><i class="fas fa-info-circle"></i> Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for canje in canjes %}
+          <tr>
+            <td>{{ canje.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+            <td>{{ canje.material.nombre }}</td>
+            <td>
+              {% if canje.peso_real %}
+                {{ canje.peso_real }} kg
+                {% if canje.peso != canje.peso_real %}
+                  <small style="opacity: 0.7;">(orig: {{ canje.peso }} kg)</small>
+                {% endif %}
+              {% else %}
+                {{ canje.peso }} kg
+              {% endif %}
+            </td>
+            <td>
+              {% if canje.puntos_finales %}
+                {{ canje.puntos_finales }}
+                {% if canje.puntos != canje.puntos_finales %}
+                  <small style="opacity: 0.7;">(orig: {{ canje.puntos }})</small>
+                {% endif %}
+              {% else %}
+                {{ canje.puntos }}
+              {% endif %}
+            </td>
+            <td>
+              <span class="status-badge status-{{ canje.estado }}">
+                {{ canje.get_estado_display }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: rgba(38,50,56,0.7);">
+      <i class="fas fa-leaf" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.5;"></i>
+      <p style="font-size: 1.2rem;">¡Aún no tienes canjes registrados!</p>
+      <p>Empieza a reciclar y contribuye al medio ambiente.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración global de Chart.js
+    Chart.defaults.color = '#263238';
+    Chart.defaults.font.family = 'Poppins';
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    
+    const chartColors = [
+        'rgba(76, 175, 80, 0.8)',    // Verde principal EcoPuntos
+        'rgba(139, 195, 74, 0.8)',   // Verde accent
+        'rgba(41, 182, 246, 0.8)',   // Azul info
+        'rgba(255, 167, 38, 0.8)',   // Naranja warning
+        'rgba(102, 187, 106, 0.8)',  // Verde success
+        'rgba(66, 165, 245, 0.8)'    // Azul claro
+    ];
+
+    // Datos del backend con verificaciones de seguridad
+    const meses = {{ meses_json|safe|default:"[]" }};
+    const puntosData = {{ puntos_por_mes_json|safe|default:"[]" }};
+    const canjesData = {{ canjes_por_mes_json|safe|default:"[]" }};
+    const materialesNombres = {{ materiales_nombres_json|safe|default:"[]" }};
+    const materialesCounts = {{ materiales_counts_json|safe|default:"[]" }};
+    const materialesPuntos = {{ materiales_puntos_json|safe|default:"[]" }};
+    const materialesPesos = {{ materiales_pesos_json|safe|default:"[]" }};
+
+    // Verificar que los datos existen antes de crear gráficas
+    if (!meses || !Array.isArray(meses)) {
+        console.warn('Datos de meses no válidos:', meses);
+        return;
+    }
+
+    // 1. Gráfica de Evolución de Puntos
+    const puntosCtx = document.getElementById('puntosChart').getContext('2d');
+    new Chart(puntosCtx, {
+        type: 'line',
+        data: {
+            labels: meses,
+            datasets: [{
+                label: 'Puntos Ganados',
+                data: puntosData,
+                borderColor: 'rgba(76, 175, 80, 1)',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(76, 175, 80, 1)',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(38, 50, 56, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(38, 50, 56, 0.8)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(38, 50, 56, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(38, 50, 56, 0.8)'
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Gráfica de Distribución por Material
+    if (materialesNombres.length > 0) {
+        const materialesCtx = document.getElementById('materialesChart').getContext('2d');
+        new Chart(materialesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: materialesNombres,
+                datasets: [{
+                    data: materialesCounts,
+                    backgroundColor: chartColors.slice(0, materialesNombres.length),
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            color: 'rgba(38, 50, 56, 0.9)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Gráfica de Comparación Puntos vs Peso
+        const comparacionCtx = document.getElementById('comparacionChart').getContext('2d');
+        new Chart(comparacionCtx, {
+            type: 'bar',
+            data: {
+                labels: materialesNombres,
+                datasets: [{
+                    label: 'Puntos',
+                    data: materialesPuntos,
+                    backgroundColor: 'rgba(76, 175, 80, 0.8)',
+                    borderColor: 'rgba(76, 175, 80, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Peso (kg)',
+                    data: materialesPesos,
+                    backgroundColor: 'rgba(41, 182, 246, 0.8)',
+                    borderColor: 'rgba(41, 182, 246, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: {
+                            color: 'rgba(38, 50, 56, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(38, 50, 56, 0.8)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            color: 'rgba(38, 50, 56, 0.8)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(38, 50, 56, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(38, 50, 56, 0.8)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'rgba(38, 50, 56, 0.9)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 4. Gráfica de Tendencia de Canjes
+    const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
+    new Chart(tendenciaCtx, {
+        type: 'bar',
+        data: {
+            labels: meses,
+            datasets: [{
+                label: 'Canjes Realizados',
+                data: canjesData,
+                backgroundColor: chartColors[1],
+                borderColor: 'rgba(139, 195, 74, 1)',
+                borderWidth: 1,
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(38, 50, 56, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(38, 50, 56, 0.8)',
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(38, 50, 56, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(38, 50, 56, 0.8)'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

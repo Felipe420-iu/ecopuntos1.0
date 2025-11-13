@@ -1,0 +1,376 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Logros | Eco Puntos{% endblock %}
+
+{% block extra_css %}
+<style>        :root {
+            --primary: #4caf50;
+            --primary-dark: #388e3c;
+            --primary-light: #c8e6c9;
+            --accent: #8bc34a;
+            --text-dark: #263238;
+            --text-light: #f5f5f5;
+            --gray-light: #f9f9f9;
+            --gray: #e0e0e0;
+            --success: #66bb6a;
+            --info: #29b6f6;
+            --warning: #ffa726;
+            --gradient-1: linear-gradient(135deg, #43a047 0%, #7cb342 100%);
+            --gradient-2: linear-gradient(135deg, #2e7d32 0%, #558b2f 100%);
+        }
+
+        body {
+            min-height: 100vh;
+            background: url('{% static "core/img/nature-3294681_1920 (1) (1).jpg" %}') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Montserrat', sans-serif;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.2) 100%);
+            backdrop-filter: blur(1px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Header y navegación */
+        .header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 15px 0;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .menu {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .menu a:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Contenedor de Logros */
+        .achievements-container {
+            position: relative;
+            z-index: 1;
+            padding: 40px 20px;
+        }
+
+        .achievement-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .achievement-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .achievement-icon i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .achievement-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 15px;
+        }
+
+        .achievement-description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .achievement-progress {
+            height: 10px;
+            background: var(--gray-light);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .achievement-stats {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .achievement-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--success);            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .badge-success {
+            background: var(--success) !important;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+        }
+        
+        .badge-secondary {
+            background: #6c757d !important;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+        }
+        
+        .btn-success {
+            background: var(--gradient-1);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-outline-success {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-success:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .display-4 {
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .lead {
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+</style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container achievements-container">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1 class="display-4 text-white mb-3">🏆 Mis Logros Ecológicos</h1>
+                <p class="lead text-white">Descubre todos los logros que has desbloqueado en tu aventura ecológica</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for logro in logros %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="achievement-card">
+                    <div class="achievement-icon">
+                        {% if logro.tipo == 'registro' %}
+                            <i class="fas fa-seedling"></i>
+                        {% elif logro.tipo == 'primera_sesion' %}
+                            <i class="fas fa-rocket"></i>
+                        {% elif logro.tipo == 'reciclaje' %}
+                            <i class="fas fa-recycle"></i>
+                        {% elif logro.tipo == 'nivel' %}
+                            <i class="fas fa-medal"></i>
+                        {% elif logro.tipo == 'explorador' %}
+                            <i class="fas fa-compass"></i>
+                        {% elif logro.tipo == 'actividad' %}
+                            <i class="fas fa-shield-alt"></i>
+                        {% else %}
+                            <i class="fas fa-trophy"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="achievement-title">
+                        {% if logro.tipo == 'registro' %}
+                            🌱 Ecologista Junior
+                        {% elif logro.tipo == 'primera_sesion' %}
+                            🚀 Primera Aventura
+                        {% elif logro.tipo == 'reciclaje' %}
+                            ♻️ Reciclador Novato
+                        {% elif logro.tipo == 'nivel' %}
+                            🏅 Eco Guerrero
+                        {% elif logro.tipo == 'explorador' %}
+                            🧭 Explorador Verde
+                        {% elif logro.tipo == 'actividad' %}
+                            🛡️ Guardián Ambiental
+                        {% else %}
+                            {{ logro.tipo|capfirst }}
+                        {% endif %}
+                    </h3>
+                    
+                    <p class="achievement-description">{{ logro.descripcion }}</p>
+                    
+                    <div class="achievement-stats">
+                        <span class="badge badge-success">+{{ logro.puntos }} puntos</span>
+                        <span class="text-muted">{{ logro.fecha_creacion|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    <div class="achievement-badge">
+                        ¡Desbloqueado!                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <div class="achievement-card">
+                    <div class="achievement-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="achievement-title">¡Tu aventura ecológica comienza aquí!</h3>
+                    <p class="achievement-description">
+                        No tienes logros aún, pero eso está a punto de cambiar. 
+                        Participa en actividades, realiza canjes y explora la plataforma para desbloquear increíbles logros.
+                    </p>
+                    <div class="mt-3">
+                        <a href="{% url 'canjes' %}" class="btn btn-success mr-2">Realizar Canje</a>
+                        <a href="{% url 'dashusuario' %}" class="btn btn-outline-success">Explorar Dashboard</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Sección de logros próximos -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h2 class="text-white text-center mb-4">🎯 Próximos Logros por Desbloquear</h2>
+            </div>
+            
+            {% if not logros or logros|length < 6 %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="achievement-card" style="opacity: 0.7; border: 2px dashed #ddd;">
+                        <div class="achievement-icon" style="background: #ccc;">
+                            <i class="fas fa-compass"></i>
+                        </div>
+                        <h3 class="achievement-title">🧭 Explorador Verde</h3>
+                        <p class="achievement-description">Visita diferentes secciones de la plataforma</p>
+                        <div class="achievement-stats">
+                            <span class="badge badge-secondary">+30 puntos</span>
+                            <span class="text-muted">Próximamente</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="achievement-card" style="opacity: 0.7; border: 2px dashed #ddd;">
+                        <div class="achievement-icon" style="background: #ccc;">
+                            <i class="fas fa-medal"></i>
+                        </div>
+                        <h3 class="achievement-title">🏅 Eco Guerrero</h3>
+                        <p class="achievement-description">Alcanza un nuevo nivel ecológico</p>
+                        <div class="achievement-stats">
+                            <span class="badge badge-secondary">+100 puntos</span>
+                            <span class="text-muted">Próximamente</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="achievement-card" style="opacity: 0.7; border: 2px dashed #ddd;">
+                        <div class="achievement-icon" style="background: #ccc;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="achievement-title">🛡️ Guardián Ambiental</h3>
+                        <p class="achievement-description">Mantén actividad constante por una semana</p>
+                        <div class="achievement-stats">
+                            <span class="badge badge-secondary">+150 puntos</span>
+                            <span class="text-muted">Próximamente</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+<!-- Sistema de Notificaciones -->
+{% include 'core/includes/notification_system.html' %}
+
+{% endblock %}

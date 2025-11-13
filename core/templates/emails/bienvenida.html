@@ -1,0 +1,88 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}¡Bienvenido a Eco Puntos! - Tu aventura verde comienza{% endblock %}
+
+{% block header_subtitle %}¡Bienvenido a la comunidad! 🌱{% endblock %}
+
+{% block content %}
+<h2>¡Hola {{ usuario.username }}! 👋</h2>
+
+<p><strong>¡Bienvenido a Eco Puntos!</strong> Nos emociona que te hayas unido a nuestra comunidad de recicladores comprometidos con el medio ambiente.</p>
+
+<div style="background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
+    <h3 style="color: #4caf50; margin-top: 0;">🎉 ¡Tu cuenta está lista!</h3>
+    <p style="font-size: 18px; margin-bottom: 0;">Ya puedes empezar a ganar puntos reciclando y contribuir a un planeta más limpio.</p>
+</div>
+
+<h3>🚀 ¿Cómo empezar?</h3>
+
+<div style="margin: 20px 0;">
+    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <div style="background: #4caf50; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">1</div>
+        <div>
+            <strong>Solicita un canje:</strong> Selecciona el material que quieres reciclar y estima su peso
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <div style="background: #4caf50; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">2</div>
+        <div>
+            <strong>Programa recolección:</strong> Si necesitas, solicita que recolectemos el material en tu domicilio
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <div style="background: #4caf50; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">3</div>
+        <div>
+            <strong>Gana puntos:</strong> Nuestro equipo verifica tu material y te otorga los puntos correspondientes
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: center;">
+        <div style="background: #4caf50; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">4</div>
+        <div>
+            <strong>Canjea recompensas:</strong> Usa tus puntos para obtener beneficios y recompensas
+        </div>
+    </div>
+</div>
+
+<h3>♻️ Materiales que puedes reciclar</h3>
+<ul>
+    <li><strong>🔩 Metales:</strong> Aluminio, cobre, hierro, bronce</li>
+    <li><strong>📦 Cartón:</strong> Cajas, empaques, papel</li>
+    <li><strong>🍶 Vidrio:</strong> Botellas, frascos, envases</li>
+    <li><strong>🥤 Plástico:</strong> Botellas PET, envases, tapas</li>
+    <li><strong>🔋 Electrónicos:</strong> Cables, componentes, baterías</li>
+</ul>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="http://127.0.0.1:8000/canjes/" class="button">Hacer mi primer canje</a>
+    <br><br>
+    <a href="http://127.0.0.1:8000/recompensas/" style="color: #4caf50; text-decoration: none;">Ver recompensas disponibles</a>
+</div>
+
+<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <h4 style="color: #856404; margin-top: 0;">💡 Consejos para empezar:</h4>
+    <ul style="color: #856404; margin-bottom: 0;">
+        <li>Limpia y seca bien los materiales antes de reciclar</li>
+        <li>Clasifica correctamente según el tipo de material</li>
+        <li>Toma fotos claras para facilitar la verificación</li>
+        <li>Activa las notificaciones para estar al día con tus canjes</li>
+    </ul>
+</div>
+
+<h3>📧 Configurar notificaciones</h3>
+<p>Puedes personalizar qué notificaciones deseas recibir en tu <a href="http://127.0.0.1:8000/perfil/" style="color: #4caf50;">perfil de usuario</a>. Te recomendamos mantener activas las notificaciones de canjes para estar al día.</p>
+
+<div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+    <h4 style="color: #4caf50; margin-top: 0;">🌍 ¡Gracias por unirte al cambio!</h4>
+    <p style="margin-bottom: 0;">Cada material que recicles es un paso hacia un futuro más sostenible. ¡Bienvenido a nuestra comunidad verde!</p>
+</div>
+
+<p>Si tienes alguna pregunta, no dudes en contactarnos. ¡Estamos aquí para ayudarte!</p>
+
+<p>¡Feliz reciclaje! 🌱♻️</p>
+
+<p>Saludos,<br>
+<strong>El equipo de Eco Puntos</strong></p>
+{% endblock %}

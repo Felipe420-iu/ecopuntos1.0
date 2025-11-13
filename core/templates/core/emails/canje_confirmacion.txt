@@ -1,0 +1,38 @@
+EcoPuntos - Confirmación de Canje de Puntos
+===========================================
+
+¡Canje Solicitado Exitosamente!
+
+Estimado/a {{ usuario.get_full_name|default:usuario.username }},
+
+Hemos recibido tu solicitud de canje de puntos. A continuación encontrarás todos los detalles de tu transacción:
+
+DETALLES DEL CANJE
+==================
+
+Número de Transacción: #{{ redencion.id }}
+Fecha y Hora: {{ redencion.fecha_solicitud|date:"d/m/Y H:i" }}
+Puntos Canjeados: {{ redencion.puntos }} puntos
+Valor a Recibir: ${{ redencion.valor_cop }} COP
+Método de Pago: {{ redencion.get_metodo_pago_display }}
+Número de Cuenta: {{ redencion.numero_cuenta }}
+
+ESTADO
+======
+{{ redencion.get_estado_display|upper }}
+
+Tu solicitud está siendo procesada. Nuestro equipo revisará tu solicitud y procesará el pago en un plazo de 1-3 días hábiles.
+
+Te notificaremos por correo electrónico y a través de la plataforma cuando tu canje haya sido procesado.
+
+¿TIENES ALGUNA PREGUNTA?
+=========================
+Email: ecopuntos2@gmail.com
+Whatsapp: +57 300 123 4567
+Horario de Atención: Lunes a Viernes, 8:00 AM - 6:00 PM
+
+¡Gracias por ser parte de EcoPuntos!
+Juntos estamos construyendo un futuro más sostenible 🌱
+
+---
+Este correo fue enviado automáticamente, por favor no respondas a este mensaje.

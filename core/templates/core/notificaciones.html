@@ -1,0 +1,374 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Notificaciones - Eco Puntos{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-bell text-primary me-2"></i>
+                        Mis Notificaciones
+                    </h2>
+                    <p class="text-muted mb-0">Mantente al día con todas tus actividades en EcoPuntos</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary me-2" id="markAllReadBtn">
+                        <i class="fas fa-check me-1"></i>Marcar todas como leídas
+                    </button>
+                    <button class="btn btn-outline-danger" id="clearAllBtn">
+                        <i class="fas fa-trash me-1"></i>Limpiar todas
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary active" data-filter="all">
+                                    <i class="fas fa-list me-1"></i>Todas
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" data-filter="unread">
+                                    <i class="fas fa-circle me-1"></i>No leídas
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" data-filter="read">
+                                    <i class="far fa-circle me-1"></i>Leídas
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <select class="form-select d-inline-block w-auto" id="typeFilter">
+                                <option value="all">Todos los tipos</option>
+                                <option value="canje_aprobado">Canjes aprobados</option>
+                                <option value="canje_pendiente">Canjes pendientes</option>
+                                <option value="recompensa_canjeada">Recompensas</option>
+                                <option value="sistema">Sistema</option>
+                                <option value="perfil_actualizado">Perfil</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Notificaciones -->
+            <div id="notificationsContainer">
+                <!-- Las notificaciones se cargarán aquí -->
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingSpinner" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-5" style="display: none;">
+                <div class="mb-3">
+                    <i class="fas fa-bell-slash fa-3x text-muted"></i>
+                </div>
+                <h4 class="text-muted">No hay notificaciones</h4>
+                <p class="text-muted">Cuando recibas notificaciones, aparecerán aquí</p>
+                <a href="{% url 'dashusuario' %}" class="btn btn-primary">
+                    <i class="fas fa-home me-1"></i>Ir al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+    cursor: pointer;
+}
+
+.notification-card.unread {
+    border-left-color: #4caf50;
+    background-color: #f8fff8;
+}
+
+.notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.notification-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: white;
+}
+
+.notification-icon.canje_aprobado {
+    background: linear-gradient(135deg, #4caf50, #45a049);
+}
+
+.notification-icon.canje_pendiente {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.notification-icon.sistema {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.notification-icon.recompensa_canjeada {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.notification-icon.perfil_actualizado {
+    background: linear-gradient(135deg, #607d8b, #455a64);
+}
+
+.notification-icon.default {
+    background: linear-gradient(135deg, #666, #555);
+}
+
+.filter-active {
+    background-color: #4caf50 !important;
+    border-color: #4caf50 !important;
+    color: white !important;
+}
+</style>
+
+<script>
+class NotificationPage {
+    constructor() {
+        this.notifications = [];
+        this.currentFilter = 'all';
+        this.currentType = 'all';
+        this.init();
+    }
+
+    init() {
+        this.loadNotifications();
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        // Filtros de estado
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.currentFilter = e.target.dataset.filter;
+                this.filterNotifications();
+            });
+        });
+
+        // Filtro de tipo
+        document.getElementById('typeFilter').addEventListener('change', (e) => {
+            this.currentType = e.target.value;
+            this.filterNotifications();
+        });
+
+        // Marcar todas como leídas
+        document.getElementById('markAllReadBtn').addEventListener('click', () => {
+            this.markAllAsRead();
+        });
+
+        // Limpiar todas
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            this.clearAll();
+        });
+    }
+
+    async loadNotifications() {
+        try {
+            const response = await fetch('/api/notificaciones/');
+            if (response.ok) {
+                const data = await response.json();
+                this.notifications = data.results || data;
+                this.renderNotifications();
+            }
+        } catch (error) {
+            console.error('Error cargando notificaciones:', error);
+        } finally {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+    }
+
+    filterNotifications() {
+        let filtered = [...this.notifications];
+
+        // Filtrar por estado
+        if (this.currentFilter === 'unread') {
+            filtered = filtered.filter(n => !n.leida);
+        } else if (this.currentFilter === 'read') {
+            filtered = filtered.filter(n => n.leida);
+        }
+
+        // Filtrar por tipo
+        if (this.currentType !== 'all') {
+            filtered = filtered.filter(n => n.tipo === this.currentType);
+        }
+
+        this.renderNotifications(filtered);
+    }
+
+    renderNotifications(notificationsToRender = null) {
+        const notifications = notificationsToRender || this.notifications;
+        const container = document.getElementById('notificationsContainer');
+        const emptyState = document.getElementById('emptyState');
+
+        if (notifications.length === 0) {
+            container.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        container.innerHTML = notifications.map(notification => 
+            this.createNotificationCard(notification)
+        ).join('');
+
+        // Agregar event listeners
+        container.querySelectorAll('.notification-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const notificationId = card.dataset.notificationId;
+                this.markAsRead(notificationId);
+            });
+        });
+    }
+
+    createNotificationCard(notification) {
+        const isUnread = !notification.leida;
+        const iconClass = this.getIconClass(notification.tipo);
+        const timeAgo = this.formatDate(notification.fecha_creacion);
+
+        return `
+            <div class="card notification-card mb-3 ${isUnread ? 'unread' : ''}" data-notification-id="${notification.id}">
+                <div class="card-body">
+                    <div class="d-flex align-items-start">
+                        <div class="notification-icon ${notification.tipo} me-3">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">${notification.titulo}</h5>
+                                ${isUnread ? '<span class="badge bg-success">Nueva</span>' : ''}
+                            </div>
+                            <p class="card-text text-muted">${notification.mensaje}</p>
+                            <small class="text-muted">
+                                <i class="far fa-clock me-1"></i>${timeAgo}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getIconClass(tipo) {
+        const icons = {
+            'canje_aprobado': 'fa-check-circle',
+            'canje_pendiente': 'fa-clock',
+            'recompensa_canjeada': 'fa-star',
+            'sistema': 'fa-info-circle',
+            'perfil_actualizado': 'fa-user-edit',
+            'foto_actualizada': 'fa-camera'
+        };
+        return icons[tipo] || 'fa-bell';
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+        
+        if (diffInMinutes < 1) return 'Ahora mismo';
+        if (diffInMinutes < 60) return `Hace ${diffInMinutes} minutos`;
+        
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `Hace ${diffInHours} horas`;
+        
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) return `Hace ${diffInDays} días`;
+        
+        return date.toLocaleDateString('es-ES');
+    }
+
+    async markAsRead(notificationId) {
+        try {
+            const response = await fetch(`/api/notificaciones/${notificationId}/marcar-leida/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                // Actualizar localmente
+                const notification = this.notifications.find(n => n.id == notificationId);
+                if (notification) {
+                    notification.leida = true;
+                    this.filterNotifications();
+                }
+            }
+        } catch (error) {
+            console.error('Error marcando notificación:', error);
+        }
+    }
+
+    async markAllAsRead() {
+        try {
+            const response = await fetch('/api/notificaciones/marcar-todas-leidas/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                this.notifications.forEach(n => n.leida = true);
+                this.filterNotifications();
+            }
+        } catch (error) {
+            console.error('Error marcando todas:', error);
+        }
+    }
+
+    async clearAll() {
+        if (!confirm('¿Estás seguro de que quieres eliminar todas las notificaciones?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/notificaciones/vaciar-todas/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                this.notifications = [];
+                this.renderNotifications();
+            }
+        } catch (error) {
+            console.error('Error limpiando notificaciones:', error);
+        }
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    new NotificationPage();
+});
+</script>
+{% endblock %}

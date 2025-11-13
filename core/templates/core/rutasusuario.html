@@ -1,0 +1,2024 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Rutas de Recolección | Eco Puntos{% endblock title %}
+
+{% block content %}
+    <div class="main-content">
+        <div class="container-fluid">
+            <!-- Encabezado de la sección -->
+            <div class="section-header-container" style="background: rgba(255,255,255,0.9); border-radius: 18px; box-shadow: 0 4px 18px rgba(76,175,80,0.08); padding: 32px 10px 24px 10px; margin-bottom: 40px; margin-top: 20px; max-width: 1200px; margin-left: auto; margin-right: auto;">
+                <div class="section-header fade-in">
+                    <h2 style="color: var(--primary-dark); font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(76,175,80,0.08);">
+                        <i class="fas fa-route me-3"></i>Sistema de Rutas de Recolección
+                    </h2>
+                    <p style="color: #000300; font-size: 1.15rem; font-weight: 500; letter-spacing: 0.2px;">
+                        Gestiona tus canjes con recolección domiciliaria y agenda nuevos servicios
+                    </p>
+                </div>
+            </div>
+
+            <!-- Navegación por tabs -->
+            <div class="content-wrapper" style="max-width: 1200px; margin: 0 auto;">
+            <ul class="nav nav-tabs mb-4" id="rutasTabs" role="tablist" style="border: none;">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active modern-tab" id="mis-canjes-recoleccion-tab" data-bs-toggle="tab" data-bs-target="#mis-canjes-recoleccion" type="button" role="tab">
+                        <i class="fas fa-box-open me-2"></i>Mis Canjes con Recolección
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link modern-tab" id="agendar-ruta-tab" data-bs-toggle="tab" data-bs-target="#agendar-ruta" type="button" role="tab">
+                        <i class="fas fa-calendar-plus me-2"></i>Solicitar Nueva Recolección
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link modern-tab" id="historial-rutas-tab" data-bs-toggle="tab" data-bs-target="#historial-rutas" type="button" role="tab">
+                        <i class="fas fa-history me-2"></i>Historial de Rutas
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="rutasTabContent">
+                <!-- Tab 1: Mis Canjes con Recolección -->
+                <div class="tab-pane fade show active" id="mis-canjes-recoleccion" role="tabpanel">
+                    <div class="row">
+                        {% if user_canjes_recoleccion %}
+                            {% for canje_data in user_canjes_recoleccion %}
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card-canje-ruta h-100">
+                                        <div class="card-header-custom">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0 fw-bold">
+                                                    <i class="fas fa-leaf me-2 text-success"></i>
+                                                    {{ canje_data.canje.material.nombre }}
+                                                </h6>
+                                                <span class="estado-badge estado-{{ canje_data.canje.estado }}">
+                                                    {{ canje_data.canje.get_estado_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card-body-custom">
+                                            <div class="info-grid">
+                                                <div class="info-item">
+                                                    <i class="fas fa-weight-hanging text-primary"></i>
+                                                    <span class="info-label">Peso:</span>
+                                                    <span class="info-value">{{ canje_data.canje.peso }} kg</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="fas fa-coins text-warning"></i>
+                                                    <span class="info-label">Puntos:</span>
+                                                    <span class="info-value">{{ canje_data.canje.puntos }}</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="fas fa-calendar text-info"></i>
+                                                    <span class="info-label">Solicitud:</span>
+                                                    <span class="info-value">{{ canje_data.canje.fecha_solicitud|date:"d/m/Y" }}</span>
+                                                </div>
+                                            </div>
+
+                                            {% if canje_data.canje.direccion_recoleccion %}
+                                                <div class="direccion-info">
+                                                    <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                                    <span>{{ canje_data.canje.direccion_recoleccion|truncatechars:40 }}</span>
+                                                </div>
+                                            {% endif %}
+
+                                            {% if canje_data.canje.telefono_contacto %}
+                                                <div class="contacto-info">
+                                                    <i class="fas fa-phone text-success me-2"></i>
+                                                    <span>{{ canje_data.canje.telefono_contacto }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="card-footer-custom">
+                                            {% if canje_data.ruta_info %}
+                                                <div class="ruta-status">
+                                                    <div class="ruta-info-header">
+                                                        <i class="fas fa-truck text-primary me-2"></i>
+                                                        <strong>{{ canje_data.ruta_info.nombre }}</strong>
+                                                    </div>
+                                                    <div class="ruta-details">
+                                                        <span class="ruta-estado ruta-{{ canje_data.ruta_info.estado }}">
+                                                            {{ canje_data.ruta_info.get_estado_display }}
+                                                        </span>
+                                                        {% if canje_data.ruta_info.fecha_programada %}
+                                                            <div class="fecha-programada">
+                                                                <i class="fas fa-clock me-1"></i>
+                                                                {{ canje_data.ruta_info.fecha_programada|date:"d/m/Y H:i" }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="sin-ruta">
+                                                    <i class="fas fa-hourglass-half text-warning me-2"></i>
+                                                    <span>Pendiente de asignación a ruta</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                    <h4>No tienes canjes con recolección</h4>
+                                    <p>¡Solicita tu primer canje con recolección domiciliaria!</p>
+                                    <a href="/canjes/" class="btn btn-success btn-lg">
+                                        <i class="fas fa-plus me-2"></i>Solicitar Canje con Recolección
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tab 2: Solicitar Nueva Recolección -->
+                <div class="tab-pane fade" id="agendar-ruta" role="tabpanel">
+                    <div class="card-canje">
+                        <div class="form-header">
+                            <h3 class="text-center mb-4">
+                                <i class="fas fa-calendar-plus me-3"></i>Solicitar Nueva Recolección
+                            </h3>
+                            <p class="text-center text-muted">
+                                Agenda una recolección directa de materiales reciclables en tu domicilio
+                            </p>
+                        </div>
+
+                        <form id="nuevaRecoleccionForm" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <!-- Paso 1: Información Personal -->
+                            <div class="form-step active" id="step-1">
+                                <div class="step-header">
+                                    <div class="step-number">1</div>
+                                    <div class="step-info">
+                                        <h5>Información de Contacto de Entrega</h5>
+                                        <p>Datos necesarios para la recolección</p>
+                                    </div>
+                                </div>
+
+                                {% if user_data.telefono or user_data.direccion %}
+                                <div class="alert alert-info d-flex align-items-center mb-3" style="border-radius: 12px; background: rgba(13,110,253,0.1); border: 1px solid rgba(13,110,253,0.2);">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <small>Los campos se han llenado automáticamente con los datos de tu perfil. Puedes modificarlos si lo deseas.</small>
+                                </div>
+                                {% endif %}
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nombre_completo" class="form-label">Nombre Completo *</label>
+                                        <input type="text" class="form-control modern-input" id="nombre_completo" name="nombre_completo" 
+                                               placeholder="Ingresa tu nombre completo" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="telefono" class="form-label">Teléfono de Contacto *</label>
+                                        <input type="tel" class="form-control modern-input" id="telefono" name="telefono" 
+                                               value="{{ user_data.telefono }}" required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Correo Electrónico *</label>
+                                        <input type="email" class="form-control modern-input" id="email" name="email" 
+                                               value="{{ user_data.email }}" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="direccion" class="form-label">Dirección Completa *</label>
+                                    <textarea class="form-control modern-input" id="direccion" name="direccion" rows="3" 
+                                              placeholder="Incluye barrio, referencias y detalles para ubicar fácilmente" required>{{ user_data.direccion }}</textarea>
+                                </div>
+
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-success btn-lg" onclick="nextStep(2)">
+                                        Siguiente <i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Paso 2: Selección de Canjes Pendientes -->
+                            <div class="form-step" id="step-2">
+                                <div class="step-header">
+                                    <div class="step-number">2</div>
+                                    <div class="step-info">
+                                        <h5>Canjes Pendientes para Recolección</h5>
+                                        <p>Selecciona los canjes que deseas incluir en la recolección</p>
+                                    </div>
+                                </div>
+
+                                {% if canjes_aprobados %}
+                                    <div class="canjes-grid">
+                                        {% for canje in canjes_aprobados %}
+                                            <div class="canje-option" data-canje-id="{{ canje.id }}">
+                                                <div class="canje-header">
+                                                    <div class="material-icon-small {{ canje.material.nombre|lower }}">
+                                                        {% if canje.material.nombre|lower == 'plástico' %}
+                                                            <i class="fas fa-bottle-water"></i>
+                                                        {% elif canje.material.nombre|lower == 'papel' or canje.material.nombre|lower == 'cartón' %}
+                                                            <i class="fas fa-newspaper"></i>
+                                                        {% elif canje.material.nombre|lower == 'metal' %}
+                                                            <i class="fas fa-cog"></i>
+                                                        {% elif canje.material.nombre|lower == 'vidrio' %}
+                                                            <i class="fas fa-wine-bottle"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-recycle"></i>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="canje-info">
+                                                        <h6>{{ canje.material.nombre }}</h6>
+                                                        <span class="canje-status">{{ canje.get_estado_display }}</span>
+                                                    </div>
+                                                    <div class="canje-select">
+                                                        <input type="checkbox" class="canje-checkbox" name="canjes_seleccionados" value="{{ canje.id }}">
+                                                    </div>
+                                                </div>
+
+                                                <div class="canje-details">
+                                                    <div class="detail-item">
+                                                        <i class="fas fa-weight-hanging text-primary"></i>
+                                                        <span class="detail-label">Peso:</span>
+                                                        <span class="detail-value">{{ canje.peso }} kg</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <i class="fas fa-coins text-warning"></i>
+                                                        <span class="detail-label">Puntos:</span>
+                                                        <span class="detail-value">{{ canje.puntos }}</span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <i class="fas fa-calendar text-info"></i>
+                                                        <span class="detail-label">Fecha:</span>
+                                                        <span class="detail-value">{{ canje.fecha_aprobacion|date:"d/m/Y"|default:canje.fecha_solicitud|date:"d/m/Y" }}</span>
+                                                    </div>
+                                                </div>
+
+                                                {% if canje.foto_material_inicial %}
+                                                    <div class="canje-image">
+                                                        <img src="{{ canje.foto_material_inicial.url }}" alt="Material" class="material-thumbnail">
+                                                    </div>
+                                                {% endif %}
+
+                                                <div class="canje-summary">
+                                                    <small class="text-muted">
+                                                        Material pendiente y listo para recolección domiciliaria
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    <div class="selection-summary mt-4 p-3" style="background: rgba(76,175,80,0.1); border-radius: 12px; display: none;">
+                                        <h6><i class="fas fa-check-circle text-success me-2"></i>Resumen de Selección</h6>
+                                        <div id="selected-canjes-summary"></div>
+                                    </div>
+                                {% else %}
+                                    <div class="empty-canjes-state">
+                                        <div class="empty-icon">
+                                            <i class="fas fa-inbox"></i>
+                                        </div>
+                                        <h4>No tienes canjes pendientes</h4>
+                                        <p>Para solicitar recolección domiciliaria, primero necesitas tener canjes pendientes.</p>
+                                        <a href="/canjes/" class="btn btn-success btn-lg">
+                                            <i class="fas fa-plus me-2"></i>Solicitar Canjes
+                                        </a>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Resumen de selección -->
+                                <div class="selection-summary" id="selection-summary">
+                                    <h5><i class="fas fa-check-circle me-2"></i>Canjes Seleccionados</h5>
+                                    <div id="selected-canjes-summary">
+                                        <!-- Se llena dinámicamente con JavaScript -->
+                                    </div>
+                                </div>
+
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                                        <i class="fas fa-arrow-left me-2"></i>Anterior
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-lg" onclick="nextStep(3)">
+                                        Siguiente <i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Paso 3: Fecha y Hora -->
+                            <div class="form-step" id="step-3">
+                                <div class="step-header">
+                                    <div class="step-number">3</div>
+                                    <div class="step-info">
+                                        <h5>Programación</h5>
+                                        <p>Elige la fecha y hora más conveniente</p>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="fecha_preferida" class="form-label">Fecha Preferida *</label>
+                                        <input type="date" class="form-control modern-input" id="fecha_preferida" name="fecha_preferida" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="hora_preferida" class="form-label">Hora Preferida *</label>
+                                        <select class="form-control modern-input" id="hora_preferida" name="hora_preferida" required>
+                                            <option value="">Seleccionar hora</option>
+                                            <option value="08:00">08:00 AM</option>
+                                            <option value="08:15">08:15 AM</option>
+                                            <option value="08:30">08:30 AM</option>
+                                            <option value="08:45">08:45 AM</option>
+                                            <option value="09:00">09:00 AM</option>
+                                            <option value="09:15">09:15 AM</option>
+                                            <option value="09:30">09:30 AM</option>
+                                            <option value="09:45">09:45 AM</option>
+                                            <option value="10:00">10:00 AM</option>
+                                            <option value="10:15">10:15 AM</option>
+                                            <option value="10:30">10:30 AM</option>
+                                            <option value="10:45">10:45 AM</option>
+                                            <option value="11:00">11:00 AM</option>
+                                            <option value="11:15">11:15 AM</option>
+                                            <option value="11:30">11:30 AM</option>
+                                            <option value="11:45">11:45 AM</option>
+                                            <option value="12:00">12:00 PM</option>
+                                            <option value="12:15">12:15 PM</option>
+                                            <option value="12:30">12:30 PM</option>
+                                            <option value="12:45">12:45 PM</option>
+                                            <option value="13:00">01:00 PM</option>
+                                            <option value="13:15">01:15 PM</option>
+                                            <option value="13:30">01:30 PM</option>
+                                            <option value="13:45">01:45 PM</option>
+                                            <option value="14:00">02:00 PM</option>
+                                            <option value="14:15">02:15 PM</option>
+                                            <option value="14:30">02:30 PM</option>
+                                            <option value="14:45">02:45 PM</option>
+                                            <option value="15:00">03:00 PM</option>
+                                            <option value="15:15">03:15 PM</option>
+                                            <option value="15:30">03:30 PM</option>
+                                            <option value="15:45">03:45 PM</option>
+                                            <option value="16:00">04:00 PM</option>
+                                            <option value="16:15">04:15 PM</option>
+                                            <option value="16:30">04:30 PM</option>
+                                            <option value="16:45">04:45 PM</option>
+                                            <option value="17:00">05:00 PM</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="notas_adicionales" class="form-label">Notas Adicionales</label>
+                                    <textarea class="form-control modern-input" id="notas_adicionales" name="notas_adicionales" rows="3" 
+                                              placeholder="Información adicional que consideres importante para la recolección"></textarea>
+                                </div>
+
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                        <i class="fas fa-arrow-left me-2"></i>Anterior
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-lg" onclick="nextStep(4)">
+                                        Revisar <i class="fas fa-check ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Paso 4: Confirmación -->
+                            <div class="form-step" id="step-4">
+                                <div class="step-header">
+                                    <div class="step-number">4</div>
+                                    <div class="step-info">
+                                        <h5>Confirmación</h5>
+                                        <p>Revisa y confirma tu solicitud</p>
+                                    </div>
+                                </div>
+
+                                <div id="resumen-solicitud" class="resumen-container">
+                                    <!-- Se llena dinámicamente con JavaScript -->
+                                </div>
+
+                                <div class="step-actions">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3)">
+                                        <i class="fas fa-arrow-left me-2"></i>Anterior
+                                    </button>
+                                    <button type="submit" class="btn btn-success btn-lg" id="btnConfirmar">
+                                        <i class="fas fa-paper-plane me-2"></i>Confirmar Solicitud
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Historial de Rutas -->
+                <div class="tab-pane fade" id="historial-rutas" role="tabpanel">
+                    <div class="card-canje">
+                        <h4 class="mb-4">
+                            <i class="fas fa-history me-2"></i>Historial de Rutas Completadas
+                        </h4>
+                        
+                        <div class="historial-container">
+                            {% if historial_rutas %}
+                                {% for ruta in historial_rutas %}
+                                    <div class="historial-item">
+                                        <div class="historial-header">
+                                            <h6>{{ ruta.nombre }}</h6>
+                                            <span class="fecha">{{ ruta.fecha_completada|date:"d/m/Y" }}</span>
+                                        </div>
+                                        <div class="historial-details">
+                                            <p><strong>Materiales:</strong> {{ ruta.materiales_recolectados }}</p>
+                                            <p><strong>Peso Total:</strong> {{ ruta.peso_total }} kg</p>
+                                            <p><strong>Puntos Otorgados:</strong> {{ ruta.puntos_otorgados }}</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <h4>Sin historial de rutas</h4>
+                                    <p>Aún no tienes rutas completadas</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div> <!-- Cierre del content-wrapper -->
+        </div> <!-- Cambié </main> por </div> -->
+    </div>
+
+    <style>
+        /* Override estilos base para evitar problemas responsive */
+        .main-content {
+            padding: 20px 15px !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        .container {
+            max-width: 1200px !important;
+            width: 100% !important;
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+        }
+        
+        :root {
+            --primary: #4caf50;
+            --primary-dark: #388e3c;
+            --primary-light: #c8e6c9;
+            --accent: #8bc34a;
+            --text-dark: #263238;
+            --success: #66bb6a;
+            --info: #29b6f6;
+            --warning: #ffa726;
+            --danger: #ef5350;
+        }
+
+        /* Estilos para las tabs modernas */
+        .nav-tabs {
+            border: none;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .modern-tab {
+            background: rgba(255,255,255,0.9);
+            border: 2px solid transparent;
+            border-radius: 15px 15px 0 0;
+            color: #666;
+            font-weight: 600;
+            padding: 15px 25px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: auto;
+        }
+
+        .modern-tab:hover {
+            background: rgba(76,175,80,0.1);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .modern-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 5px 15px rgba(76,175,80,0.3);
+        }
+
+        /* Cards de canjes mejorados */
+        .card-canje-ruta {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(76,175,80,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: none;
+        }
+
+        /* Card principal para formularios */
+        .card-canje {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(76,175,80,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: none;
+        }
+        
+        /* Asegurar que las columnas se comporten bien */
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        .col-12, .col-md-6, .col-md-4 {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        
+        /* Tabs container */
+        .nav-tabs {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        
+        .tab-content {
+            width: 100%;
+        }
+        
+        /* Formulario responsive */
+        .form-step {
+            width: 100%;
+            max-width: none;
+        }
+        
+        /* Section header responsive */
+        .section-header-container {
+            width: 100%;
+            max-width: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card-canje-ruta:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(76,175,80,0.2);
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
+
+        .card-footer-custom {
+            background: rgba(248,249,250,0.8);
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Estados con colores */
+        .estado-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .estado-pendiente_recoleccion { background: #fff3cd; color: #856404; }
+        .estado-en_recoleccion { background: #d4edda; color: #155724; }
+        .estado-completado { background: #d1ecf1; color: #0c5460; }
+        .estado-cancelado { background: #f8d7da; color: #721c24; }
+
+        /* Grid de información */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Información de dirección y contacto */
+        .direccion-info, .contacto-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Estado de rutas */
+        .ruta-status {
+            background: rgba(76,175,80,0.1);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .ruta-info-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .ruta-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .ruta-estado {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .ruta-planificada { background: #fff3cd; color: #856404; }
+        .ruta-en_progreso { background: #d4edda; color: #155724; }
+        .ruta-completada { background: #d1ecf1; color: #0c5460; }
+
+        .fecha-programada {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .sin-ruta {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 15px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h4 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* Card principal para formularios */
+        .card-canje {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(76,175,80,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Formulario paso a paso */
+        .form-step {
+            display: none;
+        }
+
+        /* Estilos para selección de canjes */
+        .canje-card.selected {
+            border: 2px solid #28a745;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .canje-checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            accent-color: #28a745;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .selected-canje-item {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #28a745;
+            font-size: 0.9em;
+        }
+
+        .selection-summary {
+            display: none;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(255, 255, 255, 0.9));
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .totals-summary {
+            font-weight: 600;
+            color: #155724;
+        }
+
+        .canje-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .canje-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-step.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 20px;
+        }
+
+        .step-info h5 {
+            margin: 0;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .step-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Inputs modernos */
+        .modern-input {
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .modern-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(76,175,80,0.25);
+            outline: none;
+        }
+
+        /* Grid de materiales */
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Grid de canjes pendientes */
+        .canjes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .canje-option {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .canje-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76,175,80,0.15);
+        }
+
+        .canje-option.selected {
+            border-color: var(--primary);
+            background: rgba(76,175,80,0.05);
+            box-shadow: 0 5px 20px rgba(76,175,80,0.2);
+        }
+
+        .canje-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .material-icon-small {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .material-icon-small.plástico { background: rgba(52,152,219,0.1); color: #3498db; }
+        .material-icon-small.papel { background: rgba(155,89,182,0.1); color: #9b59b6; }
+        .material-icon-small.cartón { background: rgba(155,89,182,0.1); color: #9b59b6; }
+        .material-icon-small.metal { background: rgba(241,196,15,0.1); color: #f1c40f; }
+        .material-icon-small.vidrio { background: rgba(46,204,113,0.1); color: #2ecc71; }
+
+        .canje-info {
+            flex-grow: 1;
+        }
+
+        .canje-info h6 {
+            margin: 0 0 5px 0;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .canje-status {
+            display: inline-block;
+            background: #d4edda;
+            color: #155724;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .canje-select {
+            flex-shrink: 0;
+        }
+
+        .canje-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        .canje-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .canje-image {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .material-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .canje-summary {
+            text-align: center;
+            padding-top: 10px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Estado vacío para canjes */
+        .empty-canjes-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-canjes-state .empty-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-canjes-state h4 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* Resumen de selección */
+        .selection-summary {
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .material-option {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .material-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(76,175,80,0.15);
+        }
+
+        .material-option.selected {
+            border-color: var(--primary);
+            background: rgba(76,175,80,0.05);
+        }
+
+        .material-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 15px;
+        }
+
+        .material-icon.plastico { background: rgba(52,152,219,0.1); color: #3498db; }
+        .material-icon.papel { background: rgba(155,89,182,0.1); color: #9b59b6; }
+        .material-icon.metal { background: rgba(241,196,15,0.1); color: #f1c40f; }
+        .material-icon.vidrio { background: rgba(46,204,113,0.1); color: #2ecc71; }
+
+        .peso-input {
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .peso-input label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* Acciones de pasos */
+        .step-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Resumen de solicitud */
+        .resumen-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .resumen-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .resumen-section h6 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .resumen-section p {
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .material-resumen {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(76,175,80,0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .material-tipo {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .material-peso {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Historial */
+        .historial-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .historial-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .historial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .historial-details p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - Desktop First */
+        .container {
+            max-width: 1200px !important;
+        }
+        
+        .modern-tab {
+            padding: 15px 25px;
+            font-size: 1rem;
+            margin-right: 5px;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .materials-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .canjes-grid {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .resumen-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .step-actions {
+            flex-direction: row;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .step-actions .btn {
+            width: auto;
+            min-width: 150px;
+        }
+        
+        /* Tablet */
+        @media (max-width: 992px) {
+            .container {
+                max-width: 960px !important;
+            }
+            
+            .canjes-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+            
+            .resumen-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            .modern-tab {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .materials-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .canjes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step-actions {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .step-actions .btn {
+                width: 100%;
+            }
+
+            .resumen-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animaciones adicionales */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .card-canje-ruta:hover .estado-badge {
+            animation: pulse 0.6s ease;
+        }
+
+        .material-option:hover .material-icon {
+            transform: scale(1.1);
+            transition: transform 0.3s ease;
+        }
+
+        /* Loading states */
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn.loading::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar datos del usuario si está autenticado
+            if (window.user_name) document.getElementById('nombre_completo').value = window.user_name;
+            if (window.user_email) document.getElementById('email').value = window.user_email;
+            
+            // Configurar fecha mínima (mañana)
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('fecha_preferida').min = tomorrow.toISOString().split('T')[0];
+            
+            // Configurar restricciones de fecha (sin domingos ni festivos)
+            configurarRestriccionesFecha();
+            
+            // Event listeners para selección de materiales
+            setupMaterialSelection();
+        });
+
+        let currentStep = 1;
+        let selectedMaterials = [];
+
+        // Configuración de restricciones de fecha (sin domingos ni festivos)
+        function configurarRestriccionesFecha() {
+            // Festivos fijos de Colombia 2025-2026
+            const festivosFijos = [
+                '2025-01-01', // Año Nuevo
+                '2025-05-01', // Día del Trabajo
+                '2025-07-20', // Día de la Independencia
+                '2025-08-07', // Batalla de Boyacá
+                '2025-12-08', // Inmaculada Concepción
+                '2025-12-25', // Navidad
+                '2026-01-01', // Año Nuevo
+                '2026-05-01', // Día del Trabajo
+                '2026-07-20', // Día de la Independencia
+                '2026-08-07', // Batalla de Boyacá
+                '2026-12-08', // Inmaculada Concepción
+                '2026-12-25'  // Navidad
+            ];
+
+            // Festivos que se corren al lunes en Colombia (aproximados)
+            const festivosLunes = [
+                '2025-01-06', // Reyes Magos
+                '2025-03-24', // San José
+                '2025-06-30', // San Pedro y San Pablo
+                '2025-08-18', // Asunción
+                '2025-10-13', // Día de la Raza
+                '2025-11-03', // Todos los Santos
+                '2025-11-17', // Independencia de Cartagena
+                '2026-01-12', // Reyes Magos
+                '2026-03-23', // San José
+                '2026-06-29', // San Pedro y San Pablo
+                '2026-08-17', // Asunción
+                '2026-10-12', // Día de la Raza
+                '2026-11-02', // Todos los Santos
+                '2026-11-16'  // Independencia de Cartagena
+            ];
+
+            const todosFestivos = [...festivosFijos, ...festivosLunes];
+
+            function esDomingo(fecha) {
+                return fecha.getDay() === 0; // 0 = domingo
+            }
+
+            function esFestivo(fechaString) {
+                return todosFestivos.includes(fechaString);
+            }
+
+            function validarFecha(input) {
+                const fechaSeleccionada = new Date(input.value + 'T00:00:00');
+                const fechaString = input.value;
+                
+                if (esDomingo(fechaSeleccionada)) {
+                    showToast('No se pueden programar recolecciones los domingos', 'warning');
+                    input.value = '';
+                    return false;
+                }
+                
+                if (esFestivo(fechaString)) {
+                    showToast('No se pueden programar recolecciones en días festivos', 'warning');
+                    input.value = '';
+                    return false;
+                }
+                
+                return true;
+            }
+
+            // Aplicar validación al input de fecha
+            document.getElementById('fecha_preferida').addEventListener('change', function() {
+                validarFecha(this);
+            });
+        }
+
+        function nextStep(step) {
+            if (validateCurrentStep()) {
+                showStep(step);
+            }
+        }
+
+        function prevStep(step) {
+            showStep(step);
+        }
+
+        function showStep(step) {
+            // Ocultar todos los pasos
+            document.querySelectorAll('.form-step').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Mostrar el paso actual
+            document.getElementById(`step-${step}`).classList.add('active');
+            currentStep = step;
+            
+            if (step === 4) {
+                generateSummary();
+            }
+        }
+
+        function validateCurrentStep() {
+            switch(currentStep) {
+                case 1:
+                    const nombre = document.getElementById('nombre_completo').value;
+                    const telefono = document.getElementById('telefono').value;
+                    const direccion = document.getElementById('direccion').value;
+                    
+                    if (!nombre || !telefono || !direccion) {
+                        showToast('Por favor completa todos los campos obligatorios', 'warning');
+                        return false;
+                    }
+                    return true;
+                    
+                case 2:
+                    if (selectedMaterials.length === 0) {
+                        showToast('Selecciona al menos un tipo de material', 'warning');
+                        return false;
+                    }
+                    return true;
+                    
+                case 3:
+                    const fecha = document.getElementById('fecha_preferida').value;
+                    const hora = document.getElementById('hora_preferida').value;
+                    
+                    if (!fecha || !hora) {
+                        showToast('Selecciona una fecha y hora', 'warning');
+                        return false;
+                    }
+                    
+                    // Validar que no sea domingo o festivo
+                    const fechaSeleccionada = new Date(fecha + 'T00:00:00');
+                    const festivos = [
+                        '2025-01-01', '2025-05-01', '2025-07-20', '2025-08-07', '2025-12-08', '2025-12-25',
+                        '2026-01-01', '2026-05-01', '2026-07-20', '2026-08-07', '2026-12-08', '2026-12-25',
+                        '2025-01-06', '2025-03-24', '2025-06-30', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
+                        '2026-01-12', '2026-03-23', '2026-06-29', '2026-08-17', '2026-10-12', '2026-11-02', '2026-11-16'
+                    ];
+                    
+                    if (fechaSeleccionada.getDay() === 0) {
+                        showToast('No se pueden programar recolecciones los domingos', 'warning');
+                        return false;
+                    }
+                    
+                    if (festivos.includes(fecha)) {
+                        showToast('No se pueden programar recolecciones en días festivos', 'warning');
+                        return false;
+                    }
+                    
+                    return true;
+                    
+                default:
+                    return true;
+            }
+        }
+
+        function setupMaterialSelection() {
+            // Nueva función para manejar selección de canjes pendientes
+            setupCanjeSelection();
+        }
+
+        function setupCanjeSelection() {
+            document.querySelectorAll('.canje-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    // Evitar que el click en el checkbox active el evento del contenedor
+                    if (e.target.type === 'checkbox') return;
+                    
+                    const checkbox = this.querySelector('.canje-checkbox');
+                    const canjeId = this.dataset.canjeId;
+                    
+                    // Toggle checkbox
+                    checkbox.checked = !checkbox.checked;
+                    
+                    // Toggle visual state
+                    if (checkbox.checked) {
+                        this.classList.add('selected');
+                        if (!selectedMaterials.find(c => c.id === canjeId)) {
+                            // Obtener datos del canje desde el DOM
+                            const material = this.querySelector('.canje-info h6').textContent;
+                            const peso = this.querySelector('.detail-value').textContent.replace(' kg', '');
+                            const puntos = this.querySelectorAll('.detail-value')[1].textContent;
+                            
+                            selectedMaterials.push({
+                                id: canjeId,
+                                material: material,
+                                peso: peso,
+                                puntos: puntos,
+                                tipo: 'canje'
+                            });
+                        }
+                    } else {
+                        this.classList.remove('selected');
+                        selectedMaterials = selectedMaterials.filter(c => c.id !== canjeId);
+                    }
+                    
+                    updateSelectionSummary();
+                });
+
+                // Event listener directo para el checkbox
+                const checkbox = option.querySelector('.canje-checkbox');
+                checkbox.addEventListener('change', function() {
+                    const canjeId = option.dataset.canjeId;
+                    
+                    if (this.checked) {
+                        option.classList.add('selected');
+                        if (!selectedMaterials.find(c => c.id === canjeId)) {
+                            const material = option.querySelector('.canje-info h6').textContent;
+                            const peso = option.querySelector('.detail-value').textContent.replace(' kg', '');
+                            const puntos = option.querySelectorAll('.detail-value')[1].textContent;
+                            
+                            selectedMaterials.push({
+                                id: canjeId,
+                                material: material,
+                                peso: peso,
+                                puntos: puntos,
+                                tipo: 'canje'
+                            });
+                        }
+                    } else {
+                        option.classList.remove('selected');
+                        selectedMaterials = selectedMaterials.filter(c => c.id !== canjeId);
+                    }
+                    
+                    updateSelectionSummary();
+                });
+            });
+        }
+
+        function updateSelectionSummary() {
+            const summaryContainer = document.querySelector('.selection-summary');
+            const summaryContent = document.getElementById('selected-canjes-summary');
+            
+            if (selectedMaterials.length > 0) {
+                summaryContainer.style.display = 'block';
+                
+                let totalPeso = 0;
+                let totalPuntos = 0;
+                let summaryHtml = '<div class="row">';
+                
+                selectedMaterials.forEach(canje => {
+                    totalPeso += parseFloat(canje.peso) || 0;
+                    totalPuntos += parseInt(canje.puntos) || 0;
+                    
+                    summaryHtml += `
+                        <div class="col-md-6 mb-2">
+                            <div class="selected-canje-item">
+                                <strong>${canje.material}</strong> - ${canje.peso} kg (${canje.puntos} puntos)
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                summaryHtml += '</div>';
+                summaryHtml += `
+                    <div class="totals-summary mt-3 p-3" style="background: white; border-radius: 8px;">
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <strong>Total Peso:</strong> ${totalPeso.toFixed(1)} kg
+                            </div>
+                            <div class="col-6 text-center">
+                                <strong>Total Puntos:</strong> ${totalPuntos}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                summaryContent.innerHTML = summaryHtml;
+            } else {
+                summaryContainer.style.display = 'none';
+            }
+        }
+
+        function generateSummary() {
+            const resumenContainer = document.getElementById('resumen-solicitud');
+            
+            const nombre = document.getElementById('nombre_completo').value;
+            const telefono = document.getElementById('telefono').value;
+            const direccion = document.getElementById('direccion').value;
+            const fecha = document.getElementById('fecha_preferida').value;
+            const hora = document.getElementById('hora_preferida').value;
+            const notas = document.getElementById('notas_adicionales').value;
+            
+            let canjesHtml = '';
+            let totalPeso = 0;
+            let totalPuntos = 0;
+            
+            selectedMaterials.forEach(canje => {
+                totalPeso += parseFloat(canje.peso) || 0;
+                totalPuntos += parseInt(canje.puntos) || 0;
+                
+                canjesHtml += `
+                    <div class="material-resumen">
+                        <span class="material-tipo">${canje.material}</span>
+                        <span class="material-peso">${canje.peso} kg (${canje.puntos} puntos)</span>
+                    </div>
+                `;
+            });
+            
+            resumenContainer.innerHTML = `
+                <h5 class="mb-3">Resumen de tu Solicitud</h5>
+                <div class="resumen-grid">
+                    <div class="resumen-section">
+                        <h6><i class="fas fa-user me-2"></i>Contacto</h6>
+                        <p><strong>Nombre:</strong> ${nombre}</p>
+                        <p><strong>Teléfono:</strong> ${telefono}</p>
+                        <p><strong>Dirección:</strong> ${direccion}</p>
+                    </div>
+                    <div class="resumen-section">
+                        <h6><i class="fas fa-calendar me-2"></i>Programación</h6>
+                        <p><strong>Fecha:</strong> ${formatDate(fecha)}</p>
+                        <p><strong>Hora:</strong> ${hora}</p>
+                    </div>
+                    <div class="resumen-section">
+                        <h6><i class="fas fa-recycle me-2"></i>Canjes para Recolección</h6>
+                        ${canjesHtml}
+                        <div class="mt-2 p-2" style="background: #f8f9fa; border-radius: 6px;">
+                            <small><strong>Total:</strong> ${totalPeso.toFixed(1)} kg - ${totalPuntos} puntos</small>
+                        </div>
+                    </div>
+                    ${notas ? `
+                    <div class="resumen-section">
+                        <h6><i class="fas fa-sticky-note me-2"></i>Notas</h6>
+                        <p>${notas}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            const iconMap = {
+                'success': 'success',
+                'error': 'error',
+                'warning': 'warning',
+                'info': 'info'
+            };
+            
+            Swal.fire({
+                icon: iconMap[type] || 'info',
+                title: type === 'error' ? 'Error' : type === 'success' ? '¡Éxito!' : 'Información',
+                text: message,
+                confirmButtonColor: '#4caf50',
+                timer: type === 'success' ? 3000 : undefined,
+                timerProgressBar: type === 'success'
+            });
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('nuevaRecoleccionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btnConfirmar = document.getElementById('btnConfirmar');
+            const originalText = btnConfirmar.innerHTML;
+            
+            btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+            btnConfirmar.disabled = true;
+            
+            // Preparar datos para envío
+            const formData = new FormData(this);
+            formData.append('materiales_seleccionados', JSON.stringify(selectedMaterials));
+            
+            // Enviar solicitud
+            fetch('{% url "agendar_ruta_usuario" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Solicitud Enviada!',
+                        text: data.message,
+                        confirmButtonColor: '#4caf50'
+                    }).then(() => {
+                        // Resetear formulario y volver al primer paso
+                        document.getElementById('nuevaRecoleccionForm').reset();
+                        selectedMaterials = [];
+                        document.querySelectorAll('.canje-option').forEach(option => {
+                            option.classList.remove('selected');
+                            const checkbox = option.querySelector('.canje-checkbox');
+                            if (checkbox) checkbox.checked = false;
+                        });
+                        document.querySelector('.selection-summary').style.display = 'none';
+                        showStep(1);
+                        
+                        // Cambiar a la primera tab para ver el nuevo estado
+                        document.getElementById('mis-canjes-recoleccion-tab').click();
+                        
+                        // Recargar la página para mostrar cambios
+                        setTimeout(() => location.reload(), 1000);
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error al procesar la solicitud',
+                        confirmButtonColor: '#4caf50'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error de conexión', 'error');
+            })
+            .finally(() => {
+                btnConfirmar.innerHTML = originalText;
+                btnConfirmar.disabled = false;
+            });
+        });
+    </script>
+
+    <!-- Modal de Reagendamiento -->
+    <div class="modal fade" id="reagendamientoModal" tabindex="-1" aria-labelledby="reagendamientoModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 10000 !important;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #FFA726 0%, #FF9800 100%); color: white; border-radius: 15px 15px 0 0;">
+                    <h5 class="modal-title" id="reagendamientoModalLabel">
+                        <i class="fas fa-calendar-alt me-2"></i>🔄 Recolección Reagendada
+                    </h5>
+                    <!-- Removido el botón X para que sea obligatorio leer -->
+                </div>
+                <div class="modal-body text-center" style="padding: 30px;">
+                    <div class="mb-4">
+                        <i class="fas fa-clock text-warning" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                        <h4 style="color: #333; margin-bottom: 15px;">¡Tu recolección ha sido reagendada!</h4>
+                        <p style="color: #666; font-size: 1.1rem;">El conductor ha actualizado la fecha y hora de tu recolección.</p>
+                    </div>
+                    
+                    <div class="alert alert-warning" style="border-radius: 10px; border: none; background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);">
+                        <h6 style="color: #F57C00; margin-bottom: 10px;">📅 Nueva Fecha y Hora:</h6>
+                        <p style="margin: 0; font-size: 1.2rem; font-weight: bold; color: #E65100;">
+                            <span id="reagendamientoNuevaFecha">-</span> a las <span id="reagendamientoNuevaHora">-</span>
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <p><i class="fas fa-envelope text-primary me-2"></i><strong>También hemos enviado esta información a tu correo electrónico.</strong></p>
+                    </div>
+                    
+                    <!-- Información importante sobre las opciones -->
+                    <div class="alert alert-info" style="border-radius: 10px; border: none; background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); margin: 20px 0;">
+                        <h6 style="color: #1976D2; margin-bottom: 10px;"><i class="fas fa-info-circle me-2"></i>Opciones Disponibles:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div style="padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; margin-bottom: 10px;">
+                                    <strong style="color: #4CAF50;">✅ Aceptar:</strong>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #666;">Confirmas el nuevo horario y la recolección se mantendrá programada.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div style="padding: 10px; background: rgba(244, 67, 54, 0.1); border-radius: 8px;">
+                                    <strong style="color: #F44336;">❌ Rechazar:</strong>
+                                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #666;">Necesitarás realizar todo el proceso de recolección nuevamente desde el inicio.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-center" style="border-top: none; padding: 20px 30px;">
+                    <button type="button" class="btn btn-success me-3" id="btnAceptarReagendamiento" style="border-radius: 25px; padding: 12px 30px; font-weight: bold;">
+                        <i class="fas fa-check-circle me-2"></i>Aceptar Reagendamiento
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btnRechazarReagendamiento" style="border-radius: 25px; padding: 12px 30px; font-weight: bold;">
+                        <i class="fas fa-times-circle me-2"></i>Rechazar Reagendamiento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 para notificaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- jQuery (necesario para el modal de reagendamiento) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // Variables globales para el modal
+        let reagendamientoDataGlobal = null;
+        
+        // Mostrar modal de reagendamiento al cargar la página
+        $(document).ready(function() {
+            console.log('🔍 Verificando reagendamientos pendientes...');
+            console.log('✅ jQuery cargado:', typeof $ !== 'undefined');
+            console.log('✅ Bootstrap cargado:', typeof bootstrap !== 'undefined');
+            
+            // Verificar que el modal existe
+            const modalElement = document.getElementById('reagendamientoModal');
+            console.log('🎪 Modal existe:', modalElement !== null);
+            
+            // Pequeño delay para asegurar que la página cargue completamente
+            setTimeout(function() {
+                console.log('⏱️ Ejecutando verificación después de 1 segundo...');
+                verificarReagendamientosPendientes();
+            }, 1000);
+            
+            // También verificar si viene con parámetros URL (desde correo)
+            const urlParams = new URLSearchParams(window.location.search);
+            const reagendada = urlParams.get('reagendada');
+            const nuevaFecha = urlParams.get('nueva_fecha');
+            const nuevaHora = urlParams.get('nueva_hora');
+            
+            if (reagendada === 'true' && nuevaFecha && nuevaHora) {
+                console.log('📧 Viene desde correo, mostrando modal...');
+                mostrarModalReagendamiento(nuevaFecha, nuevaHora);
+                
+                // Limpiar URL después de mostrar el modal
+                setTimeout(function() {
+                    if (window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                }, 2000);
+            }
+        });
+        
+        // Función para verificar reagendamientos pendientes
+        function verificarReagendamientosPendientes() {
+            console.log('📡 Llamando API verificar reagendamientos...');
+            
+            fetch('{% url "verificar_reagendamientos_pendientes" %}', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('📡 Respuesta API:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('📊 Datos recibidos:', data);
+                
+                if (data.success && data.reagendamiento_pendiente) {
+                    console.log('🎪 Reagendamiento pendiente detectado, mostrando modal...');
+                    reagendamientoDataGlobal = data;
+                    mostrarModalReagendamiento(data.nueva_fecha, data.nueva_hora, data.ruta_id);
+                } else {
+                    console.log('✅ No hay reagendamientos pendientes');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error verificando reagendamientos:', error);
+            });
+        }
+        
+        // Función para mostrar el modal de reagendamiento
+        function mostrarModalReagendamiento(nuevaFecha, nuevaHora, rutaId = null) {
+            console.log('🎭 mostrarModalReagendamiento() iniciada');
+            console.log('🎭 Parámetros recibidos:', { nuevaFecha, nuevaHora, rutaId });
+            
+            try {
+                // Verificar que jQuery y el modal estén disponibles
+                if (typeof $ === 'undefined') {
+                    console.error('❌ jQuery no está disponible');
+                    return;
+                }
+                
+                const modalElement = $('#reagendamientoModal');
+                console.log('🎪 Modal jQuery element:', modalElement.length > 0);
+                
+                // Formatear fecha
+                let fechaFormateada;
+                if (nuevaFecha.includes('-')) {
+                    const fecha = new Date(nuevaFecha + 'T00:00:00');
+                    fechaFormateada = fecha.toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                } else {
+                    fechaFormateada = nuevaFecha;
+                }
+                
+                console.log('📅 Fecha formateada:', fechaFormateada);
+                
+                $('#reagendamientoNuevaFecha').text(fechaFormateada);
+                $('#reagendamientoNuevaHora').text(nuevaHora);
+                
+                // Guardar ID de ruta si se proporciona
+                if (rutaId) {
+                    $('#reagendamientoModal').data('ruta-id', rutaId);
+                    console.log('🗂️ Ruta ID guardado:', rutaId);
+                }
+                
+                // Intentar mostrar modal con jQuery
+                console.log('🎪 Intentando mostrar modal con jQuery...');
+                $('#reagendamientoModal').modal('show');
+                
+                // Verificar si el modal se mostró
+                setTimeout(function() {
+                    const isVisible = $('#reagendamientoModal').hasClass('show');
+                    console.log('🎪 Modal visible después de show():', isVisible);
+                    
+                    if (!isVisible) {
+                        console.log('🔧 Intentando con Bootstrap directo...');
+                        const modal = new bootstrap.Modal(document.getElementById('reagendamientoModal'));
+                        modal.show();
+                    }
+                }, 100);
+                
+                console.log('🎪 Modal mostrado (comando ejecutado)');
+                
+            } catch (error) {
+                console.error('❌ Error en mostrarModalReagendamiento:', error);
+                // Fallback: mostrar modal con Bootstrap directo
+                try {
+                    console.log('🔧 Intentando fallback con Bootstrap...');
+                    $('#reagendamientoNuevaFecha').text(nuevaFecha);
+                    $('#reagendamientoNuevaHora').text(nuevaHora);
+                    const modal = new bootstrap.Modal(document.getElementById('reagendamientoModal'));
+                    modal.show();
+                } catch (fallbackError) {
+                    console.error('❌ Error en fallback:', fallbackError);
+                }
+            }
+        }
+        
+        // Manejar botón "Aceptar Reagendamiento"
+        $(document).on('click', '#btnAceptarReagendamiento', function() {
+            console.log('✅ Usuario aceptó reagendamiento');
+            
+            const rutaId = $('#reagendamientoModal').data('ruta-id');
+            
+            // Mostrar mensaje de confirmación
+            Swal.fire({
+                title: '✅ Reagendamiento Aceptado',
+                text: 'Has aceptado el nuevo horario. Tu recolección se mantendrá programada.',
+                icon: 'success',
+                timer: 3000,
+                showConfirmButton: false
+            });
+            
+            // Marcar como visto y cerrar modal
+            if (rutaId) {
+                marcarReagendamientoVisto(rutaId);
+            }
+            
+            $('#reagendamientoModal').modal('hide');
+        });
+        
+        // Manejar botón "Rechazar Reagendamiento"
+        $(document).on('click', '#btnRechazarReagendamiento', function() {
+            console.log('❌ Usuario rechazó reagendamiento');
+            
+            // Mostrar confirmación de rechazo
+            Swal.fire({
+                title: '⚠️ ¿Estás seguro?',
+                html: `
+                    <p>Si rechazas este reagendamiento:</p>
+                    <ul style="text-align: left; margin-top: 15px;">
+                        <li>❌ Se cancelará tu recolección actual</li>
+                        <li>🔄 Deberás realizar todo el proceso nuevamente</li>
+                        <li>📋 Tendrás que agendar una nueva fecha desde cero</li>
+                        <li>⏳ Esto puede retrasar tu recolección</li>
+                    </ul>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, rechazar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Usuario confirmó el rechazo
+                    const rutaId = $('#reagendamientoModal').data('ruta-id');
+                    
+                    Swal.fire({
+                        title: '❌ Reagendamiento Rechazado',
+                        text: 'Deberás realizar el proceso de recolección nuevamente.',
+                        icon: 'info',
+                        timer: 4000,
+                        showConfirmButton: false
+                    });
+                    
+                    // Marcar como visto y cerrar modal
+                    if (rutaId) {
+                        marcarReagendamientoVisto(rutaId);
+                    }
+                    
+                    $('#reagendamientoModal').modal('hide');
+                    
+                    // Opcional: redirigir a solicitar nueva recolección
+                    setTimeout(function() {
+                        // Podrías redirigir aquí si quieres
+                        // window.location.href = '/rutasusuario/';
+                    }, 4000);
+                }
+            });
+        });
+        
+        // Función para marcar reagendamiento como visto
+        function marcarReagendamientoVisto(rutaId) {
+            console.log('💾 Marcando reagendamiento como visto:', rutaId);
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                             document.querySelector('meta[name="csrf-token"]')?.content || 
+                             '{{ csrf_token }}';
+            
+            fetch('{% url "marcar_reagendamiento_visto" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ ruta_id: rutaId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ Reagendamiento marcado como visto');
+                } else {
+                    console.error('❌ Error marcando reagendamiento como visto:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error:', error);
+            });
+        }
+    </script>
+{% endblock content %}

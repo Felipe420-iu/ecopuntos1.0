@@ -1,0 +1,1515 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}🌪️ Paper Storm Tetris | Eco Puntos{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --storm-dark: #2C3E50;
+        --storm-gray: #34495E;
+        --storm-blue: #3498DB;
+        --lightning-yellow: #F1C40F;
+        --paper-white: #ECF0F1;
+        --cardboard-brown: #D68910;
+        --wind-cyan: #1ABC9C;
+        --tornado-center: #85929E;
+        --success-green: #27AE60;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(45deg, var(--storm-dark), var(--storm-gray));
+        overflow: hidden;
+    }
+
+    .game-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        background: radial-gradient(ellipse at center, 
+            var(--tornado-center) 0%, 
+            var(--storm-gray) 30%, 
+            var(--storm-dark) 70%, 
+            #1B2631 100%);
+        overflow: hidden;
+    }
+
+    /* Fondo del tornado en espiral */
+    .tornado-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: conic-gradient(from 0deg at 50% 50%, 
+            transparent 0deg, 
+            rgba(52, 73, 94, 0.3) 60deg, 
+            rgba(44, 62, 80, 0.5) 120deg, 
+            transparent 180deg, 
+            rgba(52, 73, 94, 0.3) 240deg, 
+            rgba(44, 62, 80, 0.5) 300deg, 
+            transparent 360deg);
+        animation: tornado-spin 8s linear infinite;
+        pointer-events: none;
+    }
+
+    @keyframes tornado-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Nubes tormentosas */
+    .storm-clouds {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        background: linear-gradient(180deg, 
+            rgba(44, 62, 80, 0.9) 0%, 
+            rgba(52, 73, 94, 0.7) 50%, 
+            transparent 100%);
+        z-index: 1;
+    }
+
+    .storm-clouds::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(ellipse 200px 60px at 20% 30%, rgba(255,255,255,0.1) 40%, transparent 70%),
+            radial-gradient(ellipse 300px 80px at 70% 20%, rgba(255,255,255,0.15) 40%, transparent 70%),
+            radial-gradient(ellipse 250px 50px at 50% 10%, rgba(255,255,255,0.08) 40%, transparent 70%);
+        animation: cloud-drift 15s ease-in-out infinite;
+    }
+
+    @keyframes cloud-drift {
+        0%, 100% { transform: translateX(0px); }
+        50% { transform: translateX(20px); }
+    }
+
+    /* Header del juego */
+    .game-header {
+        position: absolute;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(44, 62, 80, 0.9);
+        backdrop-filter: blur(15px);
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 2px solid var(--lightning-yellow);
+        z-index: 100;
+        color: white;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
+    }
+
+    .game-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-shadow: 0 0 10px var(--lightning-yellow);
+        animation: title-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes title-glow {
+        0%, 100% { text-shadow: 0 0 10px var(--lightning-yellow); }
+        50% { text-shadow: 0 0 20px var(--lightning-yellow), 0 0 30px var(--lightning-yellow); }
+    }
+
+    .stats-container {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-value {
+        font-size: 20px;
+        color: var(--lightning-yellow);
+        margin-top: 5px;
+    }
+
+    /* Área de juego Tetris */
+    .tetris-arena {
+        position: absolute;
+        left: 50%;
+        top: 60%;
+        transform: translate(-50%, -50%);
+        width: 260px;
+        height: 420px;
+        background: rgba(236, 240, 241, 0.1);
+        border: 3px solid var(--wind-cyan);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 30px rgba(26, 188, 156, 0.5);
+        z-index: 50;
+        overflow: hidden;
+    }
+
+    /* Grid de Tetris */
+    .tetris-grid {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        grid-template-rows: repeat(20, 1fr);
+        gap: 1px;
+        background: rgba(52, 73, 94, 0.3);
+    }
+
+    .grid-cell {
+        background: rgba(236, 240, 241, 0.08);
+        border: 1px solid rgba(26, 188, 156, 0.4);
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .grid-cell.filled {
+        border: 2px solid currentColor;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    /* Piezas de papel */
+    .paper-piece {
+        border: 2px solid currentColor;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        animation: piece-float 2s ease-in-out infinite;
+    }
+
+    @keyframes piece-float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-2px); }
+    }
+
+    /* Tipos de papel */
+    .paper-newspaper {
+        background: linear-gradient(135deg, #ECF0F1, #D5DBDB);
+        color: #2C3E50;
+    }
+
+    .paper-cardboard {
+        background: linear-gradient(135deg, #D68910, #B7950B);
+        color: #FDEBD0;
+    }
+
+    .paper-magazine {
+        background: linear-gradient(135deg, #E74C3C, #C0392B);
+        color: white;
+    }
+
+    .paper-office {
+        background: linear-gradient(135deg, #3498DB, #2980B9);
+        color: white;
+    }
+
+    .paper-folder {
+        background: linear-gradient(135deg, #F39C12, #E67E22);
+        color: white;
+    }
+
+    /* Partículas de papel volando */
+    .paper-particle {
+        position: absolute;
+        font-size: 16px;
+        color: rgba(236, 240, 241, 0.8);
+        pointer-events: none;
+        z-index: 5;
+        animation: paper-fly 12s linear infinite;
+    }
+
+    @keyframes paper-fly {
+        0% {
+            transform: translateX(-100px) translateY(100vh) rotate(0deg);
+            opacity: 0;
+        }
+        10% { opacity: 0.8; }
+        90% { opacity: 0.6; }
+        100% {
+            transform: translateX(100vw) translateY(-100px) rotate(720deg);
+            opacity: 0;
+        }
+    }
+
+    /* Efectos de relámpagos */
+    .lightning-effect {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--lightning-yellow);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 200;
+        animation: lightning-flash 0.3s ease-out;
+    }
+
+    @keyframes lightning-flash {
+        0% { opacity: 0; }
+        50% { opacity: 0.3; }
+        100% { opacity: 0; }
+    }
+
+    /* Panel de siguiente pieza */
+    .next-piece-panel {
+        position: absolute;
+        right: 20px;
+        top: 80px;
+        width: 100px;
+        height: 100px;
+        background: rgba(44, 62, 80, 0.9);
+        border: 2px solid var(--wind-cyan);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+        z-index: 60;
+        padding: 8px;
+    }
+
+    .next-piece-title {
+        color: var(--wind-cyan);
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .next-piece-preview {
+        width: 100px;
+        height: 100px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        gap: 1px;
+        margin: 0 auto;
+    }
+
+    .preview-cell {
+        background: rgba(26, 188, 156, 0.1);
+        border: 1px solid rgba(26, 188, 156, 0.3);
+        border-radius: 2px;
+    }
+
+    .preview-cell.filled {
+        border: 2px solid currentColor;
+    }
+
+    /* Controles */
+    .controls-panel {
+        position: absolute;
+        left: 20px;
+        top: 80px;
+        background: rgba(44, 62, 80, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 12px;
+        border-radius: 8px;
+        border: 2px solid var(--lightning-yellow);
+        color: white;
+        z-index: 60;
+        max-width: 150px;
+        font-size: 12px;
+    }
+
+    .controls-title {
+        color: var(--lightning-yellow);
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .control-item {
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    /* Efectos de línea completada */
+    .line-clear-effect {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 32px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            var(--success-green) 20%, 
+            var(--wind-cyan) 50%, 
+            var(--success-green) 80%, 
+            transparent 100%);
+        animation: line-clear 0.8s ease-out;
+        z-index: 100;
+        pointer-events: none;
+    }
+
+    @keyframes line-clear {
+        0% {
+            opacity: 1;
+            transform: scaleX(0);
+        }
+        50% {
+            opacity: 1;
+            transform: scaleX(1.2);
+        }
+        100% {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+    }
+
+    /* Efectos de viento en los bordes */
+    .wind-effect {
+        position: absolute;
+        top: 0;
+        width: 2px;
+        height: 100%;
+        background: linear-gradient(180deg, 
+            transparent 0%, 
+            rgba(26, 188, 156, 0.5) 20%, 
+            rgba(26, 188, 156, 0.8) 50%, 
+            rgba(26, 188, 156, 0.5) 80%, 
+            transparent 100%);
+        animation: wind-flow 3s ease-in-out infinite;
+    }
+
+    .wind-effect.left {
+        left: 10px;
+        animation-delay: 0s;
+    }
+
+    .wind-effect.right {
+        right: 10px;
+        animation-delay: 1.5s;
+    }
+
+    @keyframes wind-flow {
+        0%, 100% {
+            opacity: 0.3;
+            transform: translateY(0px);
+        }
+        50% {
+            opacity: 1;
+            transform: translateY(-20px);
+        }
+    }
+
+    /* Power-ups */
+    .power-up-panel {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 15px;
+        z-index: 60;
+    }
+
+    .power-up {
+        width: 60px;
+        height: 60px;
+        background: rgba(44, 62, 80, 0.9);
+        border: 2px solid var(--wind-cyan);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .power-up:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px var(--wind-cyan);
+    }
+
+    .power-up.active {
+        background: var(--success-green);
+        animation: power-up-pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes power-up-pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .power-up.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    /* Notificaciones */
+    .notification {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(44, 62, 80, 0.95);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px;
+        font-weight: bold;
+        font-size: 18px;
+        z-index: 1000;
+        opacity: 0;
+        transition: all 0.3s ease;
+        border: 2px solid var(--lightning-yellow);
+        box-shadow: 0 0 30px rgba(241, 196, 15, 0.5);
+        text-align: center;
+        backdrop-filter: blur(15px);
+    }
+
+    .notification.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .notification.success {
+        border-color: var(--success-green);
+        box-shadow: 0 0 30px rgba(39, 174, 96, 0.5);
+    }
+
+    .notification.warning {
+        border-color: var(--lightning-yellow);
+        box-shadow: 0 0 30px rgba(241, 196, 15, 0.5);
+    }
+
+    .notification.error {
+        border-color: #E74C3C;
+        box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .tetris-arena {
+            width: 280px;
+            height: 560px;
+        }
+        
+        .controls-panel, .next-piece-panel {
+            position: fixed;
+            bottom: 10px;
+        }
+        
+        .controls-panel {
+            left: 10px;
+            right: auto;
+            max-width: 150px;
+            padding: 15px;
+        }
+        
+        .next-piece-panel {
+            right: 10px;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .game-header {
+            top: 10px;
+            padding: 10px 20px;
+        }
+        
+        .game-title {
+            font-size: 20px;
+        }
+        
+        .stats-container {
+            gap: 15px;
+            font-size: 14px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-container" id="game-container">
+    <!-- Fondo del tornado -->
+    <div class="tornado-background"></div>
+    
+    <!-- Nubes tormentosas -->
+    <div class="storm-clouds"></div>
+    
+    <!-- Efectos de viento -->
+    <div class="wind-effect left"></div>
+    <div class="wind-effect right"></div>
+    
+    <!-- Header del juego -->
+    <div class="game-header">
+        <div class="game-title">🌪️ PAPER STORM TETRIS</div>
+        <div class="stats-container">
+            <div class="stat-item">
+                <span>📊 PUNTOS</span>
+                <span class="stat-value" id="score">0</span>
+            </div>
+            <div class="stat-item">
+                <span>📄 LÍNEAS</span>
+                <span class="stat-value" id="lines">0</span>
+            </div>
+            <div class="stat-item">
+                <span>⚡ NIVEL</span>
+                <span class="stat-value" id="level">1</span>
+            </div>
+            <div class="stat-item">
+                <span>🌪️ COMBO</span>
+                <span class="stat-value" id="combo">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área de juego Tetris -->
+    <div class="tetris-arena" id="tetris-arena">
+        <div class="tetris-grid" id="tetris-grid">
+            <!-- Celdas del grid se generan dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Panel de siguiente pieza -->
+    <div class="next-piece-panel">
+        <div class="next-piece-title">🔮 SIGUIENTE</div>
+        <div class="next-piece-preview" id="next-piece-preview">
+            <!-- Preview de la siguiente pieza -->
+        </div>
+    </div>
+
+    <!-- Panel de controles -->
+    <div class="controls-panel">
+        <div class="controls-title">🎮 CONTROLES</div>
+        <div class="control-item">⬅️➡️ Mover pieza</div>
+        <div class="control-item">⬇️ Caída rápida</div>
+        <div class="control-item">⬆️ Rotar pieza</div>
+        <div class="control-item">🌀 SPACE: Caída instantánea</div>
+        <div class="control-item">⚡ ENTER: Power-up</div>
+    </div>
+
+    <!-- Power-ups -->
+    <div class="power-up-panel">
+        <div class="power-up" id="power-up-wind" title="Viento Suave">🍃</div>
+        <div class="power-up" id="power-up-recycle" title="Super Reciclaje">♻️</div>
+        <div class="power-up" id="power-up-tornado" title="Tornado Power">🌪️</div>
+        <div class="power-up" id="power-up-lightning" title="Relámpago">⚡</div>
+    </div>
+</div>
+
+<!-- Notificación -->
+<div id="notification" class="notification"></div>
+
+<!-- Modal de Game Over -->
+<div class="modal fade" id="gameOverModal" tabindex="-1" aria-labelledby="gameOverModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 3px solid #4caf50; box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);">
+            <div class="modal-header" style="border-bottom: 2px solid #4caf50;">
+                <h5 class="modal-title" id="gameOverModalLabel" style="color: #4caf50; font-family: 'Orbitron', sans-serif; font-weight: bold;">
+                    <i class="fas fa-trophy me-2"></i>¡Fin del Tornado!
+                </h5>
+            </div>
+            <div class="modal-body text-center" style="color: #fff; font-family: 'Poppins', sans-serif; padding: 30px;">
+                <div class="mb-4">
+                    <i class="fas fa-file-alt" style="font-size: 4rem; color: #8bc34a;"></i>
+                </div>
+                
+                <div style="background: rgba(76, 175, 80, 0.2); border-radius: 15px; padding: 20px; margin: 20px 0;">
+                    <h6 style="color: #4caf50; margin-bottom: 15px;">📊 Estadísticas Finales</h6>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;">
+                        <div>
+                            <strong style="color: #8bc34a;">Puntuación:</strong>
+                            <div id="finalScore" style="font-size: 1.5rem; color: #4caf50;">0</div>
+                        </div>
+                        <div>
+                            <strong style="color: #8bc34a;">Nivel:</strong>
+                            <div id="finalLevel" style="font-size: 1.5rem; color: #4caf50;">1</div>
+                        </div>
+                        <div>
+                            <strong style="color: #8bc34a;">Líneas completadas:</strong>
+                            <div id="finalLines" style="font-size: 1.5rem; color: #8bc34a;">0</div>
+                        </div>
+                        <div>
+                            <strong style="color: #8bc34a;">Combo máximo:</strong>
+                            <div id="finalCombo" style="font-size: 1.5rem; color: #4caf50;">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="color: #8bc34a; margin-top: 15px;">¿Quieres enfrentar otro tornado?</p>
+            </div>
+            <div class="modal-footer" style="border-top: 2px solid #4caf50; justify-content: center;">
+                <button type="button" class="btn btn-success" id="btnAcceptRestart" style="background: linear-gradient(135deg, #4caf50, #8bc34a); border: none; padding: 10px 30px; font-weight: bold;">
+                    <i class="fas fa-redo me-2"></i>Aceptar
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCancelRestart" style="background: linear-gradient(135deg, #ff4757, #c44569); border: none; padding: 10px 30px; font-weight: bold;">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Estado del juego Paper Storm Tetris
+let gameState = {
+    score: 0,
+    lines: 0,
+    level: 1,
+    combo: 0,
+    grid: [],
+    currentPiece: null,
+    nextPiece: null,
+    gameRunning: false,
+    dropSpeed: 1000,
+    lastDrop: 0,
+    keys: {},
+    powerUps: {
+        wind: { available: true, cooldown: 0 },
+        recycle: { available: true, cooldown: 0 },
+        tornado: { available: true, cooldown: 0 },
+        lightning: { available: true, cooldown: 0 }
+    },
+    gameLoop: null,
+    environmentLoop: null
+};
+
+// Definición de piezas Tetris ecológicas
+const paperPieces = [
+    {
+        name: 'newspaper',
+        type: 'paper-newspaper',
+        emoji: '📰',
+        shapes: [
+            [[1, 1, 1], [1, 0, 0]], // L
+            [[1, 0], [1, 0], [1, 1]], // L rotado
+            [[0, 0, 1], [1, 1, 1]], // L invertido
+            [[1, 1], [0, 1], [0, 1]] // L final
+        ]
+    },
+    {
+        name: 'cardboard',
+        type: 'paper-cardboard',
+        emoji: '📦',
+        shapes: [
+            [[1, 1], [1, 1]] // Cuadrado
+        ]
+    },
+    {
+        name: 'magazine',
+        type: 'paper-magazine',
+        emoji: '🗞️',
+        shapes: [
+            [[1, 1, 1, 1]], // I horizontal
+            [[1], [1], [1], [1]] // I vertical
+        ]
+    },
+    {
+        name: 'office',
+        type: 'paper-office',
+        emoji: '📃',
+        shapes: [
+            [[0, 1, 0], [1, 1, 1]], // T
+            [[1, 0], [1, 1], [1, 0]], // T rotado
+            [[1, 1, 1], [0, 1, 0]], // T invertido
+            [[0, 1], [1, 1], [0, 1]] // T final
+        ]
+    },
+    {
+        name: 'folder',
+        type: 'paper-folder',
+        emoji: '📋',
+        shapes: [
+            [[1, 1, 0], [0, 1, 1]], // S
+            [[0, 1], [1, 1], [1, 0]], // S rotado
+            [[0, 1, 1], [1, 1, 0]], // Z
+            [[1, 0], [1, 1], [0, 1]] // Z rotado
+        ]
+    }
+];
+
+// Inicializar juego
+function initPaperStormTetris() {
+    console.log('🌪️ Iniciando Paper Storm Tetris...');
+    
+    // Verificar que los elementos existen
+    const gridElement = document.getElementById('tetris-grid');
+    if (!gridElement) {
+        console.error('❌ No se encontró el elemento tetris-grid');
+        return;
+    }
+    
+    // Crear grid de 10x20
+    gameState.grid = Array(20).fill(null).map(() => Array(10).fill(0));
+    console.log('📋 Grid creado:', gameState.grid.length, 'x', gameState.grid[0].length);
+    
+    // Crear elementos del grid
+    createTetrisGrid();
+    
+    // Generar primera pieza
+    console.log('🎲 Generando piezas iniciales...');
+    gameState.currentPiece = createRandomPiece();
+    gameState.nextPiece = createRandomPiece();
+    console.log('✅ Piezas generadas - Actual:', gameState.currentPiece ? gameState.currentPiece.emoji : 'null', 'Siguiente:', gameState.nextPiece ? gameState.nextPiece.emoji : 'null');
+    
+    // Event listeners
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    console.log('🎮 Event listeners configurados');
+    
+    // Verificar si la pieza actual tiene posición válida
+    if (gameState.currentPiece) {
+        console.log('🎯 Pieza actual en posición:', gameState.currentPiece.x, ',', gameState.currentPiece.y);
+        console.log('📐 Forma de la pieza:', gameState.currentPiece.shape);
+    }
+    
+    // Inicializar power-ups
+    initializePowerUps();
+    console.log('⚡ Power-ups inicializados');
+    
+    // Generar partículas ambientales
+    generatePaperParticles();
+    console.log('🌀 Partículas ambientales generadas');
+    
+    // Iniciar bucles del juego
+    startPaperStormGame();
+    
+    showNotification('🌪️ ¡El tornado de papel ha comenzado!', 'success');
+}
+
+// Crear grid visual de Tetris
+function createTetrisGrid() {
+    const gridElement = document.getElementById('tetris-grid');
+    gridElement.innerHTML = '';
+    
+    for (let row = 0; row < 20; row++) {
+        for (let col = 0; col < 10; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.id = `cell-${row}-${col}`;
+            gridElement.appendChild(cell);
+        }
+    }
+    
+    console.log('🎯 Grid de Tetris creado: 20x10');
+}
+
+// Crear pieza aleatoria
+function createRandomPiece() {
+    const pieceType = paperPieces[Math.floor(Math.random() * paperPieces.length)];
+    const shapeIndex = Math.floor(Math.random() * pieceType.shapes.length);
+    
+    const newPiece = {
+        type: pieceType.type,
+        emoji: pieceType.emoji,
+        name: pieceType.name,
+        shape: pieceType.shapes[shapeIndex],
+        shapeIndex: shapeIndex,
+        allShapes: pieceType.shapes,
+        x: 3, // Posición central
+        y: 0
+    };
+    
+    console.log('🎲 Nueva pieza creada:', newPiece.emoji, newPiece.name, 'Forma:', newPiece.shape);
+    return newPiece;
+}
+
+// Manejar teclas
+function handleKeyDown(e) {
+    if (!gameState.gameRunning || !gameState.currentPiece) return;
+    
+    gameState.keys[e.key] = true;
+    
+    switch(e.key) {
+        case 'ArrowLeft':
+            movePiece(-1, 0);
+            break;
+        case 'ArrowRight':
+            movePiece(1, 0);
+            break;
+        case 'ArrowDown':
+            movePiece(0, 1);
+            break;
+        case 'ArrowUp':
+            rotatePiece();
+            break;
+        case ' ':
+            hardDrop();
+            break;
+        case 'Enter':
+            activateRandomPowerUp();
+            break;
+    }
+    
+    e.preventDefault();
+}
+
+function handleKeyUp(e) {
+    gameState.keys[e.key] = false;
+}
+
+// Mover pieza
+function movePiece(dx, dy) {
+    if (!gameState.currentPiece) return;
+    
+    const newX = gameState.currentPiece.x + dx;
+    const newY = gameState.currentPiece.y + dy;
+    
+    if (isValidPosition(gameState.currentPiece.shape, newX, newY)) {
+        gameState.currentPiece.x = newX;
+        gameState.currentPiece.y = newY;
+        updateVisualGrid();
+    } else if (dy > 0) {
+        // Si no puede bajar más, fijar la pieza
+        placePiece();
+    }
+}
+
+// Rotar pieza
+function rotatePiece() {
+    if (!gameState.currentPiece) return;
+    
+    const currentShapeIndex = gameState.currentPiece.shapeIndex;
+    const nextShapeIndex = (currentShapeIndex + 1) % gameState.currentPiece.allShapes.length;
+    const newShape = gameState.currentPiece.allShapes[nextShapeIndex];
+    
+    if (isValidPosition(newShape, gameState.currentPiece.x, gameState.currentPiece.y)) {
+        gameState.currentPiece.shape = newShape;
+        gameState.currentPiece.shapeIndex = nextShapeIndex;
+        updateVisualGrid();
+        
+        // Efecto sonoro de rotación (visual)
+        createRotationEffect();
+    }
+}
+
+// Caída instantánea
+function hardDrop() {
+    if (!gameState.currentPiece) return;
+    
+    while (isValidPosition(gameState.currentPiece.shape, gameState.currentPiece.x, gameState.currentPiece.y + 1)) {
+        gameState.currentPiece.y++;
+    }
+    
+    placePiece();
+    createHardDropEffect();
+}
+
+// Verificar si la posición es válida
+function isValidPosition(shape, x, y) {
+    for (let row = 0; row < shape.length; row++) {
+        for (let col = 0; col < shape[row].length; col++) {
+            if (shape[row][col]) {
+                const newX = x + col;
+                const newY = y + row;
+                
+                // Verificar límites
+                if (newX < 0 || newX >= 10 || newY >= 20) return false;
+                
+                // Verificar colisión con piezas existentes
+                if (newY >= 0 && gameState.grid[newY][newX]) return false;
+            }
+        }
+    }
+    return true;
+}
+
+// Colocar pieza en el grid
+function placePiece() {
+    if (!gameState.currentPiece) return;
+    
+    const piece = gameState.currentPiece;
+    
+    for (let row = 0; row < piece.shape.length; row++) {
+        for (let col = 0; col < piece.shape[row].length; col++) {
+            if (piece.shape[row][col]) {
+                const x = piece.x + col;
+                const y = piece.y + row;
+                
+                if (y >= 0) {
+                    gameState.grid[y][x] = {
+                        type: piece.type,
+                        emoji: piece.emoji
+                    };
+                }
+            }
+        }
+    }
+    
+    // Verificar líneas completadas
+    const linesCleared = checkAndClearLines();
+    
+    // Actualizar puntuación
+    updateScore(linesCleared);
+    
+    // Generar nueva pieza
+    gameState.currentPiece = gameState.nextPiece;
+    gameState.nextPiece = createRandomPiece();
+    
+    updateNextPiecePreview();
+    
+    // Verificar game over
+    if (!isValidPosition(gameState.currentPiece.shape, gameState.currentPiece.x, gameState.currentPiece.y)) {
+        gameOver();
+        return;
+    }
+    
+    updateVisualGrid();
+}
+
+// Verificar y limpiar líneas completadas
+function checkAndClearLines() {
+    let linesCleared = 0;
+    const rowsToRemove = [];
+    
+    for (let row = 19; row >= 0; row--) {
+        if (gameState.grid[row].every(cell => cell !== 0)) {
+            rowsToRemove.push(row);
+            linesCleared++;
+        }
+    }
+    
+    if (linesCleared > 0) {
+        // Efecto visual de líneas completadas
+        rowsToRemove.forEach(row => {
+            createLineClearEffect(row);
+        });
+        
+        // Remover líneas después del efecto
+        setTimeout(() => {
+            rowsToRemove.forEach(row => {
+                gameState.grid.splice(row, 1);
+                gameState.grid.unshift(Array(10).fill(0));
+            });
+            
+            updateVisualGrid();
+        }, 400);
+        
+        // Efecto de relámpago
+        if (linesCleared >= 2) {
+            createLightningEffect();
+        }
+    }
+    
+    return linesCleared;
+}
+
+// Actualizar puntuación
+function updateScore(linesCleared) {
+    if (linesCleared > 0) {
+        const basePoints = [0, 40, 100, 300, 1200];
+        const points = basePoints[linesCleared] * gameState.level;
+        
+        gameState.score += points;
+        gameState.lines += linesCleared;
+        gameState.combo += linesCleared;
+        
+        // Subir nivel cada 10 líneas
+        const newLevel = Math.floor(gameState.lines / 10) + 1;
+        if (newLevel > gameState.level) {
+            gameState.level = newLevel;
+            gameState.dropSpeed = Math.max(100, gameState.dropSpeed - 100);
+            showNotification(`⚡ ¡Nivel ${gameState.level}! Tornado más intenso`, 'success');
+        }
+        
+        updateUI();
+        
+        // Mostrar puntos
+        showFloatingText(160, 320, `+${points}`, 'success');
+    } else {
+        gameState.combo = 0;
+    }
+}
+
+// Actualizar grid visual
+function updateVisualGrid() {
+    // Limpiar grid visual
+    for (let row = 0; row < 20; row++) {
+        for (let col = 0; col < 10; col++) {
+            const cell = document.getElementById(`cell-${row}-${col}`);
+            if (cell) {
+                cell.className = 'grid-cell';
+                cell.textContent = '';
+            }
+        }
+    }
+    
+    // Mostrar piezas fijas
+    for (let row = 0; row < 20; row++) {
+        for (let col = 0; col < 10; col++) {
+            if (gameState.grid[row][col]) {
+                const cell = document.getElementById(`cell-${row}-${col}`);
+                if (cell) {
+                    const piece = gameState.grid[row][col];
+                    cell.className = `grid-cell filled paper-piece ${piece.type}`;
+                    cell.textContent = piece.emoji;
+                }
+            }
+        }
+    }
+    
+    // Mostrar pieza actual
+    if (gameState.currentPiece) {
+        const piece = gameState.currentPiece;
+        for (let row = 0; row < piece.shape.length; row++) {
+            for (let col = 0; col < piece.shape[row].length; col++) {
+                if (piece.shape[row][col]) {
+                    const x = piece.x + col;
+                    const y = piece.y + row;
+                    
+                    if (x >= 0 && x < 10 && y >= 0 && y < 20) {
+                        const cell = document.getElementById(`cell-${y}-${x}`);
+                        if (cell) {
+                            cell.className = `grid-cell filled paper-piece ${piece.type}`;
+                            cell.textContent = piece.emoji;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    console.log('🎯 Grid actualizado - Pieza actual:', gameState.currentPiece ? gameState.currentPiece.emoji : 'ninguna');
+}
+
+// Actualizar preview de siguiente pieza
+function updateNextPiecePreview() {
+    const previewElement = document.getElementById('next-piece-preview');
+    previewElement.innerHTML = '';
+    
+    for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+            const cell = document.createElement('div');
+            cell.className = 'preview-cell';
+            previewElement.appendChild(cell);
+        }
+    }
+    
+    if (gameState.nextPiece) {
+        const piece = gameState.nextPiece;
+        const startRow = Math.floor((4 - piece.shape.length) / 2);
+        const startCol = Math.floor((4 - piece.shape[0].length) / 2);
+        
+        for (let row = 0; row < piece.shape.length; row++) {
+            for (let col = 0; col < piece.shape[row].length; col++) {
+                if (piece.shape[row][col]) {
+                    const cellIndex = (startRow + row) * 4 + (startCol + col);
+                    const cell = previewElement.children[cellIndex];
+                    if (cell) {
+                        cell.className = `preview-cell filled paper-piece ${piece.type}`;
+                        cell.textContent = piece.emoji;
+                    }
+                }
+            }
+        }
+    }
+    
+    console.log('🔮 Preview actualizado - Siguiente pieza:', gameState.nextPiece ? gameState.nextPiece.emoji : 'ninguna');
+}
+
+// Generar partículas de papel
+function generatePaperParticles() {
+    const gameContainer = document.getElementById('game-container');
+    const paperEmojis = ['📄', '📃', '🗞️', '📰', '📋'];
+    
+    function createPaperParticle() {
+        const particle = document.createElement('div');
+        particle.className = 'paper-particle';
+        particle.textContent = paperEmojis[Math.floor(Math.random() * paperEmojis.length)];
+        particle.style.left = Math.random() * window.innerWidth + 'px';
+        particle.style.animationDuration = (8 + Math.random() * 8) + 's';
+        particle.style.animationDelay = Math.random() * 2 + 's';
+        
+        gameContainer.appendChild(particle);
+        
+        setTimeout(() => {
+            if (particle && particle.parentNode) {
+                particle.parentNode.removeChild(particle);
+            }
+        }, 12000);
+    }
+    
+    // Crear partículas periódicamente
+    setInterval(createPaperParticle, 1500);
+    
+    // Crear algunas partículas iniciales
+    for (let i = 0; i < 10; i++) {
+        setTimeout(createPaperParticle, i * 200);
+    }
+}
+
+// Inicializar power-ups
+function initializePowerUps() {
+    document.getElementById('power-up-wind').addEventListener('click', () => activatePowerUp('wind'));
+    document.getElementById('power-up-recycle').addEventListener('click', () => activatePowerUp('recycle'));
+    document.getElementById('power-up-tornado').addEventListener('click', () => activatePowerUp('tornado'));
+    document.getElementById('power-up-lightning').addEventListener('click', () => activatePowerUp('lightning'));
+}
+
+// Activar power-up
+function activatePowerUp(type) {
+    if (!gameState.powerUps[type].available) return;
+    
+    gameState.powerUps[type].available = false;
+    gameState.powerUps[type].cooldown = 300; // 15 segundos a 60fps
+    
+    const powerUpElement = document.getElementById(`power-up-${type}`);
+    powerUpElement.classList.add('active');
+    
+    switch(type) {
+        case 'wind':
+            // Ralentizar caída por 10 segundos
+            const originalSpeed = gameState.dropSpeed;
+            gameState.dropSpeed *= 2;
+            setTimeout(() => {
+                gameState.dropSpeed = originalSpeed;
+                powerUpElement.classList.remove('active');
+            }, 10000);
+            showNotification('🍃 Viento suave activado - Caída más lenta', 'success');
+            break;
+            
+        case 'recycle':
+            // Limpiar líneas incompletas en la parte inferior
+            for (let row = 19; row >= 15; row--) {
+                if (gameState.grid[row].some(cell => cell !== 0) && !gameState.grid[row].every(cell => cell !== 0)) {
+                    gameState.grid[row] = Array(10).fill(0);
+                }
+            }
+            updateVisualGrid();
+            setTimeout(() => powerUpElement.classList.remove('active'), 2000);
+            showNotification('♻️ Super reciclaje - Líneas inferiores limpiadas', 'success');
+            break;
+            
+        case 'tornado':
+            // Reorganizar piezas automáticamente
+            reorganizeGrid();
+            setTimeout(() => powerUpElement.classList.remove('active'), 3000);
+            showNotification('🌪️ Poder del tornado - Grid reorganizado', 'success');
+            break;
+            
+        case 'lightning':
+            // Destruir piezas aleatorias
+            destroyRandomPieces();
+            createLightningEffect();
+            setTimeout(() => powerUpElement.classList.remove('active'), 1000);
+            showNotification('⚡ Relámpago - Piezas destruidas', 'success');
+            break;
+    }
+}
+
+// Activar power-up aleatorio
+function activateRandomPowerUp() {
+    const availablePowerUps = Object.keys(gameState.powerUps).filter(type => 
+        gameState.powerUps[type].available
+    );
+    
+    if (availablePowerUps.length > 0) {
+        const randomType = availablePowerUps[Math.floor(Math.random() * availablePowerUps.length)];
+        activatePowerUp(randomType);
+    }
+}
+
+// Reorganizar grid (Tornado power)
+function reorganizeGrid() {
+    // Recoger todas las piezas no vacías
+    const pieces = [];
+    for (let row = 0; row < 20; row++) {
+        for (let col = 0; col < 10; col++) {
+            if (gameState.grid[row][col]) {
+                pieces.push(gameState.grid[row][col]);
+                gameState.grid[row][col] = 0;
+            }
+        }
+    }
+    
+    // Reorganizar desde abajo
+    let currentRow = 19;
+    let currentCol = 0;
+    
+    pieces.forEach(piece => {
+        gameState.grid[currentRow][currentCol] = piece;
+        currentCol++;
+        if (currentCol >= 10) {
+            currentCol = 0;
+            currentRow--;
+        }
+    });
+    
+    updateVisualGrid();
+}
+
+// Destruir piezas aleatorias (Lightning power)
+function destroyRandomPieces() {
+    const piecesToDestroy = Math.floor(Math.random() * 15) + 5;
+    
+    for (let i = 0; i < piecesToDestroy; i++) {
+        const row = Math.floor(Math.random() * 20);
+        const col = Math.floor(Math.random() * 10);
+        
+        if (gameState.grid[row][col]) {
+            gameState.grid[row][col] = 0;
+        }
+    }
+    
+    updateVisualGrid();
+}
+
+// Efectos visuales
+function createLineClearEffect(row) {
+    const tetrisArena = document.getElementById('tetris-arena');
+    const effect = document.createElement('div');
+    effect.className = 'line-clear-effect';
+    effect.style.top = (row * 32) + 'px';
+    
+    tetrisArena.appendChild(effect);
+    
+    setTimeout(() => {
+        if (effect.parentNode) {
+            effect.parentNode.removeChild(effect);
+        }
+    }, 800);
+}
+
+function createLightningEffect() {
+    const gameContainer = document.getElementById('game-container');
+    const lightning = document.createElement('div');
+    lightning.className = 'lightning-effect';
+    
+    gameContainer.appendChild(lightning);
+    
+    setTimeout(() => {
+        if (lightning.parentNode) {
+            lightning.parentNode.removeChild(lightning);
+        }
+    }, 300);
+}
+
+function createRotationEffect() {
+    // Efecto visual sutil de rotación
+    const tetrisArena = document.getElementById('tetris-arena');
+    tetrisArena.style.transform = 'scale(1.02)';
+    setTimeout(() => {
+        tetrisArena.style.transform = 'scale(1)';
+    }, 100);
+}
+
+function createHardDropEffect() {
+    // Efecto visual de caída rápida
+    const tetrisArena = document.getElementById('tetris-arena');
+    tetrisArena.style.filter = 'brightness(1.2)';
+    setTimeout(() => {
+        tetrisArena.style.filter = 'brightness(1)';
+    }, 200);
+}
+
+// Bucle principal del juego
+function gameLoop() {
+    if (!gameState.gameRunning) {
+        console.log('⚠️ Juego no está corriendo');
+        return;
+    }
+    
+    const now = Date.now();
+    
+    if (now - gameState.lastDrop > gameState.dropSpeed) {
+        console.log('⏰ Tiempo de caída - moviendo pieza hacia abajo');
+        movePiece(0, 1);
+        gameState.lastDrop = now;
+    }
+    
+    // Actualizar grid visual en cada frame
+    updateVisualGrid();
+    
+    // Actualizar cooldowns de power-ups
+    Object.keys(gameState.powerUps).forEach(type => {
+        if (gameState.powerUps[type].cooldown > 0) {
+            gameState.powerUps[type].cooldown--;
+            if (gameState.powerUps[type].cooldown === 0) {
+                gameState.powerUps[type].available = true;
+                document.getElementById(`power-up-${type}`).classList.remove('disabled');
+            }
+        }
+    });
+}
+
+// Iniciar juego
+function startPaperStormGame() {
+    console.log('🚀 Iniciando Paper Storm Tetris...');
+    gameState.gameRunning = true;
+    gameState.lastDrop = Date.now();
+    
+    // Bucle principal a 60 FPS
+    gameState.gameLoop = setInterval(gameLoop, 16);
+    console.log('⚙️ Bucle del juego iniciado');
+    
+    updateVisualGrid();
+    updateNextPiecePreview();
+    updateUI();
+    
+    console.log('✅ Paper Storm Tetris completamente iniciado');
+    console.log('🎮 Estado inicial:', {
+        pieza_actual: gameState.currentPiece ? gameState.currentPiece.emoji : 'ninguna',
+        siguiente_pieza: gameState.nextPiece ? gameState.nextPiece.emoji : 'ninguna',
+        running: gameState.gameRunning
+    });
+}
+
+// Game Over
+function gameOver() {
+    gameState.gameRunning = false;
+    
+    if (gameState.gameLoop) clearInterval(gameState.gameLoop);
+    if (gameState.environmentLoop) clearInterval(gameState.environmentLoop);
+    
+    showNotification(`💀 ¡El tornado se ha llevado todo!`, 'error');
+    
+    setTimeout(() => {
+        // Actualizar contenido del modal
+        document.getElementById('finalScore').textContent = gameState.score;
+        document.getElementById('finalLevel').textContent = gameState.level;
+        document.getElementById('finalLines').textContent = gameState.lines;
+        document.getElementById('finalCombo').textContent = gameState.combo;
+        
+        // Mostrar modal usando Bootstrap
+        const gameOverModal = new bootstrap.Modal(document.getElementById('gameOverModal'));
+        gameOverModal.show();
+        
+        // Event listeners para los botones
+        document.getElementById('btnAcceptRestart').onclick = () => {
+            gameOverModal.hide();
+            restartGame();
+        };
+        
+        document.getElementById('btnCancelRestart').onclick = () => {
+            gameOverModal.hide();
+            // Opcional: redirigir a otra página
+            // window.location.href = "{% url 'categorias' %}";
+        };
+    }, 500);
+}
+
+// Reiniciar juego
+function restartGame() {
+    // Resetear estado
+    gameState = {
+        score: 0,
+        lines: 0,
+        level: 1,
+        combo: 0,
+        grid: [],
+        currentPiece: null,
+        nextPiece: null,
+        gameRunning: false,
+        dropSpeed: 1000,
+        lastDrop: 0,
+        keys: {},
+        powerUps: {
+            wind: { available: true, cooldown: 0 },
+            recycle: { available: true, cooldown: 0 },
+            tornado: { available: true, cooldown: 0 },
+            lightning: { available: true, cooldown: 0 }
+        },
+        gameLoop: null,
+        environmentLoop: null
+    };
+    
+    // Reinicializar
+    initPaperStormTetris();
+}
+
+// Actualizar UI
+function updateUI() {
+    document.getElementById('score').textContent = gameState.score;
+    document.getElementById('lines').textContent = gameState.lines;
+    document.getElementById('level').textContent = gameState.level;
+    document.getElementById('combo').textContent = gameState.combo;
+    
+    // Actualizar estado de power-ups
+    Object.keys(gameState.powerUps).forEach(type => {
+        const element = document.getElementById(`power-up-${type}`);
+        if (!gameState.powerUps[type].available && gameState.powerUps[type].cooldown > 0) {
+            element.classList.add('disabled');
+        } else {
+            element.classList.remove('disabled');
+        }
+    });
+}
+
+// Mostrar texto flotante
+function showFloatingText(x, y, text, type = 'success') {
+    const gameContainer = document.getElementById('game-container');
+    const floatingText = document.createElement('div');
+    floatingText.textContent = text;
+    floatingText.style.position = 'absolute';
+    floatingText.style.left = x + 'px';
+    floatingText.style.top = y + 'px';
+    floatingText.style.color = type === 'success' ? '#27AE60' : '#F1C40F';
+    floatingText.style.fontSize = '24px';
+    floatingText.style.fontWeight = 'bold';
+    floatingText.style.zIndex = '150';
+    floatingText.style.pointerEvents = 'none';
+    floatingText.style.animation = 'float-up 2s ease-out forwards';
+    floatingText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+    
+    gameContainer.appendChild(floatingText);
+    
+    setTimeout(() => {
+        if (floatingText.parentNode) {
+            floatingText.parentNode.removeChild(floatingText);
+        }
+    }, 2000);
+}
+
+// Mostrar notificación
+function showNotification(message, type = 'info') {
+    const notification = document.getElementById('notification');
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+    console.log(`📢 ${message}`);
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌪️ Iniciando Paper Storm Tetris...');
+    setTimeout(initPaperStormTetris, 100);
+});
+
+// Cleanup al salir
+window.addEventListener('beforeunload', function() {
+    if (gameState.gameLoop) clearInterval(gameState.gameLoop);
+    if (gameState.environmentLoop) clearInterval(gameState.environmentLoop);
+});
+</script>
+
+<style>
+@keyframes float-up {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-80px);
+        opacity: 0;
+    }
+}
+</style>
+
+{% csrf_token %}
+{% endblock %}

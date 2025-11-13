@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recompensa Canjeada - EcoPuntos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header .logo {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .success-icon {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .success-icon .icon {
+            width: 80px;
+            height: 80px;
+            background: #ff6b35;
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+        }
+        .reward-showcase {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+            border: 2px solid #ff6b35;
+        }
+        .reward-showcase .reward-emoji {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .reward-showcase h2 {
+            color: #ff6b35;
+            margin: 10px 0;
+            font-size: 24px;
+        }
+        .reward-showcase .reward-description {
+            color: #666;
+            margin: 10px 0;
+            font-style: italic;
+        }
+        .details {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #ff6b35;
+        }
+        .details h3 {
+            margin-top: 0;
+            color: #ff6b35;
+            font-size: 18px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .points-used {
+            background: #e8f5e8;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .points-used .points-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #4caf50;
+            margin: 0;
+        }
+        .points-used .points-label {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0 0 0;
+        }
+        .status {
+            text-align: center;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 8px;
+            margin: 25px 0;
+            border: 1px solid #c8e6c9;
+        }
+        .status .status-badge {
+            background: #4caf50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .contact-info {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .contact-info h4 {
+            margin-top: 0;
+            color: #ff6b35;
+        }
+        .celebration-banner {
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #ff9800, #ffb74d);
+            background-size: 300% 300%;
+            animation: gradient-move 3s ease infinite;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        @keyframes gradient-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 5px;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .detail-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .reward-showcase h2 {
+                font-size: 20px;
+            }
+            .success-icon .icon {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                🎁
+            </div>
+            <h1>EcoPuntos</h1>
+            <p>¡Recompensa Canjeada Exitosamente!</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="success-icon">
+                <div class="icon">🎉</div>
+            </div>
+            
+            <div class="celebration-banner">
+                ¡FELICIDADES! Tu recompensa ha sido canjeada
+            </div>
+            
+            <p>Estimado/a <strong>{{ usuario.get_full_name|default:usuario.username }}</strong>,</p>
+            
+            <p>¡Excelente noticia! Has canjeado exitosamente una recompensa usando tus puntos EcoPuntos. A continuación encontrarás todos los detalles de tu canje:</p>
+            
+            <!-- Showcase de la Recompensa -->
+            <div class="reward-showcase">
+                <span class="reward-emoji">🎁</span>
+                <h2>{{ recompensa.nombre }}</h2>
+                <p class="reward-description">{{ recompensa.descripcion }}</p>
+                
+                <div class="points-used">
+                    <div class="points-number">{{ recompensa.puntos_requeridos }}</div>
+                    <div class="points-label">Puntos utilizados</div>
+                </div>
+            </div>
+            
+            <!-- Detalles del Canje -->
+            <div class="details">
+                <h3>📋 Detalles del Canje</h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Número de Transacción:</span>
+                    <span class="detail-value">#{{ redencion.id }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Fecha y Hora:</span>
+                    <span class="detail-value">{{ redencion.fecha_solicitud|date:"d/m/Y H:i" }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Recompensa:</span>
+                    <span class="detail-value">{{ recompensa.nombre }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Puntos Canjeados:</span>
+                    <span class="detail-value">{{ recompensa.puntos_requeridos }} puntos</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Puntos Restantes:</span>
+                    <span class="detail-value">{{ usuario.puntos }} puntos</span>
+                </div>
+                
+                {% if recompensa.categoria %}
+                <div class="detail-row">
+                    <span class="detail-label">Categoría:</span>
+                    <span class="detail-value">{{ recompensa.categoria.nombre }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Estado -->
+            <div class="status">
+                <div class="status-badge">✅ CANJEADO EXITOSAMENTE</div>
+                <p><strong>¡Tu recompensa ha sido procesada!</strong></p>
+                <p>Según el tipo de recompensa, podrás utilizarla de inmediato o recibirás instrucciones adicionales para hacerla efectiva.</p>
+            </div>
+            
+            <p><strong>¿Qué sigue?</strong></p>
+            <ul style="color: #666; line-height: 1.8;">
+                <li>Revisa tu perfil para ver el historial completo de canjes</li>
+                <li>Sigue acumulando puntos reciclando con EcoPuntos</li>
+                <li>Descubre más recompensas disponibles en nuestra plataforma</li>
+            </ul>
+            
+            <!-- Información de Contacto -->
+            <div class="contact-info">
+                <h4>¿Tienes alguna pregunta sobre tu recompensa?</h4>
+                <p><strong>Email:</strong> ecopuntos2@gmail.com</p>
+                <p><strong>Whatsapp:</strong> +57 300 123 4567</p>
+                <p><strong>Horario de Atención:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>¡Gracias por ser parte de EcoPuntos!</strong></p>
+            <p>Cada canje es un paso hacia un futuro más sostenible 🌱</p>
+            <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                Este correo fue enviado automáticamente, por favor no respondas a este mensaje.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

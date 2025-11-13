@@ -1,0 +1,458 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Email | Eco Puntos</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4caf50;
+            --primary-dark: #388e3c;
+            --primary-light: #c8e6c9;
+            --gradient-1: linear-gradient(135deg, #43a047 0%, #7cb342 100%);
+            --gradient-2: linear-gradient(135deg, #2e7d32 0%, #558b2f 100%);
+            --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            min-height: 100vh;
+            background: url('{% static "core/img/nature-3294681_1920 (1) (1).jpg" %}') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0;
+            padding: 20px 0;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0);
+            backdrop-filter: blur(1px);
+            z-index: 0;
+        }
+
+        .verification-container {
+            position: relative;
+            z-index: 1;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 500px;
+            margin: 2rem;
+        }
+
+        .verification-header {
+            background: var(--gradient-1);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .verification-header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('{% static "core/img/eco.jpg" %}') no-repeat center center;
+            background-size: cover;
+            opacity: 0.1;
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .verification-icon {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .verification-icon i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .verification-title {
+            position: relative;
+            z-index: 1;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .verification-subtitle {
+            position: relative;
+            z-index: 1;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .verification-body {
+            padding: 2rem;
+        }
+
+        .code-input-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 1.5rem 0;
+        }
+
+        .code-digit {
+            width: 50px;
+            height: 60px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .code-digit:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+            outline: none;
+        }
+
+        .verify-btn {
+            background: var(--gradient-1);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .verify-btn:hover {
+            background: var(--gradient-2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .verify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .resend-section {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .resend-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        .resend-btn:hover {
+            color: var(--primary-dark);
+        }
+
+        .resend-btn:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        .timer {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .email-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 1rem 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .email-display strong {
+            color: var(--primary);
+        }
+
+        .attempts-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .blocked-warning {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .verification-container {
+                margin: 1rem;
+                max-width: none;
+            }
+
+            .verification-header {
+                padding: 1.5rem;
+            }
+
+            .verification-body {
+                padding: 1.5rem;
+            }
+
+            .code-digit {
+                width: 45px;
+                height: 55px;
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="verification-header">
+            <div class="verification-icon">
+                <i class="fas fa-envelope-circle-check"></i>
+            </div>
+            <h2 class="verification-title">Verificar tu Email</h2>
+            <p class="verification-subtitle">Te hemos enviado un código de 6 dígitos</p>
+        </div>
+
+        <div class="verification-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="email-display">
+                <i class="fas fa-envelope me-2"></i>
+                Código enviado a: <strong>{{ email }}</strong>
+            </div>
+
+            {% if bloqueado %}
+                <div class="blocked-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Cuenta bloqueada temporalmente</strong><br>
+                    Demasiados intentos fallidos. Espera 15 minutos antes de intentar nuevamente.
+                </div>
+            {% else %}
+                {% if intentos_restantes < 3 and intentos_restantes > 0 %}
+                    <div class="attempts-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Te quedan <strong>{{ intentos_restantes }}</strong> intentos
+                    </div>
+                {% endif %}
+
+                <form method="POST" id="verificationForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="verify">
+                    
+                    <div class="code-input-container">
+                        <input type="text" class="code-digit" maxlength="1" id="digit1" tabindex="1">
+                        <input type="text" class="code-digit" maxlength="1" id="digit2" tabindex="2">
+                        <input type="text" class="code-digit" maxlength="1" id="digit3" tabindex="3">
+                        <input type="text" class="code-digit" maxlength="1" id="digit4" tabindex="4">
+                        <input type="text" class="code-digit" maxlength="1" id="digit5" tabindex="5">
+                        <input type="text" class="code-digit" maxlength="1" id="digit6" tabindex="6">
+                    </div>
+
+                    <input type="hidden" name="codigo_verificacion" id="fullCode">
+
+                    <button type="submit" class="verify-btn" id="verifyBtn">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Verificar Código
+                    </button>
+                </form>
+
+                {% if tiempo_restante %}
+                    <div class="timer" id="timer">
+                        <i class="fas fa-clock me-2"></i>
+                        El código expira en: <span id="countdown"></span>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <div class="resend-section">
+                <p class="small text-muted mb-2">¿No recibiste el código?</p>
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="resend">
+                    <button type="submit" class="resend-btn" id="resendBtn">
+                        <i class="fas fa-paper-plane me-1"></i>
+                        Reenviar código
+                    </button>
+                </form>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'registrate' %}" class="text-muted small">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Volver al registro
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Manejar entrada de dígitos
+        document.querySelectorAll('.code-digit').forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Solo permitir números
+                if (!/^\d$/.test(value)) {
+                    e.target.value = '';
+                    return;
+                }
+
+                // Actualizar código completo
+                updateFullCode();
+
+                // Mover al siguiente campo
+                if (value && index < 5) {
+                    document.getElementById(`digit${index + 2}`).focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                // Manejar backspace
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    document.getElementById(`digit${index}`).focus();
+                }
+                
+                // Manejar pegado
+                if (e.ctrlKey && e.key === 'v') {
+                    e.preventDefault();
+                    navigator.clipboard.readText().then(text => {
+                        const digits = text.replace(/\D/g, '').slice(0, 6);
+                        document.querySelectorAll('.code-digit').forEach((inp, i) => {
+                            inp.value = digits[i] || '';
+                        });
+                        updateFullCode();
+                    });
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text');
+                const digits = paste.replace(/\D/g, '').slice(0, 6);
+                
+                document.querySelectorAll('.code-digit').forEach((inp, i) => {
+                    inp.value = digits[i] || '';
+                });
+                updateFullCode();
+            });
+        });
+
+        function updateFullCode() {
+            const code = Array.from(document.querySelectorAll('.code-digit'))
+                .map(input => input.value)
+                .join('');
+            document.getElementById('fullCode').value = code;
+            
+            // Habilitar/deshabilitar botón
+            const verifyBtn = document.getElementById('verifyBtn');
+            verifyBtn.disabled = code.length !== 6;
+        }
+
+        // Countdown timer
+        {% if tiempo_restante %}
+        let timeLeft = {{ tiempo_restante.total_seconds|floatformat:0 }};
+        
+        function updateCountdown() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            
+            document.getElementById('countdown').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                document.getElementById('timer').innerHTML = 
+                    '<i class="fas fa-exclamation-triangle me-2"></i><span class="text-danger">El código ha expirado. Solicita uno nuevo.</span>';
+                document.getElementById('verifyBtn').disabled = true;
+                return;
+            }
+            
+            timeLeft--;
+            setTimeout(updateCountdown, 1000);
+        }
+        
+        updateCountdown();
+        {% endif %}
+
+        // Auto-submit cuando se complete el código
+        document.getElementById('verificationForm').addEventListener('input', () => {
+            const code = document.getElementById('fullCode').value;
+            if (code.length === 6) {
+                // Auto-submit después de un breve delay
+                setTimeout(() => {
+                    if (document.getElementById('fullCode').value === code) {
+                        document.getElementById('verificationForm').submit();
+                    }
+                }, 500);
+            }
+        });
+
+        // Focus en el primer campo al cargar
+        window.addEventListener('load', () => {
+            document.getElementById('digit1').focus();
+        });
+    </script>
+</body>
+</html>

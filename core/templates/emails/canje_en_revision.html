@@ -1,0 +1,61 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Canje en Revisión - Eco Puntos{% endblock %}
+
+{% block header_subtitle %}Tu canje está siendo evaluado 🔍{% endblock %}
+
+{% block content %}
+<h2>¡Hola {{ usuario.username }}! 👋</h2>
+
+<p>Te informamos que tu canje está actualmente <strong style="color: #ffc107;">EN REVISIÓN</strong>. Nuestro equipo está evaluando el material que enviaste.</p>
+
+<div class="highlight-box">
+    <h3 style="margin-top: 0; color: #4caf50;">🔍 Estado actual de tu canje:</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Número de canje:</div>
+            <div class="info-value">#{{ canje.id }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Material:</div>
+            <div class="info-value">{{ material }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Estado:</div>
+            <div class="info-value"><span style="color: #ffc107;">⏳ En revisión</span></div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Fecha de solicitud:</div>
+            <div class="info-value">{{ canje.fecha_solicitud|date:"d/m/Y H:i" }}</div>
+        </div>
+    </div>
+</div>
+
+<h3>⏰ Tiempo estimado de revisión</h3>
+<p>Nuestro equipo revisa los canjes en un plazo de <strong>24 a 48 horas hábiles</strong>. Te notificaremos inmediatamente cuando tengamos una respuesta.</p>
+
+<h3>🔎 ¿Qué estamos evaluando?</h3>
+<ul>
+    <li><strong>Calidad del material:</strong> Verificamos que cumpla con nuestros estándares</li>
+    <li><strong>Peso exacto:</strong> Confirmamos el peso real del material</li>
+    <li><strong>Condición:</strong> Evaluamos el estado y limpieza</li>
+    <li><strong>Clasificación:</strong> Confirmamos que corresponda al tipo seleccionado</li>
+</ul>
+
+<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
+    <h4 style="color: #856404; margin-top: 0;">💡 Consejos para futuras solicitudes:</h4>
+    <ul style="color: #856404; margin-bottom: 0;">
+        <li>Asegúrate de que el material esté limpio y seco</li>
+        <li>Clasifica correctamente según el tipo de material</li>
+        <li>Proporciona fotos claras del material</li>
+        <li>Estima el peso de forma realista</li>
+    </ul>
+</div>
+
+<a href="http://127.0.0.1:8000/canjes/" class="button">Ver estado del canje</a>
+
+<p>Te mantendremos informado sobre cualquier actualización. ¡Gracias por tu paciencia y por reciclar con nosotros!</p>
+
+<p>Saludos,<br>
+<strong>El equipo de Eco Puntos</strong></p>
+{% endblock %}

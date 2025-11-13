@@ -1,0 +1,562 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Canjes | Eco Puntos{% endblock title %}
+
+{% block content %}
+    <div class="main-content">
+        <main class="container">
+            <!-- Encabezado de la se        // Materiales data desde Django
+        const materialesData = {
+            {% for material in materials %}
+                "{{ material.id }}": {
+                    nombre: "{{ material.nombre }}",
+                    precio_por_kg: {{ material.precio_por_kg|default:0 }},
+                    puntos_por_kilo: {{ material.puntos_por_kilo|default:0 }}
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+
+        console.log('Materiales cargados:', materialesData);
+        console.log('Claves de materiales:', Object.keys(materialesData));
+            <div class="section-header-container" style="background: rgba(255,255,255,0.7); border-radius: 18px; box-shadow: 0 4px 18px rgba(76,175,80,0.08); padding: 32px 10px 24px 10px; margin-bottom: 40px; margin-top: 20px;">
+                <div class="section-header fade-in">
+                    <h2 style="color: var(--primary-dark); font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(76,175,80,0.08);">Sistema Integrado de Canjes</h2>
+                    <p style="color: #000300; font-size: 1.15rem; font-weight: 500; letter-spacing: 0.2px;">Solicita tu canje tradicional o con recolección a domicilio. Todo en un solo lugar.</p>
+                </div>
+            </div>
+
+            <!-- Navegación por tabs -->
+            <ul class="nav nav-tabs mb-4" id="canjesTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="nuevo-canje-tab" data-bs-toggle="tab" data-bs-target="#nuevo-canje" type="button" role="tab">
+                        <i class="fas fa-plus-circle me-2"></i>Nuevo Canje
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="mis-canjes-tab" data-bs-toggle="tab" data-bs-target="#mis-canjes" type="button" role="tab">
+                        <i class="fas fa-list me-2"></i>Mis Canjes
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="canjesTabContent">
+                <!-- Tab: Nuevo Canje -->
+                <div class="tab-pane fade show active" id="nuevo-canje" role="tabpanel">
+                    <div class="card-canje animate__animated animate__fadeInUp">
+                        <h3 class="text-center mb-4" style="color: var(--primary-dark); font-weight: 700;">
+                            <i class="fas fa-recycle me-2"></i>Solicitar Canje
+                        </h3>
+                        
+                        <form id="canjeIntegradoForm" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <!-- Sección 1: Información del Material -->
+                            <div class="section-divider">
+                                <h5><i class="fas fa-leaf me-2"></i>Información del Material</h5>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="{{ form.material.id_for_label }}" class="form-label">Material a Reciclar</label>
+                                    {{ form.material }}
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Peso Estimado (kg)</label>
+                                    <div class="alert alert-info py-2 mb-2">
+                                        <small><i class="fas fa-info-circle me-1"></i><strong>Peso estimado:</strong> Selecciona una estimación. El administrador verificará el peso final al revisar tu material.</small>
+                                    </div>
+                                    <div class="peso-selection mb-2">
+                                        <div class="btn-group" role="group" aria-label="Peso estimado">
+                                            <button type="button" class="btn btn-outline-primary peso-btn" data-peso="0.5">0.5 kg</button>
+                                            <button type="button" class="btn btn-outline-primary peso-btn" data-peso="1">1 kg</button>
+                                            <button type="button" class="btn btn-outline-primary peso-btn" data-peso="2">2 kg</button>
+                                            <button type="button" class="btn btn-outline-primary peso-btn" data-peso="5">5 kg</button>
+                                            <button type="button" class="btn btn-outline-primary peso-btn" data-peso="10">10+ kg</button>
+                                        </div>
+                                    </div>
+                                    {{ form.peso }}
+                                    <small class="form-text text-muted">Solo una estimación - El peso final lo determinará el administrador</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <!-- Cálculo de puntos en tiempo real -->
+                                    <div class="puntos-estimados" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 12px; padding: 20px; border: 2px solid #ffc107; height: 100%;">
+                                        <h6 class="text-center mb-2"><i class="fas fa-calculator me-2"></i>Puntos Aproximados</h6>
+                                        <div class="text-center">
+                                            <span class="puntos-display" style="font-size: 2rem; font-weight: bold; color: #856404;">0</span>
+                                            <span style="font-size: 1.2rem; color: #856404;"> puntos</span>
+                                        </div>
+                                        <div class="text-center mt-2">
+                                            <small class="text-muted"><i class="fas fa-exclamation-triangle me-1"></i>Estimación inicial - Los puntos finales dependen del peso real verificado por el administrador</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.foto_material_inicial.id_for_label }}" class="form-label">Foto del Material</label>
+                                    {{ form.foto_material_inicial }}
+                                    <small class="form-text text-muted">Foto clara del material a reciclar</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.comprobante.id_for_label }}" class="form-label">Comprobante (opcional)</label>
+                                    {{ form.comprobante }}
+                                    <small class="form-text text-muted">Ticket de compra o documento relacionado</small>
+                                </div>
+                            </div>
+
+                            <!-- Información sobre recolección -->
+
+                            <!-- Botón de envío -->
+                            <div class="text-center mt-4">
+                                <button type="submit" class="btn btn-success btn-lg px-5" id="submitBtn">
+                                    <i class="fas fa-paper-plane me-2"></i>Solicitar Canje
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tab: Mis Canjes -->
+                <div class="tab-pane fade" id="mis-canjes" role="tabpanel">
+                    <div class="row">
+                        {% for canje_data in user_canjes %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h6 class="card-title">{{ canje_data.canje.material.nombre }}</h6>
+                                            <span class="badge bg-{% if canje_data.canje.estado == 'completado' %}success{% elif canje_data.canje.estado == 'pendiente_recoleccion' %}warning{% elif canje_data.canje.estado == 'en_recoleccion' %}info{% else %}secondary{% endif %}">
+                                                {{ canje_data.canje.get_estado_display }}
+                                            </span>
+                                        </div>
+                                        
+                                        <p class="card-text">
+                                            <strong>Peso:</strong> {{ canje_data.canje.peso }} kg<br>
+                                            <strong>Puntos:</strong> {{ canje_data.canje.puntos }}<br>
+                                            <strong>Fecha:</strong> {{ canje_data.canje.fecha_solicitud|date:"d/m/Y H:i" }}
+                                        </p>
+
+                                        {% if canje_data.canje.necesita_recoleccion %}
+                                            <div class="alert alert-info mb-2">
+                                                <i class="fas fa-truck me-2"></i>Con recolección a domicilio
+                                            </div>
+                                            
+                                            {% if canje_data.ruta_info %}
+                                                <small class="text-muted">
+                                                    <strong>Ruta:</strong> {{ canje_data.ruta_info.nombre }}<br>
+                                                    <strong>Estado de Ruta:</strong> {{ canje_data.ruta_info.get_estado_display }}
+                                                </small>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12">
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No tienes canjes registrados aún. ¡Solicita tu primer canje!
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .card-canje {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(76,175,80,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-divider {
+            border-bottom: 2px solid #e8f5e8;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section-divider h5 {
+            color: var(--primary-dark);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .puntos-display {
+            transition: all 0.3s ease;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .nav-tabs .nav-link {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+        }
+
+        .peso-btn {
+            margin: 2px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+        }
+
+        .peso-btn.active {
+            background-color: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .peso-selection {
+            margin-bottom: 10px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+        
+        /* Estilos para el modal personalizado de canje exitoso */
+        .canje-success-modal {
+            border-radius: 20px !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1) !important;
+        }
+        
+        .canje-success-modal .swal2-html-container {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .canje-success-modal .swal2-icon.swal2-success {
+            border-color: #4caf50 !important;
+            color: #4caf50 !important;
+        }
+        
+        .canje-success-modal .swal2-icon.swal2-success [class^='swal2-success-line'] {
+            background-color: #4caf50 !important;
+        }
+        
+        .canje-success-modal .swal2-icon.swal2-success .swal2-success-ring {
+            border-color: rgba(76,175,80,0.3) !important;
+        }
+        
+        /* Animaciones adicionales */
+        @keyframes bounceInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .canje-success-modal {
+            animation: bounceInUp 0.6s ease-out !important;
+        }
+    </style>
+
+    <script>
+        // Materiales data desde Django
+        const materialesData = {
+            {% for material in materials %}
+                {{ material.id }}: {
+                    nombre: "{{ material.nombre }}",
+                    precio_por_kg: {{ material.precio_por_kg|default:0 }},
+                    puntos_por_kilo: {{ material.puntos_por_kilo|default:0 }}
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+
+        console.log('Materiales cargados:', materialesData);
+        console.log('Total materiales:', Object.keys(materialesData).length);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Buscar elementos con múltiples estrategias
+            const materialSelect = document.getElementById('material_select') || document.querySelector('select[name="material"]');
+            const pesoInput = document.getElementById('peso_input') || document.querySelector('input[name="peso"]');
+            const puntosDisplay = document.querySelector('.puntos-display');
+            const form = document.getElementById('canjeIntegradoForm');
+            const pesoBtns = document.querySelectorAll('.peso-btn');
+
+            console.log('Elementos encontrados:', {
+                materialSelect: materialSelect ? 'OK - ID: ' + (materialSelect.id || 'sin ID') : 'NO ENCONTRADO',
+                pesoInput: pesoInput ? 'OK - ID: ' + (pesoInput.id || 'sin ID') : 'NO ENCONTRADO',
+                puntosDisplay: puntosDisplay ? 'OK' : 'NO ENCONTRADO',
+                totalMateriales: Object.keys(materialesData).length,
+                pesoBtns: pesoBtns.length
+            });
+
+            // Función para calcular puntos
+            function calcularPuntos() {
+                console.log('=== VERIFICANDO ELEMENTOS ===');
+                console.log('materialSelect:', materialSelect);
+                console.log('pesoInput:', pesoInput);
+                console.log('puntosDisplay:', puntosDisplay);
+                
+                if (!materialSelect || !pesoInput || !puntosDisplay) {
+                    console.error('Elementos faltantes para cálculo:');
+                    console.error('- materialSelect:', materialSelect ? 'OK' : 'FALTANTE');
+                    console.error('- pesoInput:', pesoInput ? 'OK' : 'FALTANTE');
+                    console.error('- puntosDisplay:', puntosDisplay ? 'OK' : 'FALTANTE');
+                    return;
+                }
+
+                const materialId = materialSelect.value;
+                const peso = parseFloat(pesoInput.value) || 0;
+                
+                console.log('=== CALCULANDO PUNTOS ===');
+                console.log('Material ID:', materialId);
+                console.log('Peso:', peso);
+                console.log('Datos del material:', materialesData[materialId]);
+                
+                if (materialId && peso > 0 && materialesData[materialId]) {
+                    const material = materialesData[materialId];
+                    const puntosPorKilo = material.puntos_por_kilo || material.precio_por_kg || 0;
+                    const puntos = Math.floor(peso * puntosPorKilo);
+                    
+                    console.log('Puntos por kilo:', puntosPorKilo);
+                    console.log('RESULTADO:', puntos, 'puntos');
+                    
+                    puntosDisplay.textContent = puntos.toLocaleString();
+                    puntosDisplay.style.transform = 'scale(1.2)';
+                    puntosDisplay.style.color = '#28a745';
+                    setTimeout(() => {
+                        puntosDisplay.style.transform = 'scale(1)';
+                    }, 300);
+                } else {
+                    console.log('No se puede calcular - condiciones no cumplidas');
+                    puntosDisplay.textContent = '0';
+                }
+            }
+
+            // Botones de peso rápido
+            pesoBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    console.log('Botón clickeado:', this.dataset.peso);
+                    pesoBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const peso = this.dataset.peso;
+                    if (peso === '10') {
+                        pesoInput.value = '10';
+                        pesoInput.focus();
+                    } else {
+                        pesoInput.value = peso;
+                    }
+                    
+                    // Calcular después de un pequeño delay
+                    setTimeout(calcularPuntos, 100);
+                });
+            });
+
+            // Event listeners
+            pesoInput?.addEventListener('input', function() {
+                console.log('Peso cambiado a:', this.value);
+                pesoBtns.forEach(btn => btn.classList.remove('active'));
+                calcularPuntos();
+            });
+
+            materialSelect?.addEventListener('change', function() {
+                console.log('Material cambiado a:', this.value);
+                calcularPuntos();
+            });
+
+            // Calcular automáticamente si ya hay valores
+            setTimeout(() => {
+                console.log('=== CÁLCULO AUTOMÁTICO INICIAL ===');
+                calcularPuntos();
+            }, 500);
+
+            // Manejar envío del formulario
+            form?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+                submitBtn.disabled = true;
+
+                const formData = new FormData(form);
+                
+                fetch('{% url "canjes" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Modal personalizado con opciones de recogida
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Canje Solicitado Exitosamente! 🎉',
+                            html: `
+                                <div style="text-align: center; padding: 20px;">
+                                    <p style="font-size: 16px; color: #333; margin-bottom: 25px;">
+                                        ${data.message}
+                                    </p>
+                                    <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); 
+                                                border-radius: 15px; padding: 20px; margin: 20px 0;">
+                                        <h4 style="color: #2e7d32; margin-bottom: 15px;">
+                                            <i class="fas fa-truck" style="margin-right: 10px;"></i>
+                                            ¿Deseas programar la recogida?
+                                        </h4>
+                                        <p style="color: #424242; font-size: 14px; margin-bottom: 20px;">
+                                            Puedes agendar ahora mismo cuando recogeremos tu material, 
+                                            o hacerlo más tarde desde tu panel de usuario.
+                                        </p>
+                                        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                                            <button id="agendarAhora" class="btn btn-success" style="
+                                                background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+                                                border: none; border-radius: 25px; padding: 12px 25px;
+                                                font-weight: 600; color: white; cursor: pointer;
+                                                box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+                                                transition: all 0.3s ease;">
+                                                <i class="fas fa-calendar-plus" style="margin-right: 8px;"></i>
+                                                Sí, Agendar Ahora
+                                            </button>
+                                            <button id="agendarDespues" class="btn btn-outline-success" style="
+                                                border: 2px solid #4caf50; color: #4caf50; background: white;
+                                                border-radius: 25px; padding: 12px 25px;
+                                                font-weight: 600; cursor: pointer;
+                                                transition: all 0.3s ease;">
+                                                <i class="fas fa-clock" style="margin-right: 8px;"></i>
+                                                Hacerlo Después
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `,
+                            showConfirmButton: false,
+                            showCancelButton: false,
+                            allowOutsideClick: false,
+                            customClass: {
+                                popup: 'canje-success-modal'
+                            },
+                            didOpen: () => {
+                                // Agregar estilos hover a los botones
+                                const agendarAhora = document.getElementById('agendarAhora');
+                                const agendarDespues = document.getElementById('agendarDespues');
+                                
+                                agendarAhora.addEventListener('mouseenter', function() {
+                                    this.style.transform = 'translateY(-2px)';
+                                    this.style.boxShadow = '0 6px 20px rgba(76,175,80,0.4)';
+                                });
+                                
+                                agendarAhora.addEventListener('mouseleave', function() {
+                                    this.style.transform = 'translateY(0)';
+                                    this.style.boxShadow = '0 4px 15px rgba(76,175,80,0.3)';
+                                });
+                                
+                                agendarDespues.addEventListener('mouseenter', function() {
+                                    this.style.transform = 'translateY(-2px)';
+                                    this.style.background = '#4caf50';
+                                    this.style.color = 'white';
+                                });
+                                
+                                agendarDespues.addEventListener('mouseleave', function() {
+                                    this.style.transform = 'translateY(0)';
+                                    this.style.background = 'white';
+                                    this.style.color = '#4caf50';
+                                });
+                                
+                                // Event listeners para los botones
+                                agendarAhora.addEventListener('click', function() {
+                                    Swal.close();
+                                    // Redirigir a la página de rutas/agendamiento
+                                    window.location.href = '{% url "rutasusuario" %}';
+                                });
+                                
+                                agendarDespues.addEventListener('click', function() {
+                                    Swal.close();
+                                    // Mostrar mensaje de confirmación y recargar
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: '¡Perfecto!',
+                                        text: 'Puedes agendar tu recogida más tarde desde "Mis Rutas" en el menú principal.',
+                                        confirmButtonColor: '#4caf50',
+                                        timer: 3000,
+                                        timerProgressBar: true
+                                    }).then(() => {
+                                        form.reset();
+                                        puntosDisplay.textContent = '0';
+                                        pesoBtns.forEach(btn => btn.classList.remove('active'));
+                                        location.reload();
+                                    });
+                                });
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un problema al solicitar el canje. Por favor, verifica los datos.',
+                            confirmButtonColor: '#4caf50'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
+                        confirmButtonColor: '#4caf50'
+                    });
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+
+            // Hacer función global para debug manual
+            window.calcularPuntos = calcularPuntos;
+            window.debug = {
+                materialesData,
+                materialSelect,
+                pesoInput,
+                puntosDisplay
+            };
+
+            console.log('=== SETUP COMPLETO ===');
+            console.log('Puedes usar calcularPuntos() en la consola para debug manual');
+        });
+    </script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+{% include 'core/includes/notification_system.html' %}
+
+{% endblock content %}

@@ -1,0 +1,268 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}Superusuario - EcoPuntos{% endblock %}</title>
+  
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  
+  <style>
+    :root {
+      --primary: #dc3545;
+      --primary-dark: #c82333;
+      --primary-light: #f8d7da;
+      --accent: #fd7e14;
+      --text-dark: #263238;
+      --text-light: #f5f5f5;
+      --gray-light: #f9f9f9;
+      --gray: #e0e0e0;
+      --success: #66bb6a;
+      --info: #29b6f6;
+      --warning: #ffa726;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--gray-light);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+    }
+    
+    /* Superuser Navbar Style */
+    .navbar-superuser {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      padding: 15px 0;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+    
+    .navbar-brand-superuser {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white !important;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .navbar-brand-superuser:hover {
+      color: white !important;
+      text-decoration: none;
+    }
+    
+    .logo-superuser {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      transition: transform 0.3s ease;
+    }
+    
+    .logo-superuser:hover {
+      transform: scale(1.1);
+    }
+    
+    .superuser-crown {
+      color: #ffd700;
+      margin-left: 10px;
+      font-size: 1.2rem;
+    }
+    
+    .user-profile-superuser {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .user-profile-superuser:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      text-decoration: none;
+    }
+    
+    .user-avatar-superuser {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+    
+    .avatar-nav-superuser {
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .main-content {
+      margin-top: 100px;
+      padding: 2rem 0;
+      min-height: calc(100vh - 100px);
+    }
+    
+    /* Footer */
+    .footer-superuser {
+      background: var(--text-dark);
+      color: white;
+      padding: 2rem 0;
+      margin-top: 3rem;
+    }
+    
+    .footer-superuser .text-muted {
+      color: #adb5bd !important;
+    }
+    
+    /* Logout Button */
+    .btn-logout-superuser {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-logout-superuser:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main-content {
+        margin-top: 80px;
+        padding: 1rem 0;
+      }
+      
+      .navbar-superuser {
+        padding: 10px 0;
+      }
+    }
+  </style>
+  
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+  <!-- Superuser Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-superuser">
+    <div class="container">
+      <a class="navbar-brand-superuser" href="{% url 'panel_superuser' %}">
+        <img src="{% static 'core/img/eco.jpg' %}" alt="Logo" class="logo-superuser">
+        <div>
+          <strong>EcoPuntos</strong>
+          <i class="fas fa-crown superuser-crown"></i>
+        </div>
+      </a>
+      
+      <!-- User Profile and Logout (Right Side) -->
+      <div class="d-flex align-items-center gap-3">
+        {% if user.is_authenticated %}
+          <!-- User Profile Info -->
+          <div class="user-profile-superuser">
+            {% if user.foto_perfil %}
+              <img src="{{ user.foto_perfil.url }}?v={{ user.last_login|date:'U'|default:'0' }}" alt="Foto de Perfil" class="user-avatar-superuser">
+            {% else %}
+              <div class="user-avatar-superuser avatar-nav-superuser">
+                {{ user.first_name|first|upper|default:user.username|first|upper }}
+              </div>
+            {% endif %}
+            <div class="d-none d-md-block">
+              <small class="d-block">{{ user.get_full_name|default:user.username }}</small>
+              <small class="text-light opacity-75">Máxima Autoridad</small>
+            </div>
+          </div>
+          
+          <!-- Logout Button (abrir modal de confirmación) -->
+          <a href="#" class="btn btn-logout-superuser" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="d-none d-md-inline"> Cerrar Sesión</span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- Logout Modal -->
+  {% if user.is_authenticated %}
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="logoutModalLabel">Confirmar Cierre de Sesión</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          ¿Estás seguro de que deseas cerrar sesión?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <a href="{% url 'logout' %}" class="btn btn-danger">Cerrar Sesión</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Footer -->
+  <footer class="footer-superuser">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5><i class="fas fa-crown"></i> Panel de Superusuario</h5>
+          <p class="text-muted">Control total del sistema EcoPuntos</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p class="text-muted mb-0">© 2024 EcoPuntos. Todos los derechos reservados.</p>
+          <small class="text-muted">Sistema de máxima autoridad</small>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,50 @@
+EcoPuntos - ¡Recompensa Canjeada Exitosamente!
+==============================================
+
+¡FELICIDADES! Tu recompensa ha sido canjeada
+
+Estimado/a {{ usuario.get_full_name|default:usuario.username }},
+
+¡Excelente noticia! Has canjeado exitosamente una recompensa usando tus puntos EcoPuntos. A continuación encontrarás todos los detalles de tu canje:
+
+RECOMPENSA CANJEADA
+==================
+🎁 {{ recompensa.nombre }}
+{{ recompensa.descripcion }}
+
+Puntos utilizados: {{ recompensa.puntos_requeridos }} puntos
+
+DETALLES DEL CANJE
+==================
+
+Número de Transacción: #{{ redencion.id }}
+Fecha y Hora: {{ redencion.fecha_solicitud|date:"d/m/Y H:i" }}
+Recompensa: {{ recompensa.nombre }}
+Puntos Canjeados: {{ recompensa.puntos_requeridos }} puntos
+Puntos Restantes: {{ usuario.puntos }} puntos
+{% if recompensa.categoria %}Categoría: {{ recompensa.categoria.nombre }}{% endif %}
+
+ESTADO
+======
+✅ CANJEADO EXITOSAMENTE
+
+¡Tu recompensa ha sido procesada!
+Según el tipo de recompensa, podrás utilizarla de inmediato o recibirás instrucciones adicionales para hacerla efectiva.
+
+¿QUÉ SIGUE?
+===========
+- Revisa tu perfil para ver el historial completo de canjes
+- Sigue acumulando puntos reciclando con EcoPuntos  
+- Descubre más recompensas disponibles en nuestra plataforma
+
+¿TIENES ALGUNA PREGUNTA SOBRE TU RECOMPENSA?
+============================================
+Email: ecopuntos2@gmail.com
+Whatsapp: +57 300 123 4567
+Horario de Atención: Lunes a Viernes, 8:00 AM - 6:00 PM
+
+¡Gracias por ser parte de EcoPuntos!
+Cada canje es un paso hacia un futuro más sostenible 🌱
+
+---
+Este correo fue enviado automáticamente, por favor no respondas a este mensaje.

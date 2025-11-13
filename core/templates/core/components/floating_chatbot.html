@@ -1,0 +1,600 @@
+<!-- Botón Flotante para Chatbot -->
+<div id="floating-chatbot" class="floating-chatbot">
+    <button id="chatbot-toggle" class="chatbot-toggle-btn" onclick="toggleFloatingChat()">
+        <i class="fas fa-robot"></i>
+        <span class="tooltip">¿Necesitas ayuda? ¡Pregúntame!</span>
+    </button>
+    
+    <!-- Mini Chat Popup -->
+    <div id="mini-chat" class="mini-chat-popup" style="display: none;">
+        <div class="mini-chat-header">
+            <div class="mini-chat-title">
+                <i class="fas fa-robot"></i>
+                <span>EcoBot</span>
+                <span class="online-indicator"></span>
+            </div>
+            <button class="mini-chat-close" onclick="closeFloatingChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mini-chat-body">
+            <div class="mini-chat-messages" id="mini-chat-messages">
+                <div class="mini-message bot">
+                    <div class="mini-message-content">
+                        ¡Hola! 👋 Soy EcoBot, tu asistente virtual. ¿En qué puedo ayudarte hoy?
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mini-chat-footer">
+            <div class="mini-chat-input-container">
+                <input type="text" id="mini-chat-input" placeholder="Escribe tu mensaje..." maxlength="500">
+                <button id="mini-send-btn" onclick="sendMiniMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div id="connection-status" style="font-size: 10px; color: #666; text-align: center; margin-top: 5px;">
+                <span id="status-text">Conectando...</span>
+            </div>
+            <div class="mini-chat-actions">
+                <button class="mini-action-btn" onclick="openFullChat()">
+                    <i class="fas fa-expand"></i> Chat Completo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Botón Flotante */
+.floating-chatbot {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+}
+
+.chatbot-toggle-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    box-shadow: 0 4px 20px rgba(40, 167, 69, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: visible;
+}
+
+.chatbot-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(40, 167, 69, 0.6);
+}
+
+.chatbot-toggle-btn .tooltip {
+    position: absolute;
+    right: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.chatbot-toggle-btn:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+    right: 75px;
+}
+
+/* Mini Chat Popup */
+.mini-chat-popup {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 350px;
+    height: 500px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+    z-index: 10000;
+}
+    z-index: 10000;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mini-chat-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mini-chat-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.online-indicator {
+    width: 8px;
+    height: 8px;
+    background: #00ff00;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.mini-chat-close {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.mini-chat-close:hover {
+    opacity: 1;
+}
+
+.mini-chat-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mini-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Scrollbar personalizado para mensajes */
+.mini-chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mini-chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.mini-chat-messages::-webkit-scrollbar-thumb {
+    background: #28a745;
+    border-radius: 3px;
+}
+
+.mini-chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #218838;
+}
+
+.mini-message {
+    margin-bottom: 15px;
+    display: flex;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mini-message.bot {
+    justify-content: flex-start;
+}
+
+.mini-message.user {
+    justify-content: flex-end;
+}
+
+.mini-message-content {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.mini-message.bot .mini-message-content {
+    background: #ffffff;
+    color: #333;
+    border: 1px solid #e9ecef;
+    border-bottom-left-radius: 5px;
+}
+
+.mini-message.user .mini-message-content {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.mini-message-time {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.mini-chat-footer {
+    padding: 15px;
+    background: white;
+    border-top: 2px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.mini-chat-input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+#mini-chat-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+    resize: none;
+}
+
+#mini-chat-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+#mini-send-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+#mini-send-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+#mini-send-btn:active {
+    transform: scale(0.95);
+}
+
+#connection-status {
+    font-size: 11px;
+    text-align: center;
+    padding: 5px;
+    border-radius: 10px;
+    background: #f8f9fa;
+}
+
+#status-text {
+    font-weight: 500;
+}
+
+.mini-chat-actions {
+    text-align: center;
+    margin-top: 8px;
+}
+
+.mini-action-btn {
+    background: none;
+    border: 1px solid #28a745;
+    color: #28a745;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.mini-action-btn:hover {
+    background: #28a745;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .floating-chatbot {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .mini-chat-popup {
+        width: 280px;
+        height: 380px;
+    }
+    
+    .mini-chat-body {
+        max-height: 240px;
+        min-height: 240px;
+    }
+    
+    .mini-chat-messages {
+        max-height: 240px;
+        min-height: 210px;
+        padding: 8px;
+    }
+    
+    .mini-chat-footer {
+        min-height: 90px;
+        max-height: 100px;
+        padding: 8px;
+    }
+    
+    .chatbot-toggle-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+}
+</style>
+
+<script>
+let miniChatSocket = null;
+let isMiniChatOpen = false;
+
+function updateConnectionStatus(text, color) {
+    const statusText = document.getElementById('status-text');
+    const onlineIndicator = document.querySelector('.online-indicator');
+    
+    if (statusText) {
+        statusText.textContent = text;
+        statusText.style.color = color;
+    }
+    
+    if (onlineIndicator) {
+        onlineIndicator.style.background = color;
+    }
+}
+
+function toggleFloatingChat() {
+    const miniChat = document.getElementById('mini-chat');
+    const toggleBtn = document.getElementById('chatbot-toggle');
+    
+    if (isMiniChatOpen) {
+        closeFloatingChat();
+    } else {
+        openFloatingChat();
+    }
+}
+
+function openFloatingChat() {
+    const miniChat = document.getElementById('mini-chat');
+    const toggleBtn = document.getElementById('chatbot-toggle');
+    
+    if (!miniChat || !toggleBtn) {
+        console.error('Elementos del mini chat no encontrados');
+        return;
+    }
+    
+    miniChat.style.display = 'flex';
+    toggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+    isMiniChatOpen = true;
+    
+    // Siempre intentar conectar cuando se abre
+    console.log('Abriendo mini chat, iniciando conexión...');
+    connectMiniChat();
+    
+    // Focus en el input
+    setTimeout(() => {
+        const input = document.getElementById('mini-chat-input');
+        if (input) {
+            input.focus();
+        }
+    }, 300);
+}
+
+function closeFloatingChat() {
+    const miniChat = document.getElementById('mini-chat');
+    const toggleBtn = document.getElementById('chatbot-toggle');
+    
+    miniChat.style.display = 'none';
+    toggleBtn.innerHTML = '<i class="fas fa-robot"></i><span class="tooltip">¿Necesitas ayuda? ¡Pregúntame!</span>';
+    isMiniChatOpen = false;
+}
+
+function connectMiniChat() {
+    // Si ya hay una conexión, cerrarla primero
+    if (miniChatSocket) {
+        miniChatSocket.close();
+        miniChatSocket = null;
+    }
+    
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/chatbot/`;
+    
+    console.log('🔌 Conectando mini chat a:', wsUrl);
+    updateConnectionStatus('Conectando...', '#ffa726');
+    
+    try {
+        miniChatSocket = new WebSocket(wsUrl);
+        
+        miniChatSocket.onopen = function(e) {
+            console.log('✅ Mini chat conectado exitosamente');
+            updateConnectionStatus('Conectado', '#28a745');
+        };
+        
+        miniChatSocket.onmessage = function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                console.log('📨 Mensaje recibido:', data);
+                
+                // Actualizar status a conectado cuando recibimos cualquier mensaje
+                updateConnectionStatus('Conectado', '#28a745');
+                
+                // Manejar diferentes tipos de mensajes
+                if (data.type === 'bot_message' || data.type === 'chatbot_message') {
+                    addMiniMessage(data.message, 'bot');
+                } else if (data.type === 'system_message') {
+                    addMiniMessage(data.message, 'bot');
+                } else if (data.type === 'error_message') {
+                    addMiniMessage('❌ ' + data.message, 'bot');
+                } else if (data.message) {
+                    // Fallback: si hay un campo 'message', mostrarlo
+                    addMiniMessage(data.message, 'bot');
+                }
+            } catch (error) {
+                console.error('❌ Error procesando mensaje:', error);
+                addMiniMessage('Error procesando respuesta', 'bot');
+            }
+        };
+        
+        miniChatSocket.onclose = function(e) {
+            console.log('❌ Mini chat desconectado. Código:', e.code, 'Razón:', e.reason);
+            miniChatSocket = null;
+            updateConnectionStatus('Desconectado', '#dc3545');
+            
+            // Intentar reconectar después de 3 segundos
+            if (isMiniChatOpen) {
+                setTimeout(() => {
+                    console.log('🔄 Intentando reconectar mini chat...');
+                    connectMiniChat();
+                }, 3000);
+            }
+        };
+        
+        miniChatSocket.onerror = function(e) {
+            console.error('💥 Error en mini chat:', e);
+            updateConnectionStatus('Error', '#dc3545');
+            addMiniMessage('Error de conexión. Reintentando...', 'bot');
+        };
+        
+    } catch (error) {
+        console.error('Error conectando mini chat:', error);
+    }
+}
+
+function sendMiniMessage() {
+    const input = document.getElementById('mini-chat-input');
+    if (!input) {
+        console.error('Input del mini chat no encontrado');
+        return;
+    }
+    
+    const message = input.value.trim();
+    
+    if (message) {
+        // Agregar mensaje del usuario inmediatamente
+        addMiniMessage(message, 'user');
+        
+        if (miniChatSocket && miniChatSocket.readyState === WebSocket.OPEN) {
+            console.log('📤 Enviando mensaje:', message);
+            miniChatSocket.send(JSON.stringify({
+                'type': 'user_message',
+                'message': message
+            }));
+        } else {
+            console.log('❌ WebSocket no conectado, reconectando...');
+            addMiniMessage('Reconectando...', 'bot');
+            connectMiniChat();
+        }
+        
+        // Limpiar input
+        input.value = '';
+    }
+}
+
+function addMiniMessage(message, sender) {
+    const messagesContainer = document.getElementById('mini-chat-messages');
+    if (!messagesContainer) {
+        console.error('❌ Contenedor de mensajes no encontrado');
+        return;
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `mini-message ${sender}`;
+    
+    const timestamp = new Date().toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    
+    messageDiv.innerHTML = `
+        <div class="mini-message-content">
+            ${message}
+            <div class="mini-message-time">${timestamp}</div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    console.log(`💬 Mensaje agregado (${sender}):`, message);
+}
+
+function openFullChat() {
+    window.open('/chatbot/', '_blank');
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que todos los elementos necesarios existan
+    const miniChatInput = document.getElementById('mini-chat-input');
+    const chatbotToggle = document.getElementById('chatbot-toggle');
+    
+    if (miniChatInput) {
+        // Enter para enviar mensaje
+        miniChatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMiniMessage();
+            }
+        });
+    }
+    
+    // Verificar si toastr está disponible
+    if (typeof toastr === 'undefined') {
+        console.warn('Toastr no está disponible para notificaciones del mini chat');
+    }
+});
+</script>

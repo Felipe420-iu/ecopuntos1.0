@@ -1,0 +1,38 @@
+{
+  "name": "ecopuntos-frontend-tests",
+  "version": "1.0.0",
+  "description": "Frontend testing suite for EcoPuntos project",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "install:browsers": "playwright install",
+    "test:design": "node run-design-tests.js",
+    "test:design:headed": "node run-design-tests.js --headed",
+    "test:design:html": "node run-design-tests.js --reporter html",
+    "test:visual": "playwright test tests/visual-regression.spec.js",
+    "test:responsive": "playwright test tests/responsive-design.spec.js",
+    "test:accessibility": "playwright test tests/accessibility.spec.js",
+    "test:components": "playwright test tests/javascript-components.spec.js",
+    "test:css": "playwright test tests/css-validation.spec.js",
+    "test:visual:update": "playwright test tests/visual-regression.spec.js --update-snapshots",
+    "test:all:headed": "playwright test tests/ --headed",
+    "test:all:html": "playwright test tests/ --reporter=html"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@axe-core/playwright": "^4.8.2",
+    "playwright": "^1.40.0"
+  },
+  "keywords": [
+    "testing",
+    "e2e",
+    "playwright",
+    "accessibility",
+    "visual-testing"
+  ],
+  "author": "EcoPuntos Team",
+  "license": "MIT"
+}

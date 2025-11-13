@@ -1,0 +1,1368 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}🐛 EcoWorm Recycling Adventure | Eco Puntos{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4caf50;
+        --primary-dark: #388e3c;
+        --accent: #8bc34a;
+        --bot-green: #00ff88;
+        --laser-red: #ff4757;
+        --explosion-orange: #ff6b35;
+        --text-dark: #263238;
+        --bg-dark: #0a0a0a;
+        --bg-secondary: #1a1a2e;
+        --bg-tertiary: #16213e;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+        font-family: 'Orbitron', 'Poppins', sans-serif;
+        min-height: 100vh;
+        color: #fff;
+        margin: 0;
+        padding: 20px;
+        cursor: crosshair;
+    }
+
+    .hunter-container {
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+        height: 500px;
+        margin: 0 auto;
+        background: linear-gradient(145deg, var(--bg-secondary), var(--bg-tertiary));
+        border-radius: 15px;
+        border: 3px solid var(--bot-green);
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        overflow: hidden;
+        cursor: crosshair;
+    }
+
+    .hunter-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(255, 71, 87, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+        animation: ambient-glow 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambient-glow {
+        0% { opacity: 0.3; }
+        100% { opacity: 0.7; }
+    }
+
+    .game-hud {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.9);
+        padding: 10px;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(10px);
+        border-bottom: 2px solid var(--bot-green);
+        border-radius: 15px 15px 0 0;
+        height: 50px;
+    }
+    
+    .exit-btn {
+        background: linear-gradient(135deg, var(--laser-red), #c44569);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        text-decoration: none;
+        font-size: 0.7rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: 2px solid var(--bot-green);
+    }
+    
+    .exit-btn:hover {
+        background: linear-gradient(135deg, var(--explosion-orange), var(--laser-red));
+        transform: scale(1.1);
+        color: white;
+        text-decoration: none;
+        box-shadow: 0 0 20px rgba(255, 71, 87, 0.6);
+    }
+
+    .game-title {
+        font-size: 1.1rem;
+        color: var(--bot-green);
+        text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        font-weight: 900;
+        letter-spacing: 1px;
+    }
+
+    .game-stats {
+        display: flex;
+        gap: 1rem;
+        color: white;
+        font-weight: 700;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1rem;
+        color: var(--bot-green);
+        text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+    }
+
+    .stat-label {
+        font-size: 0.5rem;
+        color: #bbb;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .game-arena {
+        position: absolute;
+        top: 50px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 30% 40%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 70% 60%, rgba(255, 107, 53, 0.05) 0%, transparent 50%);
+        overflow: hidden;
+        border-radius: 0 0 15px 15px;
+    }
+
+    /* Estilos del EcoWorm */
+    .worm-segment {
+        width: 25px;
+        height: 25px;
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        border-radius: 50%;
+        position: absolute;
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px rgba(46, 204, 113, 0.7);
+        z-index: 10;
+        transition: all 0.2s ease;
+    }
+    
+    .worm-head {
+        background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+        box-shadow: 0 0 15px rgba(231, 76, 60, 0.8) !important;
+        border: 3px solid #fff !important;
+        width: 30px !important;
+        height: 30px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+    
+    .worm-segment.growing {
+        transform: scale(1.3);
+        box-shadow: 0 0 20px rgba(46, 204, 113, 1);
+    }
+    
+    @keyframes float-up {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+    }
+
+    .plastic-target {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, var(--laser-red), #c44569);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        color: white;
+        transition: all 0.3s ease;
+        animation: target-float 2s ease-in-out infinite;
+        box-shadow: 0 0 10px rgba(255, 71, 87, 0.4);
+        cursor: crosshair;
+    }
+
+    @keyframes target-float {
+        0%, 100% { 
+            transform: translateY(0px) rotate(0deg); 
+        }
+        25% { 
+            transform: translateY(-8px) rotate(2deg); 
+        }
+        75% { 
+            transform: translateY(-4px) rotate(-2deg); 
+        }
+    }
+
+    .plastic-target:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 25px rgba(255, 71, 87, 0.8);
+    }
+
+    .plastic-target.targeted {
+        animation: target-warning 0.3s ease-in-out infinite;
+        border-color: var(--explosion-orange);
+        box-shadow: 0 0 30px rgba(255, 107, 53, 0.9);
+    }
+
+    @keyframes target-warning {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.05) rotate(3deg); }
+    }
+
+    .plastic-target.hit {
+        animation: target-destruction 0.6s ease-out forwards;
+    }
+
+    @keyframes target-destruction {
+        0% { 
+            transform: scale(1) rotate(0deg);
+            opacity: 1;
+        }
+        25% {
+            transform: scale(1.3) rotate(15deg);
+            background: linear-gradient(135deg, var(--explosion-orange), #ffd700);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+        }
+        50% {
+            transform: scale(1.5) rotate(30deg);
+            opacity: 0.8;
+        }
+        100% { 
+            transform: scale(2) rotate(45deg);
+            opacity: 0;
+        }
+    }
+
+    .laser-beam {
+        position: absolute;
+        width: 3px;
+        background: linear-gradient(to right, var(--laser-red), #fff, var(--laser-red));
+        box-shadow: 0 0 8px var(--laser-red), 0 0 15px var(--laser-red);
+        z-index: 50;
+        opacity: 0;
+        animation: laser-fire 0.2s ease-out;
+        border-radius: 2px;
+    }
+
+    @keyframes laser-fire {
+        0% { 
+            opacity: 0;
+            width: 0;
+        }
+        50% { 
+            opacity: 1;
+            width: 3px;
+        }
+        100% { 
+            opacity: 0;
+            width: 3px;
+        }
+    }
+
+    .crosshair {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        border: 2px solid var(--bot-green);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1000;
+        transition: all 0.05s ease;
+        animation: crosshair-pulse 2s ease-in-out infinite;
+        display: none;
+    }
+
+    .crosshair::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 1px;
+        height: 6px;
+        background: var(--bot-green);
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 3px var(--bot-green);
+    }
+
+    .crosshair::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 6px;
+        height: 1px;
+        background: var(--bot-green);
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 3px var(--bot-green);
+    }
+
+    @keyframes crosshair-pulse {
+        0%, 100% { 
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        50% { 
+            transform: scale(1.2);
+            opacity: 1;
+        }
+    }
+
+    .objective-panel {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 8px;
+        border-radius: 6px;
+        border: 2px solid var(--bot-green);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        max-width: 150px;
+    }
+
+    .objective-title {
+        color: var(--bot-green);
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .objective-text {
+        color: white;
+        font-size: 0.6rem;
+        line-height: 1.2;
+    }
+
+    .controls-hint {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 8px;
+        border-radius: 6px;
+        border: 2px solid var(--explosion-orange);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        text-align: center;
+        max-width: 150px;
+    }
+
+    .controls-hint .title {
+        color: var(--explosion-orange);
+        font-size: 0.7rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+    }
+
+    .controls-hint .text {
+        color: white;
+        font-size: 0.6rem;
+        line-height: 1.1;
+    }
+
+    .notification {
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        background: linear-gradient(135deg, var(--bot-green), #00b894);
+        color: #000;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.7rem;
+        z-index: 1000;
+        transform: translateX(200px);
+        transition: transform 0.3s ease;
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        max-width: 200px;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .notification.warning {
+        background: linear-gradient(135deg, var(--explosion-orange), #ff6b35);
+        color: white;
+    }
+
+    .notification.success {
+        background: linear-gradient(135deg, #00ff88, var(--bot-green));
+        color: #000;
+    }
+
+    .spawn-effect {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border: 3px solid var(--bot-green);
+        border-radius: 50%;
+        animation: spawn-ring 0.5s ease-out forwards;
+        pointer-events: none;
+    }
+
+    @keyframes spawn-ring {
+        0% {
+            transform: scale(0);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    @media (max-width: 1000px) {
+        .hunter-container {
+            max-width: 800px;
+            height: 450px;
+        }
+        
+        .game-stats {
+            gap: 0.8rem;
+        }
+        
+        .stat-value {
+            font-size: 0.9rem;
+        }
+        
+        .game-title {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 800px) {
+        body {
+            padding: 10px;
+        }
+        
+        .hunter-container {
+            max-width: 700px;
+            height: 400px;
+        }
+        
+        .game-stats {
+            gap: 0.6rem;
+        }
+        
+        .stat-value {
+            font-size: 0.8rem;
+        }
+        
+        .stat-label {
+            font-size: 0.4rem;
+        }
+        
+        .game-title {
+            font-size: 0.9rem;
+        }
+        
+        .ecobot-hunter {
+            width: 35px;
+            height: 35px;
+            font-size: 1rem;
+        }
+        
+        .plastic-target {
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
+        
+        .objective-panel,
+        .controls-hint {
+            max-width: 130px;
+            padding: 6px;
+        }
+        
+        .objective-title,
+        .controls-hint .title {
+            font-size: 0.6rem;
+        }
+        
+        .objective-text,
+        .controls-hint .text {
+            font-size: 0.5rem;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .hunter-container {
+            max-width: 100%;
+            height: 350px;
+        }
+        
+        .game-hud {
+            padding: 8px;
+            height: 40px;
+        }
+        
+        .game-arena {
+            top: 40px;
+        }
+        
+        .game-stats {
+            gap: 0.4rem;
+        }
+        
+        .stat-value {
+            font-size: 0.7rem;
+        }
+        
+        .game-title {
+            font-size: 0.8rem;
+        }
+        
+        .exit-btn {
+            padding: 4px 8px;
+            font-size: 0.6rem;
+        }
+        
+        .ecobot-hunter {
+            width: 30px;
+            height: 30px;
+            font-size: 0.9rem;
+        }
+        
+        .plastic-target {
+            width: 25px;
+            height: 25px;
+            font-size: 0.7rem;
+        }
+        
+        .crosshair {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .crosshair::before {
+            width: 1px;
+            height: 5px;
+        }
+        
+        .crosshair::after {
+            width: 5px;
+            height: 1px;
+        }
+        
+        .objective-panel,
+        .controls-hint {
+            bottom: 8px;
+            max-width: 110px;
+            padding: 4px;
+        }
+        
+        .notification {
+            font-size: 0.6rem;
+            padding: 4px 6px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hunter-container" id="game-container">
+    <!-- HUD Superior -->
+    <div class="game-hud">
+        <div class="game-title">🐛 ECOWORM RECYCLING ADVENTURE</div>
+        <div class="game-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="targets-hit">0</div>
+                <div class="stat-label">Targets</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="combo">0</div>
+                <div class="stat-label">Combo</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="level">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+        </div>
+        <a href="{% url 'categorias' %}" class="exit-btn">❌ Salir</a>
+    </div>
+
+    <!-- Arena de Juego -->
+    <div class="game-arena" id="game-arena">
+        <!-- Los targets y el gusano aparecerán aquí dinámicamente -->
+    </div>
+
+    <!-- Panel de Objetivos -->
+    <div class="objective-panel">
+        <div class="objective-title">🎯 MISIÓN ACTUAL</div>
+        <div class="objective-text" id="current-objective">
+            Destruye 10 plásticos contaminantes<br>
+            <span id="objective-progress">0/10</span>
+        </div>
+    </div>
+
+    <!-- Controles y Tips -->
+    <div class="controls-hint">
+        <div class="title">🎮 CONTROLES</div>
+        <div class="text">
+            ⬅️➡️⬆️⬇️ Flechas: Mover EcoWorm<br>
+            🎯 Objetivo: Recoger reciclaje para crecer<br>
+            🐛 ¡Evita chocar con tu propio cuerpo!
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Game Over -->
+<div class="modal fade" id="gameOverModal" tabindex="-1" aria-labelledby="gameOverModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 3px solid #00ff88; box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);">
+            <div class="modal-header" style="border-bottom: 2px solid #00ff88;">
+                <h5 class="modal-title" id="gameOverModalLabel" style="color: #00ff88; font-family: 'Orbitron', sans-serif; font-weight: bold;">
+                    <i class="fas fa-trophy me-2"></i>¡Juego Terminado!
+                </h5>
+            </div>
+            <div class="modal-body text-center" style="color: #fff; font-family: 'Poppins', sans-serif; padding: 30px;">
+                <div id="gameOverMessage" style="font-size: 1.2rem; margin-bottom: 20px; color: #00ff88;"></div>
+                
+                <div style="background: rgba(0, 255, 136, 0.1); border-radius: 15px; padding: 20px; margin: 20px 0;">
+                    <h6 style="color: #00ff88; margin-bottom: 15px;">📊 Estadísticas Finales</h6>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;">
+                        <div>
+                            <strong style="color: #8bc34a;">Puntuación:</strong>
+                            <div id="finalScore" style="font-size: 1.5rem; color: #00ff88;">0</div>
+                        </div>
+                        <div>
+                            <strong style="color: #8bc34a;">Nivel:</strong>
+                            <div id="finalLevel" style="font-size: 1.5rem; color: #00ff88;">1</div>
+                        </div>
+                        <div>
+                            <strong style="color: #8bc34a;">Longitud del gusano:</strong>
+                            <div id="finalWormLength" style="font-size: 1.5rem; color: #00ff88;">1</div>
+                        </div>
+                        <div>
+                            <strong style="color: #8bc34a;">Recuerdos reciclados:</strong>
+                            <div id="finalRecycled" style="font-size: 1.5rem; color: #00ff88;">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="color: #8bc34a; margin-top: 15px;">¿Quieres jugar de nuevo?</p>
+            </div>
+            <div class="modal-footer" style="border-top: 2px solid #00ff88; justify-content: center;">
+                <button type="button" class="btn btn-success" onclick="acceptRestart()" style="background: linear-gradient(135deg, #4caf50, #8bc34a); border: none; padding: 10px 30px; font-weight: bold;">
+                    <i class="fas fa-redo me-2"></i>Aceptar
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="cancelRestart()" style="background: linear-gradient(135deg, #ff4757, #c44569); border: none; padding: 10px 30px; font-weight: bold;">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification -->
+<div class="notification" id="notification"></div>
+
+<script>
+// Variables globales del juego
+let gameState = {
+    score: 0,
+    level: 1,
+    combo: 0,
+    maxCombo: 0,
+    recycledItems: 0,
+    worm: [
+        { x: 400, y: 300 } // Posición inicial de la cabeza
+    ],
+    direction: { x: 0, y: 0 }, // Dirección actual
+    nextDirection: { x: 0, y: 0 }, // Próxima dirección
+    speed: 300, // Velocidad en ms
+    targets: [],
+    maxTargets: 5,
+    gameRunning: false,
+    gridSize: 25, // Tamaño de la cuadrícula para el movimiento
+    gameLoop: null,
+    objectives: {
+        current: 'collect',
+        target: 10,
+        progress: 0
+    }
+};
+
+const plasticTargets = [
+    {icon: '🍼', type: 'recyclable', points: 10, name: 'Botella PET'},
+    {icon: '🛍️', type: 'toxic', points: 20, name: 'Bolsa Tóxica'},
+    {icon: '🥛', type: 'recyclable', points: 8, name: 'Envase Yogurt'},
+    {icon: '🥤', type: 'toxic', points: 15, name: 'Pajita Mortal'},
+    {icon: '💧', type: 'recyclable', points: 10, name: 'Botella Agua'},
+    {icon: '🧴', type: 'recyclable', points: 12, name: 'Detergente'},
+    {icon: '📦', type: 'toxic', points: 25, name: 'Film Plástico'},
+    {icon: '🧸', type: 'toxic', points: 18, name: 'Juguete Roto'}
+];
+
+let gameIntervals = {
+    targetSpawner: null,
+    gameLoop: null,
+    botMover: null
+};
+
+// Inicializar juego EcoWorm
+function initGame() {
+    console.log('🐛 Inicializando juego...');
+    const gameArena = document.getElementById('game-arena');
+    
+    if (!gameArena) {
+        console.error('❌ No se encontró el elemento game-arena');
+        return;
+    }
+    
+    // Limpiar arena
+    gameArena.innerHTML = '';
+    
+    // Resetear posición inicial del gusano al centro
+    const arenaRect = gameArena.getBoundingClientRect();
+    const centerX = Math.floor((arenaRect.width / 2) / gameState.gridSize) * gameState.gridSize;
+    const centerY = Math.floor((arenaRect.height / 2) / gameState.gridSize) * gameState.gridSize;
+    
+    gameState.worm = [{ x: centerX, y: centerY }];
+    gameState.direction = { x: 0, y: 0 };
+    gameState.nextDirection = { x: 0, y: 0 };
+    
+    console.log('🐛 Gusano posicionado en:', gameState.worm[0]);
+    
+    // Posicionar gusano inicial
+    updateWormPosition();
+    
+    // Event listeners para teclado
+    document.addEventListener('keydown', handleKeyPress);
+    
+    // Iniciar juego
+    startGame();
+    
+    showNotification('🐛 ¡Usa las flechas para mover tu EcoWorm!', 'success');
+}
+
+// Manejar teclas para controlar el gusano
+function handleKeyPress(e) {
+    if (!gameState.gameRunning) return;
+    
+    switch(e.key) {
+        case 'ArrowUp':
+            if (gameState.direction.y !== 1) { // No puede ir hacia donde vino
+                gameState.nextDirection = { x: 0, y: -1 };
+            }
+            break;
+        case 'ArrowDown':
+            if (gameState.direction.y !== -1) {
+                gameState.nextDirection = { x: 0, y: 1 };
+            }
+            break;
+        case 'ArrowLeft':
+            if (gameState.direction.x !== 1) {
+                gameState.nextDirection = { x: -1, y: 0 };
+            }
+            break;
+        case 'ArrowRight':
+            if (gameState.direction.x !== -1) {
+                gameState.nextDirection = { x: 1, y: 0 };
+            }
+            break;
+    }
+    e.preventDefault();
+}
+
+// Manejo de clicks (disparo manual opcional)
+function handleClick(e) {
+    if (!gameState.isPlaying) return;
+    
+    const now = Date.now();
+    if (now - gameState.lastShotTime < gameState.shootCooldown) return;
+    
+    shootLaser(gameState.mouseX, gameState.mouseY);
+    gameState.lastShotTime = now;
+}
+
+// Iniciar juego
+function startGame() {
+    gameState.gameRunning = true;
+    
+    // Limpiar intervalos previos
+    if (gameState.gameLoop) clearInterval(gameState.gameLoop);
+    
+    // Spawn inicial de targets
+    spawnTargets();
+    
+    // Bucle principal del juego
+    gameState.gameLoop = setInterval(() => {
+        moveWorm();
+        spawnTargets();
+        updateUI();
+    }, gameState.speed);
+    
+    // Actualizar UI
+    updateUI();
+}
+
+// Generar targets para el gusano
+function spawnTargets() {
+    const gameArena = document.getElementById('game-arena');
+    
+    if (!gameArena) {
+        console.error('❌ No se encontró game-arena en spawnTargets');
+        return;
+    }
+    
+    const arenaRect = gameArena.getBoundingClientRect();
+    
+    // Mantener un número máximo de targets
+    while (gameState.targets.length < gameState.maxTargets) {
+        // Posición simple aleatoria
+        const x = Math.floor(Math.random() * (arenaRect.width - 50)) + 25;
+        const y = Math.floor(Math.random() * (arenaRect.height - 50)) + 25;
+        
+        const targetType = plasticTargets[Math.floor(Math.random() * plasticTargets.length)];
+        const targetId = 'target-' + Date.now() + '-' + Math.random();
+        
+        const target = {
+            id: targetId,
+            x: x,
+            y: y,
+            icon: targetType.icon,
+            type: targetType.type,
+            points: targetType.points,
+            name: targetType.name
+        };
+        
+        // Crear elemento visual
+        const targetElement = document.createElement('div');
+        targetElement.className = 'plastic-target';
+        targetElement.id = targetId;
+        targetElement.innerHTML = targetType.icon;
+        targetElement.style.position = 'absolute';
+        targetElement.style.left = x + 'px';
+        targetElement.style.top = y + 'px';
+        targetElement.style.zIndex = '5';
+        targetElement.style.fontSize = '24px';
+        targetElement.style.width = '35px';
+        targetElement.style.height = '35px';
+        targetElement.style.display = 'flex';
+        targetElement.style.alignItems = 'center';
+        targetElement.style.justifyContent = 'center';
+        
+        gameArena.appendChild(targetElement);
+        gameState.targets.push(target);
+        
+        console.log('🎯 Target creado:', target);
+    }
+}
+
+// Game Over
+function gameOver(reason) {
+    gameState.gameRunning = false;
+    
+    if (gameState.gameLoop) {
+        clearInterval(gameState.gameLoop);
+    }
+    
+    showNotification(`💀 GAME OVER: ${reason}`, 'error');
+    
+    // Esperar un momento antes de mostrar el modal
+    setTimeout(() => {
+        // Actualizar contenido del modal
+        document.getElementById('gameOverMessage').textContent = reason;
+        document.getElementById('finalScore').textContent = gameState.score;
+        document.getElementById('finalLevel').textContent = gameState.level;
+        document.getElementById('finalWormLength').textContent = gameState.worm.length;
+        document.getElementById('finalRecycled').textContent = gameState.recycledItems;
+        
+        // Mostrar modal usando Bootstrap
+        const gameOverModal = new bootstrap.Modal(document.getElementById('gameOverModal'));
+        gameOverModal.show();
+    }, 500);
+}
+
+// Función para aceptar reiniciar
+function acceptRestart() {
+    const gameOverModal = bootstrap.Modal.getInstance(document.getElementById('gameOverModal'));
+    if (gameOverModal) {
+        gameOverModal.hide();
+    }
+    restartGame();
+}
+
+// Función para cancelar y salir
+function cancelRestart() {
+    const gameOverModal = bootstrap.Modal.getInstance(document.getElementById('gameOverModal'));
+    if (gameOverModal) {
+        gameOverModal.hide();
+    }
+    // Opcional: redirigir a otra página
+    // window.location.href = "{% url 'categorias' %}";
+}
+
+// Reiniciar juego
+function restartGame() {
+    // Limpiar arena
+    const gameArena = document.getElementById('game-arena');
+    gameArena.innerHTML = '';
+    
+    // Resetear estado
+    gameState.score = 0;
+    gameState.level = 1;
+    gameState.combo = 0;
+    gameState.maxCombo = 0;
+    gameState.recycledItems = 0;
+    gameState.worm = [{ x: 400, y: 300 }];
+    gameState.direction = { x: 0, y: 0 };
+    gameState.nextDirection = { x: 0, y: 0 };
+    gameState.speed = 300;
+    gameState.targets = [];
+    gameState.gameRunning = false;
+    gameState.objectives.progress = 0;
+    
+    // Reinicializar
+    initGame();
+}
+    
+    const speed = 5; // Velocidad del bot
+    const dx = gameState.mouseX - gameState.botX;
+// Actualizar posición del gusano
+function updateWormPosition() {
+    const gameArena = document.getElementById('game-arena');
+    
+    if (!gameArena) {
+        console.error('❌ No se encontró game-arena en updateWormPosition');
+        return;
+    }
+    
+    console.log('🔄 Actualizando posición del gusano:', gameState.worm);
+    
+    // Actualizar cada segmento del gusano
+    gameState.worm.forEach((segment, index) => {
+        let segmentElement = document.getElementById(`worm-segment-${index}`);
+        
+        if (!segmentElement) {
+            segmentElement = document.createElement('div');
+            segmentElement.className = 'worm-segment';
+            segmentElement.id = `worm-segment-${index}`;
+            
+            if (index === 0) {
+                segmentElement.classList.add('worm-head');
+                segmentElement.textContent = '🐛';
+            }
+            
+            gameArena.appendChild(segmentElement);
+        }
+        
+        segmentElement.style.left = (segment.x - 12.5) + 'px';
+        segmentElement.style.top = (segment.y - 12.5) + 'px';
+    });
+}
+
+// Mover el gusano
+function moveWorm() {
+    if (!gameState.gameRunning) return;
+    
+    // Actualizar dirección
+    gameState.direction = { ...gameState.nextDirection };
+    
+    // No moverse si no hay dirección
+    if (gameState.direction.x === 0 && gameState.direction.y === 0) return;
+    
+    // Calcular nueva posición de la cabeza
+    const head = { ...gameState.worm[0] };
+    head.x += gameState.direction.x * gameState.gridSize;
+    head.y += gameState.direction.y * gameState.gridSize;
+    
+    // Verificar colisiones con bordes
+    const gameArena = document.getElementById('game-arena');
+    const arenaRect = gameArena.getBoundingClientRect();
+    
+    if (head.x < 0 || head.x >= arenaRect.width || 
+        head.y < 0 || head.y >= arenaRect.height) {
+        gameOver('¡Chocaste con la pared!');
+        return;
+    }
+    
+    // Verificar colisión con el propio cuerpo
+    for (let segment of gameState.worm) {
+        if (head.x === segment.x && head.y === segment.y) {
+            gameOver('¡Te chocaste contigo mismo!');
+            return;
+        }
+    }
+    
+    // Agregar nueva cabeza
+    gameState.worm.unshift(head);
+    
+    // Verificar si comió algo
+    let ateFood = false;
+    gameState.targets.forEach((target, index) => {
+        if (Math.abs(head.x - target.x) < gameState.gridSize && 
+            Math.abs(head.y - target.y) < gameState.gridSize) {
+            ateFood = true;
+            collectTarget(target);
+            gameState.targets.splice(index, 1);
+        }
+    });
+    
+    // Si no comió, quitar la cola
+    if (!ateFood) {
+        const removedSegment = gameState.worm.pop();
+        const segmentElement = document.getElementById(`worm-segment-${gameState.worm.length}`);
+        if (segmentElement) {
+            segmentElement.remove();
+        }
+    }
+    
+    // Actualizar posición visual
+    updateWormPosition();
+}
+
+// Recoger objetivo (reemplaza al sistema de disparo)
+function collectTarget(target) {
+    const targetElement = document.getElementById(target.id);
+    if (!targetElement) return;
+    
+    // Efectos visuales
+    targetElement.classList.add('growing');
+    
+    // Actualizar score
+    gameState.score += target.points;
+    gameState.recycledItems++;
+    gameState.combo++;
+    
+    if (gameState.combo > gameState.maxCombo) {
+        gameState.maxCombo = gameState.combo;
+    }
+    
+    // Progreso del objetivo
+    gameState.objectives.progress++;
+    
+    // Remover target del DOM
+    setTimeout(() => {
+        if (targetElement.parentNode) {
+            targetElement.parentNode.removeChild(targetElement);
+        }
+    }, 200);
+    
+    // Aumentar velocidad gradualmente
+    if (gameState.worm.length % 5 === 0) {
+        gameState.speed = Math.max(150, gameState.speed - 20);
+    }
+    
+    updateUI();
+    checkLevelUp();
+    
+    // Mostrar efectos
+    showFloatingText(target.x, target.y, `+${target.points}`, target.type === 'toxic' ? 'toxic' : 'success');
+}
+
+// Disparar láser
+function shootLaser(targetX, targetY, target = null) {
+    const gameArena = document.getElementById('game-arena');
+    const ecobot = document.getElementById('ecobot');
+    
+    // Efecto de retroceso en el bot
+    ecobot.classList.add('shooting');
+    setTimeout(() => ecobot.classList.remove('shooting'), 100);
+    
+    // Crear láser
+    const laser = document.createElement('div');
+    laser.className = 'laser-beam';
+    
+    const startX = gameState.botX;
+    const startY = gameState.botY;
+    const endX = targetX;
+    const endY = targetY;
+    
+    const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+    const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+    
+    laser.style.left = startX + 'px';
+    laser.style.top = startY + 'px';
+    laser.style.width = distance + 'px';
+    laser.style.transformOrigin = '0 50%';
+    laser.style.transform = `rotate(${angle}deg)`;
+    
+    gameArena.appendChild(laser);
+    
+    // Check hit si hay target
+    if (target) {
+        target.classList.add('targeted');
+        setTimeout(() => hitTarget(target), 100);
+    } else {
+        // Check targets en la línea de fuego
+        checkLaserHits(startX, startY, endX, endY);
+    }
+    
+    setTimeout(() => laser.remove(), 200);
+}
+
+// Check hits del láser
+function checkLaserHits(startX, startY, endX, endY) {
+    const targets = document.querySelectorAll('.plastic-target:not(.hit)');
+    
+    targets.forEach(target => {
+        const rect = target.getBoundingClientRect();
+        const targetCenterX = rect.left + rect.width / 2;
+        const targetCenterY = rect.top + rect.height / 2;
+        
+        // Check si el target está en la línea del láser
+        const distanceToLine = pointToLineDistance(
+            targetCenterX, targetCenterY, 
+            startX, startY, endX, endY
+        );
+        
+        if (distanceToLine < 30) { // Tolerancia de hit
+            hitTarget(target);
+        }
+    });
+}
+
+// Calcular distancia de punto a línea
+function pointToLineDistance(px, py, x1, y1, x2, y2) {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+    
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
+    
+    if (lenSq !== 0) param = dot / lenSq;
+    
+    let xx, yy;
+    
+    if (param < 0) {
+        xx = x1;
+        yy = y1;
+    } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+    } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+    }
+    
+    const dx = px - xx;
+    const dy = py - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Hit target
+function hitTarget(target) {
+    if (target.classList.contains('hit')) return;
+    
+    target.classList.add('hit');
+    
+    const points = parseInt(target.dataset.points);
+    const targetType = target.dataset.type;
+    
+    // Actualizar stats
+    gameState.score += points;
+    gameState.targetsHit++;
+    gameState.combo++;
+    gameState.objectives.progress++;
+    
+    // Combo bonus
+    if (gameState.combo >= 5) {
+        const bonus = gameState.combo * 2;
+        gameState.score += bonus;
+        showNotification(`🔥 COMBO x${gameState.combo}! +${bonus} bonus`, 'success');
+    }
+    
+    // Mensaje de hit
+    if (targetType === 'toxic') {
+        showNotification(`💥 ${target.dataset.name} eliminado! +${points}pts`, 'warning');
+    } else {
+        showNotification(`♻️ ${target.dataset.name} reciclado! +${points}pts`, 'success');
+    }
+    
+    // Level up check
+    if (gameState.targetsHit > 0 && gameState.targetsHit % 15 === 0) {
+        levelUp();
+    }
+    
+    setTimeout(() => target.remove(), 600);
+}
+
+// Subir de nivel
+function levelUp() {
+    gameState.level++;
+    gameState.shootCooldown = Math.max(150, gameState.shootCooldown - 20);
+    
+    showNotification(`🎉 LEVEL UP ${gameState.level}! Disparo más rápido`, 'success');
+}
+
+// Spawn target aleatorio
+function spawnRandomTarget() {
+    if (!gameState.isPlaying) return;
+    
+    const target = plasticTargets[Math.floor(Math.random() * plasticTargets.length)];
+    const gameArena = document.getElementById('game-arena');
+    const gameContainer = document.getElementById('game-container');
+    const containerRect = gameContainer.getBoundingClientRect();
+    
+    const targetElement = document.createElement('div');
+    targetElement.className = 'plastic-target';
+    targetElement.dataset.type = target.type;
+    targetElement.dataset.points = target.points;
+    targetElement.dataset.name = target.name;
+    targetElement.innerHTML = `
+        ${target.icon}
+        <small style="font-size: 0.4rem; margin-top: 1px;">${target.points}pts</small>
+    `;
+    
+    // Posición aleatoria dentro del contenedor
+    const maxX = containerRect.width - 45;
+    const maxY = containerRect.height - 100; // Espacio para HUD y paneles
+    const x = Math.random() * maxX;
+    const y = 60 + Math.random() * maxY; // Offset por el HUD
+    
+    targetElement.style.left = x + 'px';
+    targetElement.style.top = y + 'px';
+    
+    // Efecto de spawn
+    const spawnEffect = document.createElement('div');
+    spawnEffect.className = 'spawn-effect';
+    spawnEffect.style.left = x + 'px';
+    spawnEffect.style.top = y + 'px';
+    spawnEffect.style.width = '35px';
+    spawnEffect.style.height = '35px';
+    gameArena.appendChild(spawnEffect);
+    
+    setTimeout(() => {
+        gameArena.appendChild(targetElement);
+        spawnEffect.remove();
+    }, 100);
+    
+    // Auto-remove después de 6 segundos
+    setTimeout(() => {
+        if (targetElement.parentNode && !targetElement.classList.contains('hit')) {
+            targetElement.remove();
+            gameState.combo = 0; // Reset combo si no se elimina
+        }
+    }, 6000);
+}
+
+// Actualizar UI
+// Actualizar UI
+function updateUI() {
+    document.getElementById('score').textContent = gameState.score;
+    document.getElementById('targets-hit').textContent = gameState.recycledItems;
+    document.getElementById('combo').textContent = gameState.combo;
+    document.getElementById('level').textContent = gameState.level;
+    document.getElementById('objective-progress').textContent = 
+        `${gameState.objectives.progress}/${gameState.objectives.target}`;
+    
+    // Mostrar longitud del gusano
+    const lengthElement = document.getElementById('worm-length');
+    if (lengthElement) {
+        lengthElement.textContent = gameState.worm.length;
+    } else {
+        // Crear elemento si no existe
+        const statusPanel = document.querySelector('.status-panel .stats');
+        if (statusPanel) {
+            const lengthDiv = document.createElement('div');
+            lengthDiv.innerHTML = `🐛 Longitud: <span id="worm-length">${gameState.worm.length}</span>`;
+            statusPanel.appendChild(lengthDiv);
+        }
+    }
+}
+
+// Check objetivos y nivel
+function checkLevelUp() {
+    if (gameState.objectives.progress >= gameState.objectives.target) {
+        // Objetivo completado
+        gameState.level++;
+        gameState.objectives.target += 5;
+        gameState.objectives.progress = 0;
+        gameState.maxTargets = Math.min(8, gameState.maxTargets + 1);
+        
+        showNotification(`🎯 ¡Nivel ${gameState.level}! Más targets aparecen`, 'success');
+    }
+}
+
+// Mostrar notificación
+function showNotification(message, type = 'info') {
+    const notification = document.getElementById('notification');
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+    console.log(`📢 ${message}`);
+}
+
+// Mostrar texto flotante
+function showFloatingText(x, y, text, type = 'success') {
+    const gameArena = document.getElementById('game-arena');
+    if (!gameArena) return;
+    
+    const floatingText = document.createElement('div');
+    floatingText.textContent = text;
+    floatingText.style.position = 'absolute';
+    floatingText.style.left = x + 'px';
+    floatingText.style.top = y + 'px';
+    floatingText.style.color = type === 'toxic' ? '#ff4757' : '#2ecc71';
+    floatingText.style.fontSize = '18px';
+    floatingText.style.fontWeight = 'bold';
+    floatingText.style.zIndex = '20';
+    floatingText.style.pointerEvents = 'none';
+    floatingText.style.animation = 'float-up 1s ease-out forwards';
+    
+    gameArena.appendChild(floatingText);
+    
+    setTimeout(() => {
+        if (floatingText.parentNode) {
+            floatingText.parentNode.removeChild(floatingText);
+        }
+    }, 1000);
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🐛 Iniciando EcoWorm...');
+    setTimeout(initGame, 100);
+});
+
+// Cleanup al salir
+window.addEventListener('beforeunload', function() {
+    if (gameState.gameLoop) {
+        clearInterval(gameState.gameLoop);
+    }
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

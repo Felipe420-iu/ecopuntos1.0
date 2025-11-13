@@ -1,0 +1,1124 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Centro de Pagos | Eco Puntos{% endblock %}
+
+{% block extra_css %}
+    <style>
+        :root {
+            --primary: #4caf50;
+            --primary-dark: #388e3c;
+            --primary-light: #c8e6c9;
+            --secondary: #2196f3;
+            --success: #4caf50;
+            --info: #00bcd4;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --gradient-1: linear-gradient(135deg, #43a047 0%, #7cb342 100%);
+            --gradient-2: linear-gradient(135deg, #2e7d32 0%, #558b2f 100%);
+            --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn-small {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 6px 10px;
+            margin-right: 5px;
+            font-size: 1.1rem;
+            color: #333;
+            transition: background 0.2s, color 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+        }
+        .action-btn-small:hover {
+            background: #e0f2f1;
+            color: #388e3c;
+        }
+
+        body {
+            min-height: 100vh;
+            background: url('{% static "core/img/nature-3294681_1920 (1) (1).jpg" %}') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Montserrat', sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .navbar-dashboard {
+            backdrop-filter: blur(10px);
+            background-color: rgba(76, 175, 80, 0.95) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1050 !important;
+            position: fixed !important;
+        }
+
+        /* Asegurar que los enlaces de la navbar funcionen correctamente */
+        .nav-link-dashboard {
+            color: white !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-radius: 20px;
+            padding: 8px 15px !important;
+            margin: 0 5px;
+            position: relative;
+            z-index: 1051 !important;
+        }
+
+        .nav-link-dashboard:hover {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .nav-link-dashboard.active {
+            color: #ffffff !important;
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        /* Asegurar que los dropdowns funcionen */
+        .dropdown-menu-dashboard {
+            z-index: 1052 !important;
+        }
+
+        .main-container {
+            margin-top: 100px;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Asegurar que el botón toggler de la navbar funcione */
+        .navbar-toggler {
+            z-index: 1051 !important;
+            border: none !important;
+            background: none !important;
+        }
+        
+        /* Asegurar que el collapse de la navbar funcione */
+        .navbar-collapse {
+            z-index: 1051 !important;
+        }
+
+        .payment-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(76, 175, 80, 0.1);
+            height: 100%;
+        }
+
+        .payment-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(76, 175, 80, 0.15);
+        }
+
+        .payment-header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-header::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('{% static "core/img/pattern.png" %}') repeat;
+            opacity: 0.1;
+            top: -50%;
+            left: -50%;
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .payment-body {
+            padding: 30px;
+        }
+
+        .points-balance {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .points-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin: 0;
+            position: relative;
+        }
+
+        .points-label {
+            color: #666;
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        .conversion-rate {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .conversion-value {
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .form-control {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+
+        .input-group-text {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .btn-redeem {
+            background: var(--gradient-1);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-redeem:hover {
+            background: var(--gradient-2);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.2);
+        }
+
+        .btn-redeem:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .transaction-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            height: 100%;
+        }
+
+        .transaction-header {
+            background: var(--gradient-1);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .transaction-body {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .transaction-item:hover {
+            background-color: rgba(76, 175, 80, 0.05);
+            transform: translateX(5px);
+        }
+
+        .transaction-date {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .transaction-amount.positive {
+            color: var(--success);
+        }
+
+        .transaction-amount.negative {
+            color: var(--danger);
+        }
+
+        .transaction-status {
+            font-size: 0.8rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .status-pendiente {
+            background-color: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+        }
+
+        .status-aprobado {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .status-procesando {
+            background-color: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+        }
+
+        .status-completado {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .status-rechazado {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        /* Mantener compatibilidad con versiones anteriores */
+        .status-completed {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+        }
+
+        .status-pending {
+            background-color: rgba(255, 152, 0, 0.1);
+            color: var(--warning);
+        }
+
+        .status-failed {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--danger);
+        }
+
+        .payment-method-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-method-card:hover {
+            border-color: var(--primary);
+            background-color: rgba(76, 175, 80, 0.05);
+        }
+
+        .payment-method-card.selected {
+            border-color: var(--primary);
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+
+        .payment-method-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #666;
+        }
+
+        .payment-method-card.selected .payment-method-icon {
+            color: var(--primary);
+        }
+
+        .payment-method-info {
+            flex: 1;
+        }
+
+        .payment-method-title {
+            font-weight: 600;
+            margin: 0;
+            color: #333;
+        }
+
+        .payment-method-description {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .payment-method-radio {
+            margin-left: 10px;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--gradient-1);
+            color: white;
+            border: none;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .confirmation-icon {
+            font-size: 5rem;
+            color: var(--success);
+            margin-bottom: 20px;
+        }
+
+        .confirmation-title {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .confirmation-message {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-close-modal {
+            background: var(--gradient-1);
+            border: none;
+            color: white;
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-modal:hover {
+            background: var(--gradient-2);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+        }
+
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 11000;
+            min-width: 300px;
+            max-width: 500px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin-top: 80px;
+            }
+
+            .payment-card, .transaction-card {
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Mensajes eliminados - ahora usamos sistema de notificaciones -->
+
+<div class="container main-container">
+    <div class="row">
+        <!-- Tarjeta de Canje de Puntos -->
+        <div class="col-lg-6 mb-4">
+            <div class="payment-card">
+                <div class="payment-header">
+                    <h2>Canjea tus Puntos</h2>
+                    <p>Convierte tus puntos acumulados en dinero real</p>
+                </div>
+                <div class="payment-body">
+                    <div class="points-balance" data-points="{{ user.puntos|default:0 }}">
+                        <h3 class="points-value">{{ user.puntos|default:0 }}</h3>
+                        <p class="points-label">Puntos Disponibles</p>
+                    </div>
+                    
+                    <div class="conversion-rate">
+                        <p>Tasa de conversión: <span class="conversion-value">1 punto = $0.50 COP</span></p>
+                    </div>
+                    
+                    <form method="POST" action="{% url 'redimir_puntos' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="points" class="form-label">Puntos a canjear</label>
+                            <input type="number" class="form-control" id="points" name="points" min="100" max="{{ user.puntos|default:0 }}" required>
+                            <div class="form-text">Mínimo 100 puntos para canjear.</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Valor estimado a recibir</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="estimated_value" readonly>
+                                <span class="input-group-text">COP</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Método de pago</label>
+                            
+                            <div class="payment-method-card selected" onclick="selectPaymentMethod(this, 'nequi')">
+                                <div class="payment-method-icon">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="payment-method-info">
+                                    <h5 class="payment-method-title">Nequi</h5>
+                                    <p class="payment-method-description">Recibe el dinero directamente en tu cuenta Nequi</p>
+                                </div>
+                                <div class="payment-method-radio">
+                                    <input type="radio" name="payment_method" value="nequi" checked>
+                                </div>
+                            </div>
+                            
+                            <div class="payment-method-card" onclick="selectPaymentMethod(this, 'daviplata')">
+                                <div class="payment-method-icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <div class="payment-method-info">
+                                    <h5 class="payment-method-title">Daviplata</h5>
+                                    <p class="payment-method-description">Transfiere a tu cuenta Daviplata</p>
+                                </div>
+                                <div class="payment-method-radio">
+                                    <input type="radio" name="payment_method" value="daviplata">
+                                </div>
+                            </div>
+                            
+                            <div class="payment-method-card" onclick="selectPaymentMethod(this, 'bancolombia')">
+                                <div class="payment-method-icon">
+                                    <i class="fas fa-university"></i>
+                                </div>
+                                <div class="payment-method-info">
+                                    <h5 class="payment-method-title">Bancolombia</h5>
+                                    <p class="payment-method-description">Transferencia a cuenta Bancolombia</p>
+                                </div>
+                                <div class="payment-method-radio">
+                                    <input type="radio" name="payment_method" value="bancolombia">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Número de teléfono / Cuenta</label>
+                            <input type="text" class="form-control" id="phone" name="phone" required>
+                        </div>
+                        
+                        <button type="button" class="btn btn-redeem" data-bs-toggle="modal" data-bs-target="#confirmationModal">
+                            Canjear Puntos
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta de Historial de Transacciones -->
+        <div class="col-lg-6">
+            <div class="transaction-card">
+                <div class="transaction-header">
+                    <h2>Historial de Transacciones</h2>
+                    <p>Tus últimas operaciones de canje</p>
+                </div>
+                <div class="transaction-body">
+                    {% if transactions %}
+                        {% for transaction in transactions %}
+                            <div class="transaction-item">
+                                <div class="transaction-info">
+                                    <div class="transaction-header">
+                                        <span class="transaction-id">#{{ transaction.id }}</span>
+                                        <span class="transaction-date">{{ transaction.fecha_solicitud|date:"d M, Y H:i" }}</span>
+                                    </div>
+                                    <div class="transaction-details">
+                                        <p><strong>{{ transaction.puntos }} puntos</strong> → ${{ transaction.valor_cop }} COP</p>
+                                        <p>{{ transaction.get_metodo_pago_display }} - {{ transaction.numero_cuenta }}</p>
+                                        <span class="transaction-status status-{{ transaction.estado }}">
+                                            {{ transaction.get_estado_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="transaction-actions">
+                                    <button class="action-btn-small view-btn" 
+                                            data-tooltip="Ver detalles"
+                                            onclick="viewTransactionDetails({{ transaction.id }}, '{{ transaction.fecha_solicitud|date:"d M, Y H:i" }}', {{ transaction.puntos }}, '{{ transaction.valor_cop }}', '{{ transaction.get_metodo_pago_display }}', '{{ transaction.numero_cuenta }}', '{{ transaction.get_estado_display }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn-small download-btn" 
+                                            data-tooltip="Descargar comprobante"
+                                            onclick="downloadReceipt({{ transaction.id }}, '{{ transaction.fecha_solicitud|date:"d M, Y H:i" }}', {{ transaction.puntos }}, '{{ transaction.valor_cop }}', '{{ transaction.get_metodo_pago_display }}', '{{ transaction.numero_cuenta }}', '{{ transaction.get_estado_display }}')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    <button class="action-btn-small info-btn" 
+                                            data-tooltip="Estado del canje"
+                                            onclick="showTransactionStatus({{ transaction.id }}, '{{ transaction.estado }}', '{{ transaction.fecha_solicitud|date:"d M, Y H:i" }}')">
+                                        <i class="fas fa-info-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-history text-muted" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                            <h5 class="text-muted">No hay transacciones aún</h5>
+                            <p class="text-muted">Realiza tu primer canje de puntos para ver el historial aquí.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Confirmar Canje</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="confirmation-details">
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Puntos a canjear:</strong></div>
+                        <div class="col-6" id="summary-points">0</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Valor estimado:</strong></div>
+                        <div class="col-6" id="summary-value">$0</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Método de pago:</strong></div>
+                        <div class="col-6" id="summary-method">No seleccionado</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Cuenta/Teléfono:</strong></div>
+                        <div class="col-6" id="summary-phone">No especificado</div>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Tu solicitud será revisada y procesada en un plazo de 24-48 horas.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmRedeemBtn">Confirmar Canje</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Canje Exitoso
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h4>¡Solicitud Enviada!</h4>
+                <p class="mb-0">Tu solicitud de canje ha sido enviada exitosamente. Te notificaremos cuando sea procesada.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalles de Transacción -->
+<div class="modal fade" id="transactionDetailsModal" tabindex="-1" aria-labelledby="transactionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionDetailsModalLabel">Detalles de la Transacción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Fecha:</strong></div>
+                    <div class="col-8" id="detail-fecha"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Puntos:</strong></div>
+                    <div class="col-8" id="detail-puntos"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Valor:</strong></div>
+                    <div class="col-8" id="detail-valor"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Método:</strong></div>
+                    <div class="col-8" id="detail-metodo"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Cuenta:</strong></div>
+                    <div class="col-8" id="detail-cuenta"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Estado:</strong></div>
+                    <div class="col-8" id="detail-estado"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Estado de Transacción -->
+<div class="modal fade" id="transactionStatusModal" tabindex="-1" aria-labelledby="transactionStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionStatusModalLabel">Estado del Canje</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="status-icon" class="mb-3" style="font-size: 3rem;"></div>
+                <h4 id="status-title"></h4>
+                <p id="status-message" class="mb-0"></p>
+                <p id="status-date" class="mt-2 text-muted"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<!-- Bootstrap JS ya está incluido en base.html -->
+<!-- jsPDF CDN para generación de PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+    // Función para seleccionar método de pago
+    function selectPaymentMethod(element, method) {
+        // Quitar selección de todos los métodos
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+            card.classList.remove('selected');
+            card.querySelector('input[type="radio"]').checked = false;
+        });
+        
+        // Seleccionar el método elegido
+        element.classList.add('selected');
+        element.querySelector('input[type="radio"]').checked = true;
+    }
+    
+    // Calcular valor estimado al cambiar puntos
+    document.getElementById('points').addEventListener('input', function() {
+        const points = parseInt(this.value) || 0;
+        const rate = 0.5; // 1 punto = $0.50 COP
+        const estimatedValue = (points * rate).toFixed(2);
+        document.getElementById('estimated_value').value = estimatedValue;
+        
+        // Obtener puntos del usuario desde el atributo data
+        const userPoints = parseInt(document.querySelector('.points-balance').dataset.points) || 0;
+        
+        // Habilitar/deshabilitar botón según puntos mínimos
+        const redeemBtn = document.querySelector('.btn-redeem');
+        if (points >= 100 && points <= userPoints) {
+            redeemBtn.disabled = false;
+        } else {
+            redeemBtn.disabled = true;
+        }
+    });
+    
+    // Actualizar resumen antes de mostrar modal de confirmación
+    document.querySelector('.btn-redeem').addEventListener('click', function(e) {
+        const points = document.getElementById('points').value;
+        const estimatedValue = document.getElementById('estimated_value').value;
+        const methodElement = document.querySelector('.payment-method-card.selected');
+        const methodName = methodElement.querySelector('.payment-method-title').textContent;
+        const phone = document.getElementById('phone').value;
+        
+        // Validar formulario
+        if (!points || points < 100 || !phone) {
+            e.preventDefault();
+            alert('Por favor completa todos los campos correctamente.');
+            return;
+        }
+        
+        // Actualizar resumen en el modal
+        document.getElementById('summary-points').textContent = points + ' puntos';
+        document.getElementById('summary-value').textContent = '$' + estimatedValue + ' COP';
+        document.getElementById('summary-method').textContent = methodName;
+        document.getElementById('summary-phone').textContent = phone;
+    });
+    
+    // Manejar confirmación de canje
+    document.getElementById('confirmRedeemBtn').addEventListener('click', function() {
+        // Cerrar modal de confirmación primero
+        const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+        confirmationModal.hide();
+        
+        // Enviar el formulario - esto redirigirá a la vista que procesará el canje
+        setTimeout(() => {
+            document.querySelector('form').submit();
+        }, 300); // Pequeño delay para que se cierre el modal primero
+    });
+    
+    // Variable global para almacenar el ID de transacción actual
+    let currentTransactionId = null;
+    
+    // Función para mostrar detalles de transacción
+    function viewTransactionDetails(id, fecha, puntos, valor, metodo, cuenta, estado) {
+        currentTransactionId = id;
+        
+        document.getElementById('detail-fecha').textContent = fecha;
+        document.getElementById('detail-puntos').textContent = puntos + ' puntos';
+        document.getElementById('detail-valor').textContent = '$' + valor + ' COP';
+        document.getElementById('detail-metodo').textContent = metodo;
+        document.getElementById('detail-cuenta').textContent = cuenta;
+        document.getElementById('detail-estado').textContent = estado;
+        
+        const modal = new bootstrap.Modal(document.getElementById('transactionDetailsModal'));
+        modal.show();
+    }
+    
+    // Función para descargar comprobante
+    function downloadReceipt(transactionId, fecha, puntos, valor, metodo, cuenta, estado) {
+        console.log('Generando comprobante para:', { transactionId, fecha, puntos, valor, metodo, cuenta, estado });
+        
+        // Datos del usuario mejorados
+        const usuario = '{{ user.username|default:"Usuario" }}';
+        const firstName = '{{ user.first_name|default:"" }}';
+        const lastName = '{{ user.last_name|default:"" }}';
+        
+        // Crear nombre completo con validación
+        let nombreCompleto = '';
+        if (firstName && lastName) {
+            nombreCompleto = `${firstName} ${lastName}`;
+        } else if (firstName) {
+            nombreCompleto = firstName;
+        } else if (lastName) {
+            nombreCompleto = lastName;
+        } else {
+            nombreCompleto = usuario;
+        }
+        
+        // Crear PDF con jsPDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Función para agregar logo real de EcoPuntos
+        function generatePDFWithLogo() {
+            // Header con diseño limpio y centrado
+            doc.setFillColor(76, 175, 80);
+            doc.rect(20, 20, 170, 30, 'F');
+            
+            // Título principal centrado sin elementos sobresalientes
+            doc.setFontSize(20);
+            doc.setTextColor(255, 255, 255);
+            doc.text('COMPROBANTE DE CANJE', 105, 35, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.text('EcoPuntos - Sistema de Reciclaje', 105, 44, { align: 'center' });
+            
+            // Sección de información principal SIN marco (completamente limpia)
+            // Eliminado el marco gris para diseño más limpio
+            
+            // Título de sección
+            doc.setFontSize(14);
+            doc.setTextColor(76, 175, 80);
+            doc.setFont(undefined, 'bold');
+            doc.text('DETALLES DE LA TRANSACCIÓN', 105, 75, { align: 'center' });
+            
+            // Línea decorativa
+            doc.setDrawColor(76, 175, 80);
+            doc.setLineWidth(1);
+            doc.line(35, 80, 175, 80);
+            
+            // Información de la transacción con mejor formato
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
+            
+            let yPos = 95;
+            const lineHeight = 12;
+            
+            // Usar una tabla visual para la información
+            const transactions = [
+                ['ID de Transacción:', `#${transactionId}`],
+                ['Fecha:', fecha],
+                ['Usuario:', nombreCompleto],
+                ['Puntos Canjeados:', `${puntos} puntos`],
+                ['Valor Recibido:', `$${valor} COP`],
+                ['Método de Pago:', metodo],
+                ['Cuenta/Teléfono:', cuenta],
+                ['Estado:', estado]
+            ];
+            
+            transactions.forEach(([label, value]) => {
+                // Etiqueta en negrita (posición original)
+                doc.setFont(undefined, 'bold');
+                doc.text(label, 35, yPos);
+                
+                // Valor normal (posición original)
+                doc.setFont(undefined, 'normal');
+                doc.text(value || 'N/A', 110, yPos); // Fallback si el valor está vacío
+                
+                yPos += lineHeight;
+            });
+            
+            // Sección de información importante alineada a la izquierda
+            const infoYPos = 190;
+            
+            doc.setFontSize(16);
+            doc.setTextColor(76, 175, 80); // Verde EcoPuntos para mantener consistencia
+            doc.setFont(undefined, 'bold');
+            doc.text('INFORMACIÓN IMPORTANTE', 30, infoYPos + 15); // Alineado a la izquierda
+            
+            // Línea decorativa verde debajo del título (también a la izquierda)
+            doc.setDrawColor(76, 175, 80);
+            doc.setLineWidth(2);
+            doc.line(30, infoYPos + 18, 120, infoYPos + 18); // Línea más corta y a la izquierda
+            
+            doc.setFontSize(11);
+            doc.setTextColor(60, 60, 60); // Gris oscuro para mejor legibilidad
+            doc.setFont(undefined, 'normal');
+            
+            const infoTexts = [
+                'Este comprobante es válido para verificar su solicitud',
+                'Los canjes se procesan en 24-48 horas hábiles',
+                'Conserve este documento hasta completar el proceso',
+                'Para consultas: ecopuntos2@gmail.com'
+            ];
+            
+            let infoY = infoYPos + 25;
+            infoTexts.forEach(text => {
+                doc.text(text, 30, infoY); // Posición izquierda donde están las flechas
+                infoY += 8;
+            });
+            
+            // Footer con diseño mejorado y centrado perfectamente
+            const footerY = 250;
+            doc.setFillColor(76, 175, 80);
+            doc.rect(20, footerY, 170, 35, 'F'); // Más ancho y centrado como el header
+            
+            doc.setFontSize(18);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont(undefined, 'bold');
+            doc.text('¡Gracias por usar EcoPuntos!', 105, footerY + 18, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text('Contribuyendo juntos a un planeta más sostenible', 105, footerY + 30, { align: 'center' });
+            
+            // Generar y descargar
+            const filename = `comprobante_canje_${transactionId}.pdf`;
+            doc.save(filename);
+        }
+        
+        // Cargar logo y generar PDF
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        logoImg.onload = function() {
+                try {
+                    // Convertir imagen a canvas para obtener datos base64
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = logoImg.width;
+                    canvas.height = logoImg.height;
+                    ctx.drawImage(logoImg, 0, 0);
+                    const logoData = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    // LOGO DE FONDO COMPLETO - UNA SOLA CAPA MÁS VISIBLE (MÁS ARRIBA)
+                    doc.setGState(doc.GState({opacity: 0.20})); // Opacidad perfecta
+                    // Logo centrado que cubre toda la página - subido más arriba
+                    doc.addImage(logoData, 'JPEG', 20, 40, 170, 170);
+                    
+                    // Restaurar opacidad para el resto del contenido
+                    doc.setGState(doc.GState({opacity: 1}));
+                    
+                    generatePDFWithLogo();            } catch (e) {
+                console.log('Error al cargar logo:', e);
+                // Fallback: sin logo, solo generar PDF
+                generatePDFWithLogo();
+            }
+        };
+        logoImg.onerror = function() {
+            console.log('No se pudo cargar el logo, usando fallback');
+            // Fallback: sin logo, solo generar PDF
+            generatePDFWithLogo();
+        };
+        
+        // Cargar logo desde el servidor
+        logoImg.src = '{% static "core/img/eco.jpg" %}';
+    }
+    
+    // Función para mostrar estado de transacción
+    function showTransactionStatus(id, estado, fecha) {
+        const statusIcon = document.getElementById('status-icon');
+        const statusTitle = document.getElementById('status-title');
+        const statusMessage = document.getElementById('status-message');
+        const statusDate = document.getElementById('status-date');
+        
+        statusDate.textContent = 'Fecha: ' + fecha;
+        
+        switch(estado.toLowerCase()) {
+            case 'pendiente':
+                statusIcon.innerHTML = '<i class="fas fa-clock text-warning"></i>';
+                statusTitle.textContent = 'Canje Pendiente';
+                statusMessage.textContent = 'Tu solicitud está siendo revisada por nuestro equipo. Te notificaremos cuando sea procesada.';
+                break;
+            case 'aprobado':
+                statusIcon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+                statusTitle.textContent = 'Canje Aprobado';
+                statusMessage.textContent = '¡Tu retiro ha sido aprobado! El dinero será transferido a tu cuenta en las próximas 24 horas.';
+                break;
+            case 'procesando':
+                statusIcon.innerHTML = '<i class="fas fa-spinner fa-spin text-info"></i>';
+                statusTitle.textContent = 'Canje en Proceso';
+                statusMessage.textContent = 'Tu canje está siendo procesado. El dinero será transferido pronto a tu cuenta.';
+                break;
+            case 'completado':
+                statusIcon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+                statusTitle.textContent = 'Canje Completado';
+                statusMessage.textContent = '¡Excelente! El dinero ha sido transferido exitosamente a tu cuenta.';
+                break;
+            case 'rechazado':
+                statusIcon.innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+                statusTitle.textContent = 'Canje Rechazado';
+                statusMessage.textContent = 'Tu solicitud fue rechazada. Contacta al soporte para más información.';
+                break;
+            default:
+                statusIcon.innerHTML = '<i class="fas fa-question-circle text-secondary"></i>';
+                statusTitle.textContent = 'Estado Desconocido';
+                statusMessage.textContent = 'No se pudo determinar el estado actual de tu canje.';
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('transactionStatusModal'));
+        modal.show();
+    }
+    
+    // Función para mostrar notificaciones toast
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} notification-toast`;
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                </div>
+                <div class="flex-grow-1">${message}</div>
+                <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    // Animación para las tarjetas
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.payment-card, .transaction-card');
+        cards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+        });
+        
+        setTimeout(() => {
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        }, 300);
+    });
+</script>
+
+<!-- Sistema de Notificaciones -->
+{% include 'core/includes/notification_system.html' %}
+
+{% endblock %}

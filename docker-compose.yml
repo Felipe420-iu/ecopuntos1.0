@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # Aplicación Django
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./media:/app/media
+      - ./logs:/app/logs
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgresql://ecopuntos:ecopuntos123@db:5432/ecopuntos
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=django-insecure-docker-cambiar-en-produccion
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 --workers 3 proyecto2023.wsgi:application"
+
+  # Servidor WebSocket
+  websocket:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgresql://ecopuntos:ecopuntos123@db:5432/ecopuntos
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=django-insecure-docker-cambiar-en-produccion
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      - db
+      - redis
+    command: daphne -b 0.0.0.0 -p 8001 proyecto2023.asgi:application
+
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ecopuntos
+      - POSTGRES_USER=ecopuntos
+      - POSTGRES_PASSWORD=ecopuntos123
+    ports:
+      - "5432:5432"
+
+  # Redis para caché y WebSockets
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # Nginx (opcional para producción)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./media:/app/media:ro
+      - ./staticfiles:/app/staticfiles:ro
+    depends_on:
+      - web
+      - websocket
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: ecopuntos_network

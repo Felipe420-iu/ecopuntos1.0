@@ -1,0 +1,62 @@
+EcoPuntos - ¡Tu Canje ha sido Aprobado!
+==========================================
+
+¡FELICIDADES! Tu canje ha sido aprobado por nuestro equipo
+
+Estimado/a {{ usuario.get_full_name|default:usuario.username }},
+
+¡Excelente noticia! Nuestro equipo ha revisado y APROBADO tu solicitud de canje. Tus materiales reciclables han sido procesados exitosamente.
+
+CANJE APROBADO
+==============
+♻️ {{ canje.material.nombre }}
+Peso procesado: {{ canje.peso }} kg
+
+PUNTOS GANADOS: +{{ canje.puntos }} PUNTOS
+
+DETALLES DEL CANJE APROBADO
+===========================
+
+Número de Canje: #{{ canje.id }}
+Fecha de Solicitud: {{ canje.fecha_solicitud|date:"d/m/Y H:i" }}
+Fecha de Aprobación: {{ canje.fecha_procesamiento|date:"d/m/Y H:i" }}
+Material Reciclado: {{ canje.material.nombre }}
+Peso Final: {{ canje.peso }} kg
+Puntos por Kg: {{ canje.material.puntos_por_kilo }} puntos
+Total Puntos Ganados: {{ canje.puntos }} puntos
+Puntos Totales Actuales: {{ usuario.puntos }} puntos
+
+ESTADO
+======
+✅ CANJE APROBADO
+
+¡Los puntos han sido agregados a tu cuenta!
+Puedes usar tus puntos para canjear recompensas o solicitar retiros en efectivo.
+
+TU IMPACTO AMBIENTAL
+====================
+🌱 Gracias a tu aporte de {{ canje.peso }} kg de {{ canje.material.nombre }}, has contribuido significativamente al cuidado del medio ambiente.
+
+Estadísticas:
+- Kg reciclados: {{ canje.peso }}
+- Puntos ganados: {{ canje.puntos }}
+- Planetas ayudados: 1 🌍
+
+¿QUÉ PUEDES HACER AHORA?
+========================
+🎁 Visita nuestra sección de recompensas para canjear tus puntos
+💰 Solicita un retiro en efectivo si tienes suficientes puntos
+♻️ Continúa reciclando para ganar más puntos
+📊 Revisa tu perfil para ver tu progreso ambiental
+
+¿TIENES ALGUNA PREGUNTA SOBRE TU CANJE?
+=======================================
+Email: ecopuntos2@gmail.com
+Whatsapp: +57 300 123 4567
+Horario de Atención: Lunes a Viernes, 8:00 AM - 6:00 PM
+
+¡Gracias por ser parte del cambio!
+Cada kilogramo reciclado cuenta para un futuro más sostenible 🌍
+
+---
+Este correo fue enviado automáticamente, por favor no respondas a este mensaje.

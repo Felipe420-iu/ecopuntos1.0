@@ -1,0 +1,275 @@
+{% extends 'core/superuser/base_superuser.html' %}
+{% load static %}
+
+{% block title %}Configuración del Sistema - Superusuario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .superuser-header {
+        background: linear-gradient(135deg, #dc3545, #fd7e14);
+        color: white;
+        padding: 1rem 0;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .config-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+    
+    .config-section {
+        border-bottom: 1px solid #eee;
+        padding: 1rem 0;
+    }
+    
+    .config-section:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="superuser-header text-center">
+        <div class="container">
+            <h1><i class="fas fa-cog"></i> Configuración del Sistema</h1>
+            <p class="lead mb-0">Control avanzado de parámetros del sistema</p>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="row">
+            <!-- Configuraciones de Seguridad -->
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <div class="card-header bg-danger text-white">
+                        <h5><i class="fas fa-shield-alt"></i> Configuraciones de Seguridad</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="config-section">
+                            <label class="form-label">Timeout de Sesión Admin (minutos)</label>
+                            <input type="number" class="form-control" name="config_admin_session_timeout" 
+                                   value="10" min="5" max="120">
+                            <small class="text-muted">Tiempo antes de cerrar sesión de administradores</small>
+                        </div>
+                        
+                        <div class="config-section">
+                            <label class="form-label">Timeout de Sesión Usuario (minutos)</label>
+                            <input type="number" class="form-control" name="config_user_session_timeout" 
+                                   value="15" min="10" max="180">
+                            <small class="text-muted">Tiempo antes de cerrar sesión de usuarios regulares</small>
+                        </div>
+                        
+                        <div class="config-section">
+                            <label class="form-label">Intentos de Login Máximos</label>
+                            <input type="number" class="form-control" name="config_max_login_attempts" 
+                                   value="3" min="3" max="10">
+                            <small class="text-muted">Intentos fallidos antes de bloquear</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuraciones de Sistema -->
+            <div class="col-lg-6">
+                <div class="config-card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-cogs"></i> Configuraciones del Sistema</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="config-section">
+                            <label class="form-label">Puntos por Defecto</label>
+                            <input type="number" class="form-control" name="config_default_points" 
+                                   value="100" min="0" max="1000">
+                            <small class="text-muted">Puntos iniciales para nuevos usuarios</small>
+                        </div>
+                        
+                        <div class="config-section">
+                            <label class="form-label">Conversión Puntos a COP</label>
+                            <input type="number" step="0.01" class="form-control" name="config_points_to_cop" 
+                                   value="0.50" min="0.01" max="10">
+                            <small class="text-muted">Valor en pesos por punto</small>
+                        </div>
+                        
+                        <div class="config-section">
+                            <label class="form-label">Email Remitente</label>
+                            <input type="email" class="form-control" name="config_sender_email" 
+                                   value="noreply@ecopuntos.com">
+                            <small class="text-muted">Email desde donde se envían las notificaciones</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuraciones de Notificaciones -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="config-card">
+                    <div class="card-header bg-warning">
+                        <h5><i class="fas fa-bell"></i> Configuraciones de Notificaciones</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                           name="config_email_notifications" checked>
+                                    <label class="form-check-label" for="emailNotifications">
+                                        Notificaciones por Email
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smsNotifications" 
+                                           name="config_sms_notifications">
+                                    <label class="form-check-label" for="smsNotifications">
+                                        Notificaciones por SMS
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="pushNotifications" 
+                                           name="config_push_notifications" checked>
+                                    <label class="form-check-label" for="pushNotifications">
+                                        Notificaciones Push
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuraciones Existentes -->
+        {% if configs %}
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="config-card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5><i class="fas fa-list"></i> Configuraciones Existentes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Categoría</th>
+                                        <th>Nombre</th>
+                                        <th>Valor</th>
+                                        <th>Descripción</th>
+                                        <th>Última Modificación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for config in configs %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary">{{ config.get_categoria_display }}</span>
+                                        </td>
+                                        <td><strong>{{ config.nombre }}</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" 
+                                                   name="config_{{ config.nombre }}" 
+                                                   value="{{ config.valor }}">
+                                        </td>
+                                        <td><small>{{ config.descripcion }}</small></td>
+                                        <td><small>{{ config.fecha_modificacion|date:"d/m/Y H:i" }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Acciones -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="config-card">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-success btn-lg me-3">
+                            <i class="fas fa-save"></i> Guardar Configuración
+                        </button>
+                        <a href="{% url 'panel_superuser' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-left"></i> Volver al Panel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Confirmar Cambios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>¡Atención!</strong> Estás a punto de modificar configuraciones críticas del sistema.
+                    Estos cambios afectarán a todos los usuarios.
+                </div>
+                <p>¿Estás seguro de que quieres continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="submitForm()">
+                    Confirmar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Interceptar envío del formulario para mostrar confirmación
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    $('#confirmModal').modal('show');
+});
+
+function submitForm() {
+    $('#confirmModal').modal('hide');
+    document.querySelector('form').submit();
+}
+
+// Validaciones en tiempo real
+document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('change', function() {
+        const min = parseFloat(this.min);
+        const max = parseFloat(this.max);
+        const value = parseFloat(this.value);
+        
+        if (value < min) {
+            this.value = min;
+            this.classList.add('is-invalid');
+            setTimeout(() => this.classList.remove('is-invalid'), 2000);
+        } else if (value > max) {
+            this.value = max;
+            this.classList.add('is-invalid');
+            setTimeout(() => this.classList.remove('is-invalid'), 2000);
+        }
+    });
+});
+</script>
+{% endblock %}

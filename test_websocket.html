@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test WebSocket</title>
+</head>
+<body>
+    <h1>Test de Conexión WebSocket</h1>
+    <div id="status">Conectando...</div>
+    <button onclick="testConnection()">Probar Conexión</button>
+    <div id="log"></div>
+
+    <script>
+        let ws;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += '<p>' + new Date().toLocaleTimeString() + ': ' + message + '</p>';
+            console.log(message);
+        }
+        
+        function testConnection() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/chatbot/`;
+            
+            log('Intentando conectar a: ' + wsUrl);
+            document.getElementById('status').textContent = 'Conectando...';
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function(e) {
+                    log('✅ CONECTADO exitosamente!');
+                    document.getElementById('status').textContent = '✅ CONECTADO';
+                    document.getElementById('status').style.color = 'green';
+                };
+                
+                ws.onmessage = function(e) {
+                    log('📩 Mensaje recibido: ' + e.data);
+                };
+                
+                ws.onerror = function(e) {
+                    log('❌ ERROR: ' + JSON.stringify(e));
+                    document.getElementById('status').textContent = '❌ ERROR';
+                    document.getElementById('status').style.color = 'red';
+                };
+                
+                ws.onclose = function(e) {
+                    log('🔌 Desconectado - Código: ' + e.code + ', Razón: ' + e.reason);
+                    document.getElementById('status').textContent = '🔌 Desconectado';
+                    document.getElementById('status').style.color = 'orange';
+                };
+                
+            } catch (error) {
+                log('❌ EXCEPCIÓN: ' + error.message);
+                document.getElementById('status').textContent = '❌ EXCEPCIÓN';
+                document.getElementById('status').style.color = 'red';
+            }
+        }
+        
+        // Auto-probar al cargar
+        window.onload = testConnection;
+    </script>
+</body>
+</html>

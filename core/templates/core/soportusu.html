@@ -1,0 +1,840 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Centro de Soporte - EcoPuntos{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #2E8B57;
+        --secondary-color: #98D8C8;
+        --accent-color: #F7DC6F;
+        --text-dark: #2C3E50;
+        --text-light: #7F8C8D;
+        --success-color: #27AE60;
+        --warning-color: #F39C12;
+        --danger-color: #E74C3C;
+        --info-color: #3498DB;
+        --light-bg: #F8F9FA;
+        --white: #FFFFFF;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --border-radius: 12px;
+    }
+
+    body {
+        background: none !important;
+        min-height: 100vh;
+        font-family: 'Poppins', sans-serif;
+        position: relative;
+    }
+
+    body::before {
+        display: none !important;
+    }
+
+    .page-wrapper {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        background: transparent;
+    }
+
+    .background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -2;
+        opacity: 0.7;
+    }
+
+    .dynamic-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, rgba(76, 175, 80, 0.1), rgba(139, 195, 74, 0.05));
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    .support-container {
+        padding: 2rem 0;
+        min-height: calc(100vh - 80px);
+    }
+
+    .support-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        color: var(--white);
+    }
+
+    .support-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .support-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .support-tabs {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .nav-tabs {
+        border-bottom: none;
+        background: var(--light-bg);
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        color: var(--text-dark);
+        font-weight: 600;
+        padding: 1rem 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link:hover {
+        background: var(--secondary-color);
+        color: var(--white);
+    }
+
+    .nav-tabs .nav-link.active {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+
+    .tab-content {
+        padding: 2rem;
+    }
+
+    .ticket-form {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--shadow);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid #E9ECEF;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(46, 139, 87, 0.25);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(46, 139, 87, 0.3);
+    }
+
+    .tickets-list {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .ticket-item {
+        border-bottom: 1px solid #E9ECEF;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .ticket-item:hover {
+        background: var(--light-bg);
+    }
+
+    .ticket-item:last-child {
+        border-bottom: none;
+    }
+
+    .ticket-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .ticket-number {
+        font-weight: 700;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    .ticket-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-nuevo {
+        background: var(--info-color);
+        color: var(--white);
+    }
+
+    .status-en_proceso {
+        background: var(--warning-color);
+        color: var(--white);
+    }
+
+    .status-resuelto {
+        background: var(--success-color);
+        color: var(--white);
+    }
+
+    .status-cerrado {
+        background: var(--text-light);
+        color: var(--white);
+    }
+
+    .ticket-subject {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .ticket-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+
+    .chat-container {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        height: 500px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-header {
+        background: var(--primary-color);
+        color: var(--white);
+        padding: 1rem;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        background: var(--light-bg);
+    }
+
+    .chat-input {
+        padding: 1rem;
+        border-top: 1px solid #E9ECEF;
+        background: var(--white);
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .message.admin {
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .message.admin .message-avatar {
+        background: var(--warning-color);
+    }
+
+    .message-content {
+        background: var(--white);
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        max-width: 70%;
+    }
+
+    .message.admin .message-content {
+        background: var(--primary-color);
+        color: var(--white);
+    }
+
+    .message-time {
+        font-size: 0.8rem;
+        opacity: 0.7;
+        margin-top: 0.25rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-light);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .priority-badge {
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .priority-baja {
+        background: #E8F5E8;
+        color: var(--success-color);
+    }
+
+    .priority-media {
+        background: #FFF3CD;
+        color: var(--warning-color);
+    }
+
+    .priority-alta {
+        background: #F8D7DA;
+        color: var(--danger-color);
+    }
+
+    .priority-urgente {
+        background: var(--danger-color);
+        color: var(--white);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+    }
+
+    .stat-label {
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .support-header h1 {
+            font-size: 2rem;
+        }
+
+        .nav-tabs .nav-link {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .tab-content {
+            padding: 1rem;
+        }
+
+        .ticket-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .ticket-meta {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .message-content {
+            max-width: 85%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <!-- Video de fondo -->
+    <video class="background-video" autoplay muted loop playsinline preload="metadata">
+        <source src="{% static 'core/media/eco.mp4' %}" type="video/mp4">
+        Su navegador no soporta el elemento de video.
+    </video>
+    
+    <!-- Overlay dinámico -->
+    <div class="dynamic-overlay"></div>
+    
+    <!-- Partículas flotantes -->
+    <div class="particles" id="particles"></div>
+
+<div class="support-container">
+    <div class="container">
+        <!-- Header -->
+        <div class="support-header">
+            <h1><i class="fas fa-headset"></i> Centro de Soporte</h1>
+            <p>Estamos aquí para ayudarte. Crea un ticket o inicia un chat en tiempo real con nuestro equipo de soporte.</p>
+        </div>
+
+        <!-- Estadísticas rápidas -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-icon text-primary"><i class="fas fa-ticket-alt"></i></div>
+                <div class="stat-number">{{ tickets.count|default:0 }}</div>
+                <div class="stat-label">Tickets Totales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon text-warning"><i class="fas fa-clock"></i></div>
+                <div class="stat-number">{{ tickets_activos|default:0 }}</div>
+                <div class="stat-label">Tickets Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon text-success"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Resueltos Hoy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon text-info"><i class="fas fa-comments"></i></div>
+                <div class="stat-number">{% if chat_activo %}1{% else %}0{% endif %}</div>
+                <div class="stat-label">Chat Activo</div>
+            </div>
+        </div>
+
+        <!-- Tabs de navegación -->
+        <div class="support-tabs">
+            <ul class="nav nav-tabs" id="supportTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab">
+                        <i class="fas fa-ticket-alt me-2"></i>Mis Tickets
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="new-ticket-tab" data-bs-toggle="tab" data-bs-target="#new-ticket" type="button" role="tab">
+                        <i class="fas fa-plus me-2"></i>Nuevo Ticket
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
+                        <i class="fas fa-comments me-2"></i>Chat en Vivo
+                        {% if chat_activo %}<span class="badge bg-success ms-1">Activo</span>{% endif %}
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="supportTabsContent">
+                <!-- Tab: Mis Tickets -->
+                <div class="tab-pane fade show active" id="tickets" role="tabpanel">
+                    {% if tickets %}
+                        <div class="tickets-list">
+                            {% for ticket in tickets %}
+                            <div class="ticket-item" onclick="window.location.href='{% url 'ver_ticket' ticket.id %}'">
+                                <div class="ticket-header">
+                                    <div class="ticket-number">#{{ ticket.numero_ticket }}</div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="priority-badge priority-{{ ticket.prioridad }}">{{ ticket.get_prioridad_display }}</span>
+                                        <span class="ticket-status status-{{ ticket.estado }}">{{ ticket.get_estado_display }}</span>
+                                    </div>
+                                </div>
+                                <div class="ticket-subject">{{ ticket.asunto }}</div>
+                                <div class="ticket-meta">
+                                    <span><i class="fas fa-tag me-1"></i>{{ ticket.get_categoria_display }}</span>
+                                    <span><i class="fas fa-calendar me-1"></i>{{ ticket.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                                    <span><i class="fas fa-comments me-1"></i>{{ ticket.mensajes.count }} mensajes</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h4>No tienes tickets aún</h4>
+                            <p>Crea tu primer ticket para obtener ayuda de nuestro equipo de soporte.</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('new-ticket-tab').click()">
+                                <i class="fas fa-plus me-2"></i>Crear Primer Ticket
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tab: Nuevo Ticket -->
+                <div class="tab-pane fade" id="new-ticket" role="tabpanel">
+                    <div class="ticket-form">
+                        <h4 class="mb-4"><i class="fas fa-plus-circle me-2"></i>Crear Nuevo Ticket</h4>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="crear_ticket">
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label class="form-label">Asunto *</label>
+                                        <input type="text" class="form-control" name="asunto" required placeholder="Describe brevemente tu problema">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Categoría *</label>
+                                        <select class="form-control" name="categoria" required>
+                                            <option value="">Seleccionar categoría</option>
+                                            <option value="tecnico">Problema Técnico</option>
+                                            <option value="cuenta">Problema de Cuenta</option>
+                                            <option value="puntos">Problema con Puntos</option>
+                                            <option value="recompensas">Problema con Recompensas</option>
+                                            <option value="general">Consulta General</option>
+                                            <option value="sugerencia">Sugerencia</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Prioridad</label>
+                                        <select class="form-control" name="prioridad">
+                                            <option value="baja">Baja</option>
+                                            <option value="media" selected>Media</option>
+                                            <option value="alta">Alta</option>
+                                            <option value="urgente">Urgente</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Descripción del problema *</label>
+                                <textarea class="form-control" name="mensaje" rows="6" required placeholder="Describe detalladamente tu problema. Incluye pasos para reproducir el error si es aplicable."></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Los campos marcados con * son obligatorios
+                                </small>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Crear Ticket
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tab: Chat en Vivo -->
+                <div class="tab-pane fade" id="chat" role="tabpanel">
+                    {% if chat_activo %}
+                        <div class="chat-container">
+                            <div class="chat-header">
+                                <i class="fas fa-circle text-success me-2"></i>
+                                <strong>Chat en Vivo - Conectado</strong>
+                                <div class="ms-auto">
+                                    <small>Iniciado: {{ chat_activo.fecha_inicio|date:"d/m/Y H:i" }}</small>
+                                </div>
+                            </div>
+                            <div class="chat-messages" id="chatMessages">
+                                <!-- Los mensajes se cargarán dinámicamente -->
+                            </div>
+                            <div class="chat-input">
+                                <form id="chatForm" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <input type="text" class="form-control" id="messageInput" placeholder="Escribe tu mensaje..." required>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-comments text-muted" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                            <h4>Chat en Vivo</h4>
+                            <p class="text-muted mb-4">Inicia una conversación en tiempo real con nuestro equipo de soporte.</p>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="iniciar_chat">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-play me-2"></i>Iniciar Chat
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+// Crear partículas flotantes
+function createParticles() {
+    const particlesContainer = document.getElementById('particles');
+    if (!particlesContainer) return;
+    
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.width = Math.random() * 4 + 2 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+        particlesContainer.appendChild(particle);
+    }
+}
+
+// Efecto de video de fondo
+function setupBackgroundVideo() {
+    const video = document.querySelector('.background-video');
+    
+    if (video) {
+        video.addEventListener('loadeddata', function() {
+            this.style.opacity = '0.7';
+        });
+        
+        video.addEventListener('error', function() {
+            console.log('Video no disponible, usando fondo alternativo');
+            document.querySelector('.page-wrapper').style.background = 
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        });
+    }
+}
+
+// Inicializar efectos cuando la página cargue
+document.addEventListener('DOMContentLoaded', function() {
+    createParticles();
+    setupBackgroundVideo();
+});
+
+// Chat en tiempo real
+if (document.getElementById('chatMessages')) {
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const chatId = {% if chat_activo %}{{ chat_activo.id }}{% else %}null{% endif %};
+    let lastMessageId = 0;
+    
+    // Auto-scroll al final
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Cargar mensajes existentes
+    function loadMessages() {
+        if (!chatId) return;
+        
+        fetch(`/api/chat/${chatId}/mensajes/?last_id=${lastMessageId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.mensajes && data.mensajes.length > 0) {
+                    data.mensajes.forEach(mensaje => {
+                        addMessageToChat(mensaje);
+                        lastMessageId = Math.max(lastMessageId, mensaje.id);
+                    });
+                    scrollToBottom();
+                }
+            })
+            .catch(error => console.error('Error cargando mensajes:', error));
+    }
+    
+    // Agregar mensaje al chat
+    function addMessageToChat(mensaje) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${mensaje.es_admin ? 'admin' : ''}`;
+        messageDiv.innerHTML = `
+            <div class="message-avatar">${mensaje.es_admin ? 'A' : '{{ request.user.username.0|upper|default:"U" }}'}</div>
+            <div class="message-content">
+                <div>${mensaje.mensaje}</div>
+                <div class="message-time">${new Date(mensaje.fecha_envio).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})}</div>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+    }
+    
+    // Enviar mensaje
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const message = messageInput.value.trim();
+        if (!message || !chatId) return;
+        
+        // Enviar mensaje al servidor
+        fetch(`/api/chat/${chatId}/enviar/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                mensaje: message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messageInput.value = '';
+                loadMessages(); // Recargar mensajes para mostrar el nuevo
+            } else {
+                alert('Error enviando mensaje: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error enviando mensaje:', error);
+            alert('Error enviando mensaje');
+        });
+    });
+    
+    // Cargar mensajes iniciales
+    loadMessages();
+    
+    // Polling para nuevos mensajes cada 3 segundos
+    setInterval(loadMessages, 3000);
+    
+    // Scroll inicial
+    scrollToBottom();
+}
+
+// Animaciones y efectos
+document.addEventListener('DOMContentLoaded', function() {
+    // Animar estadísticas
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        const finalNumber = parseInt(stat.textContent);
+        let currentNumber = 0;
+        const increment = finalNumber / 20;
+        
+        const timer = setInterval(() => {
+            currentNumber += increment;
+            if (currentNumber >= finalNumber) {
+                stat.textContent = finalNumber;
+                clearInterval(timer);
+            } else {
+                stat.textContent = Math.floor(currentNumber);
+            }
+        }, 50);
+    });
+    
+    // Efectos hover en tickets
+    const ticketItems = document.querySelectorAll('.ticket-item');
+    ticketItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
+</script>
+
+<!-- Sistema de Notificaciones -->
+ {% include 'core/includes/notification_system.html' %}
+{% endblock %}

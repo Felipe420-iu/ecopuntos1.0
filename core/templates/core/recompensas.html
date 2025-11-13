@@ -1,0 +1,2011 @@
+    {% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Recompensas | Eco Puntos{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+    --primary: #4caf50;
+    --primary-dark: #388e3c;
+    --primary-light: #c8e6c9;
+    --accent: #8bc34a;
+    --text-dark: #263238;
+    --text-light: #f5f5f5;
+    --gray-light: #f9f9f9;
+    --gray: #e0e0e0;
+    --success: #66bb6a;
+    --info: #29b6f6;
+    --warning: #ffa726;
+    --danger: #f44336;
+    --gradient-1: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    --gradient-2: linear-gradient(135deg, #388e3c 0%, #4caf50 100%);
+    --gradient-hover: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+    }
+    
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    }
+    
+    /* Excluir la navbar del reset global */
+    .container:not(.navbar .container), .container-fluid:not(.navbar .container-fluid) {
+    padding: 0 !important;
+    margin: 0 !important;
+    }
+    
+    /* Asegurar que la navbar mantenga su comportamiento normal */
+    .navbar .container {
+    padding: 0 15px !important;
+    margin: 0 auto !important;
+    max-width: 1200px !important;
+    }
+    
+    /* Forzar el centrado de la navegación */
+    .navbar-nav.mx-auto {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    }
+    
+    /* Asegurar distribución correcta del espacio en la navbar */
+    .navbar-dashboard .container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    }
+    
+    html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    }
+    
+    body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: transparent;
+    color: var(--text-dark);
+    position: relative;
+    overflow-x: hidden;
+    margin: 0 !important;
+    padding: 0 !important;
+    }
+    
+    .page-wrapper {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    }
+    
+    .background-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    opacity: 1;    }
+    
+    .page-wrapper::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(76, 175, 80, 0.3) 0%, rgba(139, 195, 74, 0.3) 100%);
+    backdrop-filter: blur(2px);
+    z-index: 2;
+    }
+    
+    /* Header y navegación */
+    .header {
+        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        color: white;
+        padding: 15px 0;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    }
+    
+    .logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    margin-right: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+    }
+    
+    .menu {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    }
+    
+    .menu a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.1);
+    }
+    
+    .menu a:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Contenedor principal */
+    .rewards-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 15px;
+    position: relative;
+    z-index: 10;
+    }
+
+    /* Panel de filtros */
+    .filters-panel {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    padding: 25px;
+    margin: 15px 0 25px 0;
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .filters-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    align-items: end;
+    }
+
+    .filter-group {
+    display: flex;
+    flex-direction: column;
+    }
+
+    .filter-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
+    }
+
+    .filter-group input,
+    .filter-group select {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .filter-toggles {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    }
+
+    .toggle-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--primary);
+    background: white;
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    }
+
+    .toggle-btn.active {
+    background: var(--primary);
+    color: white;
+    }
+
+    .toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Estadísticas del usuario */
+    .user-stats {
+    background: rgba(76, 175, 80, 0.9);
+    backdrop-filter: blur(15px);
+    color: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 15px 0 25px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-item h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    }
+
+    .stat-item p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    }
+
+    /* Tarjetas de recompensas mejoradas */
+    .reward-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .reward-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    }
+
+    .reward-badges {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .badge {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    }
+
+    .badge.nuevo {
+    background: var(--info);
+    color: white;
+    }
+
+    .badge.popular {
+    background: var(--warning);
+    color: white;
+    }
+
+    .badge.oferta {
+    background: var(--danger);
+    color: white;
+    }
+
+    .badge.stock-bajo {
+    background: var(--warning);
+    color: white;
+    }
+
+    .favorite-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    }
+
+    .favorite-btn:hover {
+    background: white;
+    transform: scale(1.1);
+    }
+
+    .favorite-btn.active {
+    color: var(--danger);
+    }
+
+    .reward-content {
+    padding: 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    }
+
+    .reward-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 10px;
+    line-height: 1.3;
+    }
+
+    .reward-description {
+    color: #666;
+    margin-bottom: 20px;
+    flex-grow: 1;
+    line-height: 1.5;
+    }
+
+    .reward-info {
+    margin-bottom: 20px;
+    }
+
+    .reward-points {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    }
+
+    .progress-bar {
+    background: #f0f0f0;
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    }
+
+    .progress-fill {
+        background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+
+    .progress-text {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    }
+
+    .stock-info {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    }
+
+    .reward-actions {
+    display: flex;
+    gap: 10px;
+    }
+
+    .reward-btn {
+        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.2);
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+        flex: 1;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .reward-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .reward-btn:hover::before {
+        left: 100%;
+    }
+
+    .reward-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, #388e3c 0%, #4caf50 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4);
+        border-color: rgba(255,255,255,0.3);
+    }
+
+    .reward-btn:active:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    .reward-btn:disabled {
+        background: linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%);
+        color: rgba(255,255,255,0.9);
+        cursor: not-allowed;
+        box-shadow: 0 2px 6px rgba(158, 158, 158, 0.2);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        border: 2px solid rgba(255,255,255,0.15);
+        opacity: 0.85;
+    }
+
+    .section-title {
+    text-align: center;
+    margin: 40px auto;
+    max-width: 800px;
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    padding: 40px 30px;
+    border-radius: 25px;
+    box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .section-title h2 {
+    color: var(--primary-dark);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    }
+
+    .section-title::before {    
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+    backdrop-filter: blur(10px);
+    pointer-events: none;
+    }
+
+    .section-title h2 {
+    color: white;
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 20px;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 2;
+    letter-spacing: 1px;
+    }
+
+    .section-title .points-info {
+    background: rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 20px 30px;
+    display: inline-block;
+    margin-top: 15px;
+    backdrop-filter: blur(15px);
+    border: 2px solid rgba(255,255,255,0.3);
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+
+    .section-title .points-info span {
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .section-title .points-info .points-number {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    display: inline-block;
+    margin: 0 5px;
+    }
+
+    /* Estilos para estados vacíos */
+    .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    }
+
+    .empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #ccc;
+    }
+
+    .empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+    .filters-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .user-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+        .reward-card {
+        margin-bottom: 30px;
+    }
+    
+    .section-title {
+        margin: 30px 15px;
+        padding: 35px 25px;
+    }
+    
+    .section-title h2 {
+        font-size: 2.5rem;
+    }
+
+    .section-title .points-info {
+        padding: 18px 25px;
+    }
+
+    .section-title .points-info span {
+        font-size: 1.2rem;
+    }
+
+    .section-title .points-info .points-number {
+        font-size: 1.7rem;
+    }
+    
+    .filter-toggles {
+        justify-content: center;
+    }
+    }
+
+    @media (max-width: 480px) {
+    .user-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-title {
+        margin: 20px 10px;
+        padding: 30px 20px;
+        max-width: calc(100% - 20px);
+    }
+    
+    .section-title h2 {
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+    }
+
+    .section-title .points-info {
+        padding: 15px 20px;
+        margin-top: 12px;
+    }
+
+    .section-title .points-info span {
+        font-size: 1.1rem;
+    }
+
+    .section-title .points-info .points-number {
+        font-size: 1.5rem;
+    }
+    }
+
+    @media (max-width: 320px) {
+        .reward-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .reward-actions {
+            flex-direction: column;
+        }
+    }
+
+    /* Estilos del Modal de Canje - Estilo Simple */
+    .modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(5px);
+    z-index: 9999 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.show {
+    display: flex !important;
+    }
+
+    .modal-content-simple {
+    background: white;
+    border-radius: 15px;
+    padding: 40px 30px 30px 30px;
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease;
+    position: relative;
+    }
+
+    .modal-icon {
+    margin-bottom: 25px;
+    }
+
+    .success-checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 3;
+    stroke: #4caf50;
+    stroke-miterlimit: 10;
+    margin: 0 auto 20px auto;
+    box-shadow: inset 0px 0px 0px #4caf50;
+    animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+    position: relative;
+    top: 5px;
+    right: 5px;
+    }
+
+    .success-checkmark .check-icon {
+    width: 56px;
+    height: 56px;
+    position: relative;
+    border-radius: 50%;
+    box-sizing: content-box;
+    border: 3px solid #4caf50;
+    margin: 12px auto;
+    background: white;
+    }
+
+    .success-checkmark .check-icon::after {
+    content: '';
+    width: 10px;
+    height: 20px;
+    position: absolute;
+    left: 20px;
+    top: 12px;
+    border: 3px solid #4caf50;
+    border-left: none;
+    border-top: none;
+    transform: rotate(45deg);
+    animation: checkmark 0.5s ease 0.5s forwards;
+    opacity: 0;
+    }
+
+    .modal-text h2 {
+    color: #333;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    }
+
+    .modal-text p {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    }
+
+    .puntos-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    }
+
+    .puntos-actuales,
+    .puntos-restantes {
+    font-size: 0.9rem;
+    color: #555;
+    }
+
+    .puntos-actuales strong {
+    color: #4caf50;
+    }
+
+    .puntos-restantes strong {
+    color: #2196f3;
+    }
+
+    .modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+    }
+
+    .btn-cancel,
+    .btn-ok {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    min-width: 120px;
+    }
+
+    .btn-cancel {
+    background: #e0e0e0;
+    color: #666;
+    }
+
+    .btn-cancel:hover {
+    background: #d0d0d0;
+    transform: translateY(-2px);
+    }
+
+    .btn-ok {
+    background: #4caf50;
+    color: white;
+    }
+
+    .btn-ok:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+
+    @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+    from { transform: translateY(-30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes checkmark {
+    from { opacity: 0; }
+    to { opacity: 1; }
+    }
+
+    @keyframes fill {
+    100% {
+        box-shadow: inset 0px 0px 0px 80px #4caf50;
+    }
+    }
+
+    @keyframes scale {
+    0%, 100% {
+        transform: none;
+    }
+    50% {
+        transform: scale3d(1.1, 1.1, 1);
+    }
+    }
+
+    @media (max-width: 768px) {
+    .modal-content-simple {
+        width: 95%;
+        padding: 30px 20px 25px 20px;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-cancel,
+    .btn-ok {
+        width: 100%;
+    }
+    
+    .success-checkmark {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .success-checkmark .check-icon {
+        width: 42px;
+        height: 42px;
+        margin: 9px auto;
+    }
+    
+    .modal-text h2 {
+        font-size: 1.5rem;
+    }
+    }
+    
+    /* ESTILOS FORZADOS PARA EL TÍTULO */
+    main.rewards-container .section-title {
+        text-align: center !important;
+        margin: 40px auto !important;
+        max-width: 800px !important;
+        background: linear-gradient(135deg, #4caf50, #2e7d32) !important;
+        padding: 40px 30px !important;
+        border-radius: 25px !important;
+        box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        border: 2px solid rgba(255,255,255,0.2) !important;
+        z-index: 100 !important;
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    main.rewards-container .section-title h2 {
+        color: white !important;
+        font-size: 3rem !important;
+        font-weight: 900 !important;
+        margin-bottom: 20px !important;
+        text-shadow: 0 3px 6px rgba(0,0,0,0.4) !important;
+        position: relative !important;
+        z-index: 102 !important;
+        letter-spacing: 1px !important;
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    main.rewards-container .section-title .points-info {
+        background: rgba(255,255,255,0.25) !important;
+        border-radius: 20px !important;
+        padding: 20px 30px !important;
+        display: inline-block !important;
+        margin-top: 15px !important;
+        border: 2px solid rgba(255,255,255,0.3) !important;
+        position: relative !important;
+        z-index: 102 !important;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2) !important;
+        visibility: visible !important;
+    }
+
+    main.rewards-container .section-title .points-info span {
+        color: white !important;
+        font-size: 1.4rem !important;
+        font-weight: 700 !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+        visibility: visible !important;
+    }
+
+    main.rewards-container .section-title .points-info .points-number {
+        font-size: 2rem !important;
+        font-weight: 900 !important;
+        color: #fff !important;
+        text-shadow: 0 3px 6px rgba(0,0,0,0.4) !important;
+        display: inline-block !important;
+        margin: 0 5px !important;
+        visibility: visible !important;
+    }
+    
+    /* Estilos para la sección de Mis Pedidos */
+    .mis-pedidos-section {
+        margin-top: 60px;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .mis-pedidos-section .section-title {
+        text-align: center;
+        margin-bottom: 40px;
+        background: none;
+        padding: 0;
+        box-shadow: none;
+    }
+    
+    .mis-pedidos-section .section-title h2 {
+        color: var(--primary-dark);
+        font-weight: 800;
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .mis-pedidos-section .section-title p {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    
+    .pedido-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .pedido-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    
+    .pedido-header {
+        padding: 20px 20px 15px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    
+    .pedido-info h5 {
+        margin: 0 0 5px 0;
+        color: var(--text-dark);
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .codigo-seguimiento {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .estado-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .pedido-body {
+        padding: 20px;
+    }
+    
+    .progress-container {
+        margin-bottom: 20px;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .timeline-mini {
+        margin-bottom: 20px;
+    }
+    
+    .timeline-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        position: relative;
+    }
+    
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .timeline-icon {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 12px;
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+    
+    .timeline-content {
+        flex: 1;
+    }
+    
+    .timeline-content strong {
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+    
+    .timeline-content small {
+        font-size: 0.75rem;
+    }
+    
+    .timeline-content p {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+    
+    .pedido-footer {
+        border-top: 1px solid #f1f3f4;
+        padding-top: 15px;
+    }
+    
+    .entrega-estimada {
+        margin: 0 0 15px 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+    }
+    
+    .btn-ver-detalle {
+        background: var(--gradient-1);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-ver-detalle:hover {
+        background: var(--gradient-hover);
+        transform: translateY(-1px);
+    }
+    
+    /* Empty state para pedidos */
+    .mis-pedidos-section .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    .mis-pedidos-section .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    .mis-pedidos-section .empty-state h3 {
+        color: var(--text-dark);
+        margin-bottom: 10px;
+    }
+    
+    .mis-pedidos-section .empty-state p {
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    /* Estilos para modal mejorado */
+    #canjeModal {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    #canjeModal > div {
+        position: relative;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    /* Responsive para móviles */
+    @media (max-width: 768px) {
+        #canjeModal {
+            padding: 10px !important;
+        }
+        
+        #canjeModal > div {
+            max-width: 95% !important;
+            margin: 10px auto !important;
+            padding: 20px !important;
+        }
+        
+        #canjeModal textarea {
+            min-height: 60px !important;
+        }
+    }
+    
+    /* Estilos para SweetAlert2 personalizado */
+    .swal-pedido-detalles .swal2-popup {
+        max-width: 650px !important;
+        width: 90% !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <!-- Video de fondo -->
+    <video class="background-video" autoplay muted loop playsinline preload="auto" controls="false" poster="">
+        <source src="{% static 'core/media/recompensas.mp4' %}" type="video/mp4">
+        <source src="{% static 'core/media/eco.mp4' %}" type="video/mp4">
+        Su navegador no soporta el elemento de video.
+    </video>
+    
+    <main class="rewards-container">
+        <!-- Título principal -->
+        <div class="section-title" style="
+            text-align: center !important;
+            margin: 40px auto !important;
+            max-width: 800px !important;
+            background: linear-gradient(135deg, #4caf50, #2e7d32) !important;
+            padding: 40px 30px !important;
+            border-radius: 25px !important;
+            box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            border: 2px solid rgba(255,255,255,0.2) !important;
+            z-index: 100 !important;
+        ">
+            <h2 style="
+                color: white !important;
+                font-size: 3rem !important;
+                font-weight: 900 !important;
+                margin-bottom: 20px !important;
+                text-shadow: 0 3px 6px rgba(0,0,0,0.4) !important;
+                position: relative !important;
+                z-index: 102 !important;
+                letter-spacing: 1px !important;
+            ">🎁 Recompensas Disponibles</h2>
+            <div class="points-info" style="
+                background: rgba(255,255,255,0.25) !important;
+                border-radius: 20px !important;
+                padding: 20px 30px !important;
+                display: inline-block !important;
+                margin-top: 15px !important;
+                backdrop-filter: blur(15px) !important;
+                border: 2px solid rgba(255,255,255,0.3) !important;
+                position: relative !important;
+                z-index: 102 !important;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.2) !important;
+            ">
+                <span style="
+                    color: white !important;
+                    font-size: 1.4rem !important;
+                    font-weight: 700 !important;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+                ">Tienes </span>
+                <span class="points-number" style="
+                    font-size: 2rem !important;
+                    font-weight: 900 !important;
+                    color: #fff !important;
+                    text-shadow: 0 3px 6px rgba(0,0,0,0.4) !important;
+                    display: inline-block !important;
+                    margin: 0 5px !important;
+                ">{{ user.puntos }}</span>
+                <span style="
+                    color: white !important;
+                    font-size: 1.4rem !important;
+                    font-weight: 700 !important;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+                "> puntos disponibles</span>
+            </div>
+        </div>
+
+        <!-- Estadísticas del usuario -->
+        <div class="user-stats">
+            <div class="stat-item">
+                <h3>{{ user.puntos }}</h3>
+                <p>Puntos Disponibles</p>
+            </div>
+            <div class="stat-item">
+                <h3>{{ recompensas_reclamables|length }}</h3>
+                <p>Recompensas Disponibles</p>
+            </div>
+            <div class="stat-item">
+                <h3>{{ favoritos_ids|length }}</h3>
+                <p>Favoritos</p>
+            </div>
+            <div class="stat-item">
+                <h3>{{ recompensas|length }}</h3>
+                <p>Total Recompensas</p>
+            </div>
+        </div>
+
+        <!-- Panel de filtros -->
+        <div class="filters-panel">
+            <form method="get" id="filtros-form">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label for="busqueda">🔍 Buscar</label>
+                        <input type="text" id="busqueda" name="busqueda" value="{{ filtros.busqueda }}" placeholder="Buscar recompensas...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="categoria">📂 Categoría</label>
+                        <select id="categoria" name="categoria">
+                            <option value="">Todas las categorías</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}" {% if filtros.categoria_id == categoria.id|stringformat:'s' %}selected{% endif %}>
+                                    {{ categoria.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="rango_puntos">💰 Rango de Puntos</label>
+                        <select id="rango_puntos" name="rango_puntos">
+                            <option value="">Todos los rangos</option>
+                            <option value="0-100" {% if filtros.rango_puntos == '0-100' %}selected{% endif %}>0 - 100 puntos</option>
+                            <option value="100-500" {% if filtros.rango_puntos == '100-500' %}selected{% endif %}>100 - 500 puntos</option>
+                            <option value="500+" {% if filtros.rango_puntos == '500+' %}selected{% endif %}>500+ puntos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="orden">📊 Ordenar por</label>
+                        <select id="orden" name="orden">
+                            <option value="puntos_asc" {% if filtros.orden == 'puntos_asc' %}selected{% endif %}>Puntos (menor a mayor)</option>
+                            <option value="puntos_desc" {% if filtros.orden == 'puntos_desc' %}selected{% endif %}>Puntos (mayor a menor)</option>
+                            <option value="nombre" {% if filtros.orden == 'nombre' %}selected{% endif %}>Nombre A-Z</option>
+                            <option value="popular" {% if filtros.orden == 'popular' %}selected{% endif %}>Más populares</option>
+                            <option value="nuevo" {% if filtros.orden == 'nuevo' %}selected{% endif %}>Más recientes</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-group" style="margin-top: 20px;">
+                    <label>🎯 Filtros rápidos</label>
+                    <div class="filter-toggles">
+                        <button type="button" class="toggle-btn {% if filtros.solo_disponibles %}active{% endif %}" data-filter="solo_disponibles">
+                            ✅ Solo disponibles
+                        </button>
+                        <button type="button" class="toggle-btn {% if filtros.solo_favoritos %}active{% endif %}" data-filter="solo_favoritos">
+                            ❤️ Solo favoritos
+                        </button>
+                    </div>
+                </div>
+                
+                <input type="hidden" name="solo_disponibles" id="solo_disponibles" value="{{ filtros.solo_disponibles|yesno:'true,false' }}">
+                <input type="hidden" name="solo_favoritos" id="solo_favoritos" value="{{ filtros.solo_favoritos|yesno:'true,false' }}">
+            </form>
+        </div>
+
+        <!-- Mensajes -->
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Grid de recompensas -->
+        <div class="row g-4">
+            {% for recompensa in recompensas %}
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="reward-card {% if recompensa.sin_stock %}sin-stock{% endif %}">
+                        <div class="reward-header">
+                            {% if recompensa.imagen %}
+                                <img src="{% static recompensa.imagen %}" alt="{{ recompensa.nombre }}" class="reward-img">
+                            {% else %}
+                                <img src="{% static 'core/img/recom.jpg' %}" alt="{{ recompensa.nombre }}" class="reward-img">
+                            {% endif %}
+                            
+                            <!-- Badges -->
+                            <div class="reward-badges">
+                                {% if recompensa.es_nuevo %}
+                                    <span class="badge nuevo">Nuevo</span>
+                                {% endif %}
+                                {% if recompensa.es_popular %}
+                                    <span class="badge popular">Popular</span>
+                                {% endif %}
+                                {% if recompensa.es_oferta %}
+                                    <span class="badge oferta">Oferta</span>
+                                {% endif %}
+                                {% if recompensa.stock_bajo %}
+                                    <span class="badge stock-bajo">Últimas unidades</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Botón de favorito -->
+                            <button class="favorite-btn {% if recompensa.id in favoritos_ids %}active{% endif %}" 
+                                    data-recompensa-id="{{ recompensa.id }}">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="reward-content">
+                            <h3 class="reward-title">{{ recompensa.nombre }}</h3>
+                            <p class="reward-description">{{ recompensa.descripcion }}</p>
+                            
+                            <div class="reward-info">
+                                <div class="reward-points">
+                                    <i class="fas fa-star"></i>
+                                    {{ recompensa.puntos_requeridos }} Puntos
+                                </div>
+                                
+                                <!-- Barra de progreso -->
+                                {% if user.puntos < recompensa.puntos_requeridos %}
+                                    {% widthratio user.puntos recompensa.puntos_requeridos 100 as progreso %}
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" data-progress="{{ progreso }}"></div>
+                                    </div>
+                                    <div class="progress-text">
+                                        Te faltan {{ recompensa.puntos_requeridos|add:"-"|add:user.puntos }} puntos
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Información de stock -->
+                                <div class="stock-info">
+                                    <i class="fas fa-box"></i>
+                                    {% if recompensa.stock > 0 %}
+                                        {{ recompensa.stock }} disponibles
+                                    {% else %}
+                                        Sin stock
+                                    {% endif %}
+                                    {% if recompensa.veces_canjeada > 0 %}
+                                        • {{ recompensa.veces_canjeada }} canjeadas
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="reward-actions">
+                                {% if recompensa.stock > 0 %}
+                                    {% if recompensa in recompensas_reclamables %}
+                                        <button type="button" class="reward-btn canje-btn" 
+                                                data-recompensa-id="{{ recompensa.id }}" 
+                                                data-nombre="{{ recompensa.nombre|escapejs }}" 
+                                                data-puntos="{{ recompensa.puntos_requeridos }}" 
+                                                data-stock="{{ recompensa.stock }}">
+                                            🎁 Canjear Ahora
+                                        </button>
+                                    {% else %}
+                                        <button class="reward-btn" disabled>💰 Puntos insuficientes</button>
+                                    {% endif %}
+                                {% else %}
+                                    <button class="reward-btn" disabled>📦 Sin stock</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="empty-state">
+                        <i class="fas fa-gift"></i>
+                        <h3>No hay recompensas disponibles</h3>
+                        <p>{% if filtros.busqueda or filtros.categoria_id or filtros.rango_puntos %}Intenta ajustar tus filtros de búsqueda{% else %}Vuelve pronto para ver nuevas recompensas{% endif %}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Sección de Mis Pedidos -->
+        {% if user.is_authenticated and mis_seguimientos %}
+        <div class="mis-pedidos-section mt-5">
+            <div class="section-title">
+                <h2><i class="fas fa-shipping-fast me-2"></i>Mis Pedidos</h2>
+                <p>Rastrea el estado de tus recompensas</p>
+            </div>
+            
+            <div class="row">
+                {% for seguimiento in mis_seguimientos %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="pedido-card">
+                        <div class="pedido-header">
+                            <div class="pedido-info">
+                                <h5>{{ seguimiento.recompensa.nombre }}</h5>
+                                <p class="codigo-seguimiento">Código: <strong>{{ seguimiento.codigo_seguimiento }}</strong></p>
+                            </div>
+                            <div class="estado-badge" style="background-color: {{ seguimiento.estado_color }};">
+                                {{ seguimiento.get_estado_display }}
+                            </div>
+                        </div>
+                        
+                        <div class="pedido-body">
+                            <!-- Progress Bar -->
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ seguimiento.porcentaje_progreso }}%; background-color: {{ seguimiento.estado_color }};"></div>
+                                </div>
+                                <div class="progress-text">{{ seguimiento.porcentaje_progreso }}% completado</div>
+                            </div>
+                            
+                            <!-- Timeline de Estados -->
+                            <div class="timeline-mini">
+                                {% for historial in seguimiento.historial.all|slice:":3" %}
+                                <div class="timeline-item">
+                                    <div class="timeline-icon" style="background-color: {{ seguimiento.estado_color }};"></div>
+                                    <div class="timeline-content">
+                                        <strong>{{ historial.get_estado_nuevo_display }}</strong>
+                                        <small class="text-muted d-block">{{ historial.fecha_cambio|date:"d/m/Y H:i" }}</small>
+                                        {% if historial.comentario %}
+                                        <p class="mb-0">{{ historial.comentario|truncatechars:50 }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Información adicional -->
+                            <div class="pedido-footer">
+                                {% if seguimiento.fecha_estimada_entrega %}
+                                <p class="entrega-estimada">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Entrega estimada: {{ seguimiento.fecha_estimada_entrega|date:"d/m/Y" }}
+                                </p>
+                                {% endif %}
+                                
+                                <button class="btn-ver-detalle" onclick="verDetallePedido('{{ seguimiento.codigo_seguimiento }}')">
+                                    Ver Detalles <i class="fas fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% elif user.is_authenticated %}
+        <div class="mis-pedidos-section mt-5">
+            <div class="empty-state">
+                <i class="fas fa-shipping-fast"></i>
+                <h3>No tienes pedidos activos</h3>
+                <p>Cuando canjees recompensas físicas, podrás rastrear su estado aquí</p>
+            </div>
+        </div>
+        {% endif %}
+        
+    </main>
+</div>
+
+<!-- Modal de Confirmación de Canje -->
+<div id="canjeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; overflow-y: auto; padding: 20px;">
+    <div style="background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 500px; margin: 20px auto; min-height: fit-content; max-height: calc(100vh - 40px); overflow-y: auto;">
+        <div style="width: 60px; height: 60px; background: #4caf50; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white;">
+            ✓
+        </div>
+        
+        <h2 style="color: #333; margin-bottom: 15px;">¡Confirmar Canje!</h2>
+        
+        <p style="color: #666; margin-bottom: 20px;">
+            ¿Estás seguro de que deseas canjear <strong id="modalRecompensaNombre">esta recompensa</strong>?
+        </p>
+        
+        <!-- Selector de Cantidad -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px;">📦 Cantidad a canjear:</label>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                    <button type="button" onclick="cambiarCantidad(-1)" style="width: 40px; height: 40px; background: #e0e0e0; border: none; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        −
+                    </button>
+                    <input type="number" id="cantidadCanje" value="1" min="1" max="1" onchange="actualizarTotales()" style="width: 80px; height: 40px; text-align: center; border: 2px solid #4caf50; border-radius: 8px; font-size: 18px; font-weight: bold;">
+                    <button type="button" onclick="cambiarCantidad(1)" style="width: 40px; height: 40px; background: #4caf50; color: white; border: none; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        +
+                    </button>
+                </div>
+                <div style="margin-top: 8px; font-size: 14px; color: #666;">
+                    <span id="stockDisponible">Stock disponible: 0</span>
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid #e0e0e0; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Costo por unidad:</span>
+                    <strong><span id="modalPuntosCosto">0</span> puntos</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Cantidad:</span>
+                    <strong><span id="cantidadDisplay">1</span> unidad(es)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; color: #4caf50;">
+                    <span><strong>Total a pagar:</strong></span>
+                    <strong><span id="totalPuntos">0</span> puntos</strong>
+                </div>
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Puntos actuales:</span>
+                        <strong>{{ user.puntos }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Puntos restantes:</span>
+                        <strong id="puntosRestantes">{{ user.puntos }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dirección de Entrega -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left;">
+            <label style="display: block; font-weight: 600; color: #333; margin-bottom: 8px;">
+                <i class="fas fa-map-marker-alt me-2"></i>Dirección de entrega:
+            </label>
+            <textarea 
+                id="direccionEntrega" 
+                placeholder="Ingresa tu dirección completa de entrega..."
+                style="width: 100%; min-height: 80px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box;"
+                maxlength="500"
+            >{% if user.direccion %}{{ user.direccion }}{% endif %}</textarea>
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                <i class="fas fa-info-circle me-1"></i>
+                Esta dirección se usará para la entrega de tu recompensa
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
+            <button onclick="closeCanjeModal()" style="padding: 12px 30px; background: #e0e0e0; color: #666; border: none; border-radius: 25px; cursor: pointer; font-weight: 600;">
+                Cancelar
+            </button>
+            <button onclick="confirmarCanje()" style="padding: 12px 30px; background: #4caf50; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: 600;">
+                Confirmar Canje
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario oculto para el canje -->
+<form id="canjeForm" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="canjear">
+    <input type="hidden" name="recompensa_id" id="canjeRecompensaId">
+    <input type="hidden" name="direccion_entrega" id="direccionEntregaHidden">
+</form>
+
+<script>
+// Manejo de video de fondo
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.querySelector('.background-video');
+    if (video) {
+        video.addEventListener('error', function() {
+            // Si el video no carga, ocultar el elemento
+            video.style.display = 'none';
+        });
+        
+        video.addEventListener('loadeddata', function() {
+            // Video cargado correctamente
+            video.style.opacity = '1';
+        });
+    }
+    
+    // Manejo de filtros
+    const form = document.getElementById('filtros-form');
+    const inputs = form.querySelectorAll('input, select');
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    
+    // Auto-submit en cambios
+    inputs.forEach(input => {
+        input.addEventListener('change', () => {
+            form.submit();
+        });
+    });
+    
+    // Manejo de botones toggle
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            const hiddenInput = document.getElementById(filter);
+            const isActive = this.classList.contains('active');
+            
+            if (isActive) {
+                this.classList.remove('active');
+                hiddenInput.value = 'false';
+            } else {
+                this.classList.add('active');
+                hiddenInput.value = 'true';
+            }
+            
+            form.submit();
+        });
+    });
+
+    // Manejo de botones de favorito
+    const favoriteBtns = document.querySelectorAll('.favorite-btn');
+    favoriteBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const recompensaId = this.dataset.recompensaId;
+            toggleFavorito(recompensaId, this);
+        });
+    });
+
+    // Configurar barras de progreso
+    const progressFills = document.querySelectorAll('.progress-fill[data-progress]');
+    progressFills.forEach(fill => {
+        const progress = fill.dataset.progress;
+        fill.style.width = progress + '%';
+    });
+});
+
+// Función para toggle de favoritos
+function toggleFavorito(recompensaId, button) {
+    fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `action=toggle_favorito&recompensa_id=${recompensaId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.favorito) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+// Funciones del Modal de Canje
+let currentRecompensaId = null;
+let currentPuntosCosto = 0;
+let currentStock = 0;
+
+function openCanjeModal(recompensaId, nombreRecompensa, puntosCosto, stock) {
+    console.log('Abriendo modal para:', nombreRecompensa, 'Stock:', stock);
+    
+    // Asegurar que el stock sea un número válido
+    stock = stock || 1;
+    
+    // Mostrar el modal con scroll
+    const modal = document.getElementById('canjeModal');
+    modal.style.display = 'block';
+    modal.style.overflowY = 'auto';
+    modal.style.padding = '20px';
+    
+    // Evitar scroll del body cuando el modal está abierto
+    document.body.style.overflow = 'hidden';
+    
+    // Guardar datos
+    currentRecompensaId = recompensaId;
+    currentPuntosCosto = puntosCosto;
+    currentStock = stock;
+    
+    // Actualizar textos
+    document.getElementById('modalRecompensaNombre').textContent = nombreRecompensa;
+    document.getElementById('modalPuntosCosto').textContent = puntosCosto;
+    document.getElementById('stockDisponible').textContent = 'Stock disponible: ' + stock + ' unidades';
+    
+    // Configurar cantidad
+    const cantidadInput = document.getElementById('cantidadCanje');
+    if (cantidadInput) {
+        cantidadInput.value = 1;
+        cantidadInput.max = stock;
+        console.log('Cantidad configurada, máximo:', stock);
+    }
+    
+    // Actualizar totales iniciales
+    actualizarTotales();
+}
+
+function cambiarCantidad(cambio) {
+    const cantidadInput = document.getElementById('cantidadCanje');
+    let nuevaCantidad = parseInt(cantidadInput.value) + cambio;
+    
+    if (nuevaCantidad < 1) nuevaCantidad = 1;
+    if (nuevaCantidad > currentStock) nuevaCantidad = currentStock;
+    
+    cantidadInput.value = nuevaCantidad;
+    actualizarTotales();
+}
+
+function actualizarTotales() {
+    const cantidad = parseInt(document.getElementById('cantidadCanje').value) || 1;
+    const totalPuntos = cantidad * currentPuntosCosto;
+    const puntosActuales = parseInt('{{ user.puntos }}');
+    const puntosRestantes = puntosActuales - totalPuntos;
+    
+    console.log('Actualizando totales - Cantidad:', cantidad, 'Total puntos:', totalPuntos);
+    
+    // Actualizar displays
+    const cantidadDisplay = document.getElementById('cantidadDisplay');
+    const totalPuntosDisplay = document.getElementById('totalPuntos');
+    const puntosRestantesDisplay = document.getElementById('puntosRestantes');
+    
+    if (cantidadDisplay) cantidadDisplay.textContent = cantidad;
+    if (totalPuntosDisplay) totalPuntosDisplay.textContent = totalPuntos;
+    if (puntosRestantesDisplay) puntosRestantesDisplay.textContent = puntosRestantes;
+    
+    // Verificar si tiene suficientes puntos
+    const btnConfirmar = document.querySelector('button[onclick="confirmarCanje()"]');
+    if (btnConfirmar) {
+        if (puntosRestantes < 0) {
+            btnConfirmar.style.backgroundColor = '#ccc';
+            btnConfirmar.style.cursor = 'not-allowed';
+            btnConfirmar.disabled = true;
+            if (puntosRestantesDisplay) puntosRestantesDisplay.style.color = '#f44336';
+        } else {
+            btnConfirmar.style.backgroundColor = '#4caf50';
+            btnConfirmar.style.cursor = 'pointer';
+            btnConfirmar.disabled = false;
+            if (puntosRestantesDisplay) puntosRestantesDisplay.style.color = '#333';
+        }
+    }
+}
+
+function closeCanjeModal() {
+    const modal = document.getElementById('canjeModal');
+    modal.style.display = 'none';
+    
+    // Restaurar scroll del body
+    document.body.style.overflow = 'auto';
+    
+    // Reset variables
+    currentRecompensaId = null;
+    currentPuntosCosto = 0;
+    currentStock = 0;
+}
+
+function handleEscapeKey(event) {
+    if (event.key === 'Escape') {
+        closeCanjeModal();
+    }
+}
+
+function confirmarCanje() {
+    if (!currentRecompensaId) {
+        alert('Error: No se ha seleccionado una recompensa.');
+        return;
+    }
+    
+    const cantidad = parseInt(document.getElementById('cantidadCanje').value) || 1;
+    const direccionEntrega = document.getElementById('direccionEntrega').value.trim();
+    
+    // Validar que se haya ingresado una dirección
+    if (!direccionEntrega) {
+        Swal.fire({
+            title: 'Dirección Requerida',
+            text: 'Por favor ingresa una dirección de entrega para continuar con el canje.',
+            icon: 'warning',
+            confirmButtonColor: '#4caf50',
+            confirmButtonText: 'Entendido'
+        });
+        document.getElementById('direccionEntrega').focus();
+        return;
+    }
+    
+    // Establecer valores en el formulario oculto
+    document.getElementById('canjeRecompensaId').value = currentRecompensaId;
+    document.getElementById('direccionEntregaHidden').value = direccionEntrega;
+    
+    // Crear un campo oculto para la cantidad
+    const cantidadInput = document.createElement('input');
+    cantidadInput.type = 'hidden';
+    cantidadInput.name = 'cantidad';
+    cantidadInput.value = cantidad;
+    document.getElementById('canjeForm').appendChild(cantidadInput);
+    
+    // Enviar el formulario
+    document.getElementById('canjeForm').submit();
+}
+
+// Event listeners para botones de canje
+document.addEventListener('DOMContentLoaded', function() {
+    const canjeBtns = document.querySelectorAll('.canje-btn');
+    canjeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const recompensaId = this.dataset.recompensaId;
+            const nombre = this.dataset.nombre;
+            const puntos = parseInt(this.dataset.puntos);
+            const stock = parseInt(this.dataset.stock);
+            
+            openCanjeModal(recompensaId, nombre, puntos, stock);
+        });
+    });
+});
+
+// Cerrar modal al hacer clic fuera del contenido
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('canjeModal');
+    if (event.target === modal) {
+        closeCanjeModal();
+    }
+});
+
+// Función para ver detalles del pedido
+function verDetallePedido(codigoSeguimiento) {
+    // Validar que el código no esté vacío
+    if (!codigoSeguimiento) {
+        Swal.fire({
+            title: 'Error',
+            text: 'Código de seguimiento no válido',
+            icon: 'error',
+            confirmButtonColor: '#4caf50'
+        });
+        return;
+    }
+    
+    // Mostrar loading
+    Swal.fire({
+        title: 'Cargando detalles...',
+        text: 'Obteniendo información del pedido',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Hacer llamada AJAX para obtener detalles
+    fetch(`/seguimiento/${codigoSeguimiento}/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            mostrarDetallesPedido(data.seguimiento, data.historial);
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: data.message || 'No se pudieron cargar los detalles del pedido',
+                icon: 'error',
+                confirmButtonColor: '#4caf50'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error de Conexión',
+            text: 'No se pudo conectar con el servidor',
+            icon: 'error',
+            confirmButtonColor: '#4caf50'
+        });
+    });
+}
+
+function mostrarDetallesPedido(seguimiento, historial) {
+    // Crear timeline HTML
+    let timelineHtml = '';
+    historial.forEach((item, index) => {
+        const isActive = index === 0;
+        const iconClass = isActive ? 'fas fa-circle' : 'far fa-circle';
+        const textColor = isActive ? '#4caf50' : '#6c757d';
+        
+        timelineHtml += `
+            <div class="timeline-item-detail" style="display: flex; margin-bottom: 15px; align-items: flex-start;">
+                <div style="margin-right: 12px; margin-top: 2px;">
+                    <i class="${iconClass}" style="color: ${textColor}; font-size: 12px;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: ${textColor}; font-size: 14px;">
+                        ${item.estado}
+                    </div>
+                    <div style="color: #6c757d; font-size: 12px; margin: 2px 0;">
+                        ${item.fecha}
+                    </div>
+                    ${item.comentario ? `<div style="color: #495057; font-size: 13px; margin-top: 4px;">${item.comentario}</div>` : ''}
+                    ${item.ubicacion ? `<div style="color: #6c757d; font-size: 12px; margin-top: 2px;"><i class="fas fa-map-marker-alt me-1"></i>${item.ubicacion}</div>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    // Crear progress bar
+    const progressPercentage = seguimiento.porcentaje || 0;
+    const progressColor = seguimiento.estado_color || '#4caf50';
+    
+    const htmlContent = `
+        <div style="text-align: left; max-height: 500px; overflow-y: auto;">
+            <!-- Información del Pedido -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0; color: #333;">${seguimiento.recompensa}</h4>
+                    <span style="background: ${progressColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                        ${seguimiento.estado}
+                    </span>
+                </div>
+                <p style="margin: 5px 0; color: #6c757d;"><strong>Código:</strong> ${seguimiento.codigo}</p>
+                <p style="margin: 5px 0; color: #6c757d;"><strong>Fecha de Solicitud:</strong> ${seguimiento.fecha_solicitud}</p>
+                ${seguimiento.fecha_estimada ? `<p style="margin: 5px 0; color: #6c757d;"><strong>Entrega Estimada:</strong> ${seguimiento.fecha_estimada}</p>` : ''}
+            </div>
+            
+            <!-- Progress Bar -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <span style="font-weight: 600; color: #333;">Progreso del Pedido</span>
+                    <span style="color: ${progressColor}; font-weight: 600;">${progressPercentage}%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background-color: #e9ecef; border-radius: 4px; overflow: hidden;">
+                    <div style="height: 100%; background-color: ${progressColor}; width: ${progressPercentage}%; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            
+            <!-- Información de Entrega -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h5 style="margin: 0 0 10px 0; color: #333;"><i class="fas fa-shipping-fast me-2"></i>Información de Entrega</h5>
+                <p style="margin: 5px 0; color: #6c757d;"><strong>Dirección:</strong> ${seguimiento.direccion}</p>
+                ${seguimiento.telefono ? `<p style="margin: 5px 0; color: #6c757d;"><strong>Teléfono:</strong> ${seguimiento.telefono}</p>` : ''}
+            </div>
+            
+            <!-- Timeline de Estados -->
+            <div>
+                <h5 style="margin: 0 0 15px 0; color: #333;"><i class="fas fa-history me-2"></i>Historial de Estados</h5>
+                ${timelineHtml}
+            </div>
+        </div>
+    `;
+
+    Swal.fire({
+        title: 'Detalles del Pedido',
+        html: htmlContent,
+        width: '600px',
+        showCloseButton: true,
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#4caf50',
+        customClass: {
+            container: 'swal-pedido-detalles'
+        }
+    });
+}
+</script>
+
+<!-- Sistema de Notificaciones -->
+{% include 'core/includes/notification_system.html' %}
+
+{% endblock %}

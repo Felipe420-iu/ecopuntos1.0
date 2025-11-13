@@ -1,0 +1,1507 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Rutas | Eco Puntos</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            padding: 0;
+            {% if user.role == 'conductor' %}
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            {% else %}
+            background: #f8f9fa;
+            {% endif %}
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+        .table-container {
+            background: white;  
+            border-radius: 15px;
+            padding: 20px;
+            {% if user.role == 'conductor' %}
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            {% else %}
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            {% endif %}
+            margin-bottom: 30px;
+        }
+        {% if user.role == 'conductor' %}
+        .custom-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .custom-table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+        }
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+        }
+        .badge.bg-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        {% else %}
+        .custom-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+        }
+        {% endif %}
+        .custom-table td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        {% if user.role == 'conductor' %}
+        .header-section h2 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        {% endif %}
+        .back-button {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #f8f9fa;
+            transform: translateX(-3px);
+        }
+        /* Estilos para modales */
+        .modal-content {
+            border-radius: 15px;
+        }
+        .modal-header {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .modal-title {
+            font-weight: 600;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        
+        {% if user.role == 'conductor' %}
+        /* Estilos para el selector de hora personalizado tipo reloj (solo conductor) */
+        .time-picker-container {
+            position: relative;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .time-display {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .time-display h3 {
+            color: white;
+            font-size: 3rem;
+            font-weight: 300;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .time-display .period {
+            font-size: 1.5rem;
+            color: rgba(255,255,255,0.9);
+            margin-left: 10px;
+        }
+        
+        .time-sliders {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        
+        .time-slider-group {
+            margin-bottom: 15px;
+        }
+        
+        .time-slider-group label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .time-slider-group .value {
+            font-size: 1.2rem;
+            color: #764ba2;
+            min-width: 50px;
+            text-align: right;
+        }
+        
+        .time-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #667eea, #764ba2);
+        }
+        
+        .time-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+            border: 3px solid #667eea;
+        }
+        
+        .time-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+            border: 3px solid #667eea;
+        }
+        
+        .period-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .period-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .period-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #764ba2;
+        }
+        
+        .period-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* Mejorar el modal (solo conductor) */
+        .modal-content {
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px 25px;
+        }
+        
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .date-input-wrapper {
+            position: relative;
+        }
+        
+        .date-input-wrapper i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            pointer-events: none;
+        }
+        
+        .flatpickr-input {
+            padding-right: 40px !important;
+        }
+        {% endif %}
+    </style>
+</head>
+<body>
+    <!-- Barra de navegación superior -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% if user.role == 'conductor' %}{% url 'panel_conductor' %}{% else %}{% url 'paneladmin' %}{% endif %}">
+                <i class="fas fa-leaf me-2"></i>Eco Puntos
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarAdmin">
+                <ul class="navbar-nav me-auto">
+                    {% if user.role != 'conductor' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'usuarioadmin' %}">
+                            <i class="fas fa-users me-1"></i>Usuarios
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'canjeadmin' %}">
+                            <i class="fas fa-exchange-alt me-1"></i>Canjes
+                        </a>
+                    </li>
+                    {% if user.role != 'conductor' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'retiroadmin' %}">
+                            <i class="fas fa-chart-bar me-1"></i>Retiros 
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'estadisticasadmin' %}">
+                            <i class="fas fa-chart-bar me-1"></i>Estadísticas
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'rutas' %}">
+                            <i class="fas fa-route me-1"></i>Rutas 
+                        </a>
+                    </li>
+                    {% if user.role != 'conductor' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'stock_recompensas' %}">
+                            <i class="fas fa-boxes me-1"></i>Stock
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'monitor_sesiones' %}">
+                            <i class="fas fa-desktop me-1"></i>Monitor de Sesiones
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <div class="d-flex">
+                    <a href="{% if user.role == 'conductor' %}{% url 'panel_conductor' %}{% else %}{% url 'paneladmin' %}{% endif %}" class="btn btn-outline-light me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Header con botón de volver y título -->
+        <div class="header-section">
+            <a href="{% if user.role == 'conductor' %}{% url 'panel_conductor' %}{% else %}{% url 'paneladmin' %}{% endif %}" class="back-button text-decoration-none">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+            <h2 class="mb-0">Gestión de Rutas</h2>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRouteModal">
+                <i class="fas fa-plus"></i> Agregar Ruta
+            </button>
+                </div>
+
+        <!-- Tabla de Gestión de Rutas -->
+        <div class="table-container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Listado de Rutas</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table custom-table">
+                                <thead>
+                                    <tr>
+                            <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>Barrio</th>
+                                    <th>Referencia</th>
+                                    <th>Dirección</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for route in routes %}
+                                        <tr>
+                            <td>{{ route.id }}</td>
+                                            <td>{{ route.fecha|date:"d/m/Y" }}</td>
+                                            <td>{{ route.hora|time:"H:i" }}</td>
+                                            <td>{{ route.barrio }}</td>
+                                            <td>{{ route.referencia }}</td>
+                                            <td>{{ route.direccion }}</td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if route.estado == 'pendiente' %}bg-warning
+                                                    {% elif route.estado == 'confirmada' %}bg-success
+                                                    {% elif route.estado == 'rechazada' %}bg-danger
+                                                    {% elif route.estado == 'reagendada' %}bg-info
+                                                    {% elif route.estado == 'completada' %}bg-secondary
+                                                    {% endif %}">
+                                                    {{ route.get_estado_display }}
+                                                </span>
+                                            </td>
+                            <td>
+                                {% if route.estado == 'pendiente' %}
+                                    <button type="button" class="btn btn-success btn-sm me-1 btn-confirmar-ruta" 
+                                            data-ruta-id="{{ route.id }}" 
+                                            title="Confirmar">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm me-1 btn-rechazar-ruta" 
+                                            data-ruta-id="{{ route.id }}" 
+                                            title="Rechazar">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-info btn-sm me-1" 
+                                            data-bs-toggle="modal" data-bs-target="#reagendarModal"
+                                            data-id="{{ route.id }}"
+                                            data-fecha="{{ route.fecha|date:"Y-m-d" }}"
+                                            data-hora="{{ route.hora|time:"H:i" }}"
+                                            title="Reagendar">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </button>
+                                {% endif %}
+                                <button type="button" class="btn btn-primary btn-sm me-1 edit-btn" 
+                                        data-bs-toggle="modal" data-bs-target="#editRouteModal"
+                                        data-id="{{ route.id }}"
+                                        data-fecha="{{ route.fecha|date:"Y-m-d" }}"
+                                        data-hora="{{ route.hora|time:"H:i" }}"
+                                        data-barrio="{{ route.barrio }}"
+                                        data-referencia="{{ route.referencia }}"
+                                        data-direccion="{{ route.direccion }}"
+                                        title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm delete-btn" 
+                                        data-id="{{ route.id }}"
+                                        title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No hay rutas para mostrar.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+    <!-- Modal Agregar Ruta -->
+    <div class="modal fade" id="addRouteModal" tabindex="-1" aria-labelledby="addRouteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRouteModalLabel">Agregar Nueva Ruta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addRouteForm">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="addFecha" class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="addFecha" name="fecha" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addHora" class="form-label">Hora de Recolección</label>
+                            <select class="form-select" id="addHora" name="hora" required>
+                                <option value="">Seleccione una hora</option>
+                                <option value="08:00">08:00 AM</option>
+                                <option value="08:15">08:15 AM</option>
+                                <option value="08:30">08:30 AM</option>
+                                <option value="08:45">08:45 AM</option>
+                                <option value="09:00">09:00 AM</option>
+                                <option value="09:15">09:15 AM</option>
+                                <option value="09:30">09:30 AM</option>
+                                <option value="09:45">09:45 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="10:15">10:15 AM</option>
+                                <option value="10:30">10:30 AM</option>
+                                <option value="10:45">10:45 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="11:15">11:15 AM</option>
+                                <option value="11:30">11:30 AM</option>
+                                <option value="11:45">11:45 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="12:15">12:15 PM</option>
+                                <option value="12:30">12:30 PM</option>
+                                <option value="12:45">12:45 PM</option>
+                                <option value="13:00">01:00 PM</option>
+                                <option value="13:15">01:15 PM</option>
+                                <option value="13:30">01:30 PM</option>
+                                <option value="13:45">01:45 PM</option>
+                                <option value="14:00">02:00 PM</option>
+                                <option value="14:15">02:15 PM</option>
+                                <option value="14:30">02:30 PM</option>
+                                <option value="14:45">02:45 PM</option>
+                                <option value="15:00">03:00 PM</option>
+                                <option value="15:15">03:15 PM</option>
+                                <option value="15:30">03:30 PM</option>
+                                <option value="15:45">03:45 PM</option>
+                                <option value="16:00">04:00 PM</option>
+                                <option value="16:15">04:15 PM</option>
+                                <option value="16:30">04:30 PM</option>
+                                <option value="16:45">04:45 PM</option>
+                                <option value="17:00">05:00 PM</option>
+                            </select>
+                            <div class="form-text">Horario de recolección: 8:00 AM - 5:00 PM</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addBarrio" class="form-label">Barrio</label>
+                            <input type="text" class="form-control" id="addBarrio" name="barrio" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addReferencia" class="form-label">Referencia</label>
+                            <input type="text" class="form-control" id="addReferencia" name="referencia">
+                        </div>
+                        <div class="mb-3">
+                            <label for="addDireccion" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="addDireccion" name="direccion" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Guardar Ruta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Ruta -->
+    <div class="modal fade" id="editRouteModal" tabindex="-1" aria-labelledby="editRouteModalLabel" aria-hidden="true">
+        {% if user.role == 'conductor' %}
+        <!-- Versión para Conductor con diseño mejorado -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRouteModalLabel">
+                        <i class="fas fa-edit me-2"></i>Editar Ruta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editRouteForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="editRouteId" name="id">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3 date-input-wrapper">
+                                    <label for="editFecha" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Fecha
+                                    </label>
+                                    <input type="text" class="form-control flatpickr-date" id="editFecha" name="fecha" required placeholder="Selecciona una fecha">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                
+                                <!-- Selector de Hora Visual -->
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-clock me-2"></i>Hora
+                                    </label>
+                                    <div class="time-picker-container">
+                                        <div class="time-display">
+                                            <h3>
+                                                <span id="editHourDisplay">12</span>:<span id="editMinuteDisplay">00</span>
+                                                <span class="period" id="editPeriodDisplay">p. m.</span>
+                                            </h3>
+                                        </div>
+                                        <div class="time-sliders">
+                                            <div class="time-slider-group">
+                                                <label>
+                                                    <span><i class="fas fa-clock"></i> Hora</span>
+                                                    <span class="value" id="editHourValue">12</span>
+                                                </label>
+                                                <input type="range" class="time-slider" id="editHourSlider" min="1" max="12" value="12">
+                                            </div>
+                                            <div class="time-slider-group">
+                                                <label>
+                                                    <span><i class="fas fa-stopwatch"></i> Minutos</span>
+                                                    <span class="value" id="editMinuteValue">00</span>
+                                                </label>
+                                                <input type="range" class="time-slider" id="editMinuteSlider" min="0" max="59" value="0">
+                                            </div>
+                                            <div class="period-toggle">
+                                                <button type="button" class="period-btn" id="editAmBtn" data-period="AM">a. m.</button>
+                                                <button type="button" class="period-btn active" id="editPmBtn" data-period="PM">p. m.</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="editHora" name="hora" value="12:00">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editBarrio" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Barrio
+                                    </label>
+                                    <input type="text" class="form-control" id="editBarrio" name="barrio" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editReferencia" class="form-label">
+                                        <i class="fas fa-info-circle me-2"></i>Referencia
+                                    </label>
+                                    <input type="text" class="form-control" id="editReferencia" name="referencia">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editDireccion" class="form-label">
+                                        <i class="fas fa-home me-2"></i>Dirección
+                                    </label>
+                                    <textarea class="form-control" id="editDireccion" name="direccion" rows="3" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <!-- Versión Original para Administrador -->
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRouteModalLabel">Editar Ruta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editRouteForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="editRouteId" name="id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editFecha" class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="editFecha" name="fecha" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editHora" class="form-label">Hora de Recolección</label>
+                            <select class="form-select" id="editHora" name="hora" required>
+                                <option value="">Seleccione una hora</option>
+                                <option value="08:00">08:00 AM</option>
+                                <option value="08:15">08:15 AM</option>
+                                <option value="08:30">08:30 AM</option>
+                                <option value="08:45">08:45 AM</option>
+                                <option value="09:00">09:00 AM</option>
+                                <option value="09:15">09:15 AM</option>
+                                <option value="09:30">09:30 AM</option>
+                                <option value="09:45">09:45 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="10:15">10:15 AM</option>
+                                <option value="10:30">10:30 AM</option>
+                                <option value="10:45">10:45 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="11:15">11:15 AM</option>
+                                <option value="11:30">11:30 AM</option>
+                                <option value="11:45">11:45 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="12:15">12:15 PM</option>
+                                <option value="12:30">12:30 PM</option>
+                                <option value="12:45">12:45 PM</option>
+                                <option value="13:00">01:00 PM</option>
+                                <option value="13:15">01:15 PM</option>
+                                <option value="13:30">01:30 PM</option>
+                                <option value="13:45">01:45 PM</option>
+                                <option value="14:00">02:00 PM</option>
+                                <option value="14:15">02:15 PM</option>
+                                <option value="14:30">02:30 PM</option>
+                                <option value="14:45">02:45 PM</option>
+                                <option value="15:00">03:00 PM</option>
+                                <option value="15:15">03:15 PM</option>
+                                <option value="15:30">03:30 PM</option>
+                                <option value="15:45">03:45 PM</option>
+                                <option value="16:00">04:00 PM</option>
+                                <option value="16:15">04:15 PM</option>
+                                <option value="16:30">04:30 PM</option>
+                                <option value="16:45">04:45 PM</option>
+                                <option value="17:00">05:00 PM</option>
+                            </select>
+                            <div class="form-text">Horario de recolección: 8:00 AM - 5:00 PM</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBarrio" class="form-label">Barrio</label>
+                            <input type="text" class="form-control" id="editBarrio" name="barrio" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editReferencia" class="form-label">Referencia</label>
+                            <input type="text" class="form-control" id="editReferencia" name="referencia">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDireccion" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="editDireccion" name="direccion" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal Eliminar Ruta -->
+    <div class="modal fade" id="deleteRouteModal" tabindex="-1" aria-labelledby="deleteRouteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteRouteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar esta ruta?</p>
+                    <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                    <input type="hidden" id="deleteRouteId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteRouteBtn">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reagendar Ruta -->
+    <div class="modal fade" id="reagendarModal" tabindex="-1" aria-labelledby="reagendarModalLabel" aria-hidden="true">
+        {% if user.role == 'conductor' %}
+        <!-- Versión para Conductor con diseño mejorado -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reagendarModalLabel">
+                        <i class="fas fa-calendar-alt me-2"></i>Reagendar Ruta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="reagendarForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="reagendarRouteId" name="id">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3 date-input-wrapper">
+                                    <label for="reagendarFecha" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Nueva Fecha
+                                    </label>
+                                    <input type="text" class="form-control flatpickr-date" id="reagendarFecha" name="fecha" required placeholder="Selecciona una fecha">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                
+                                <!-- Selector de Hora Visual -->
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-clock me-2"></i>Nueva Hora
+                                    </label>
+                                    <div class="time-picker-container">
+                                        <div class="time-display">
+                                            <h3>
+                                                <span id="reagendarHourDisplay">12</span>:<span id="reagendarMinuteDisplay">00</span>
+                                                <span class="period" id="reagendarPeriodDisplay">p. m.</span>
+                                            </h3>
+                                        </div>
+                                        <div class="time-sliders">
+                                            <div class="time-slider-group">
+                                                <label>
+                                                    <span><i class="fas fa-clock"></i> Hora</span>
+                                                    <span class="value" id="reagendarHourValue">12</span>
+                                                </label>
+                                                <input type="range" class="time-slider" id="reagendarHourSlider" min="1" max="12" value="12">
+                                            </div>
+                                            <div class="time-slider-group">
+                                                <label>
+                                                    <span><i class="fas fa-stopwatch"></i> Minutos</span>
+                                                    <span class="value" id="reagendarMinuteValue">00</span>
+                                                </label>
+                                                <input type="range" class="time-slider" id="reagendarMinuteSlider" min="0" max="59" value="0">
+                                            </div>
+                                            <div class="period-toggle">
+                                                <button type="button" class="period-btn" id="reagendarAmBtn" data-period="AM">a. m.</button>
+                                                <button type="button" class="period-btn active" id="reagendarPmBtn" data-period="PM">p. m.</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="reagendarHora" name="hora" value="12:00">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="reagendarNotas" class="form-label">
+                                        <i class="fas fa-comment-alt me-2"></i>Motivo del Reagendamiento
+                                    </label>
+                                    <textarea class="form-control" id="reagendarNotas" name="notas_admin" rows="10" placeholder="Explique el motivo del reagendamiento..." required></textarea>
+                                    <small class="text-muted">Este mensaje será visible para el usuario</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-calendar-check me-2"></i>Reagendar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <!-- Versión Original para Administrador -->
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reagendarModalLabel">Reagendar Ruta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="reagendarForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="reagendarRouteId" name="id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="reagendarFecha" class="form-label">Nueva Fecha</label>
+                            <input type="date" class="form-control" id="reagendarFecha" name="fecha" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reagendarHora" class="form-label">Nueva Hora</label>
+                            <input type="time" class="form-control" id="reagendarHora" name="hora" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reagendarNotas" class="form-label">Motivo del Reagendamiento</label>
+                            <textarea class="form-control" id="reagendarNotas" name="notas_admin" rows="3" placeholder="Explique el motivo del reagendamiento..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-info">Reagendar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal Confirmar Ruta -->
+    <div class="modal fade" id="confirmarRutaModal" tabindex="-1" aria-labelledby="confirmarRutaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="confirmarRutaModalLabel">
+                        <i class="fas fa-check-circle me-2"></i>Confirmar Recolección
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-truck fa-4x text-success mb-3"></i>
+                    </div>
+                    <h5 class="mb-3">¿Está seguro de que desea confirmar esta ruta?</h5>
+                    <p class="text-muted">
+                        Se enviará un correo de confirmación al usuario notificándole que el conductor pasará en la fecha y hora indicadas.
+                    </p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnConfirmarRuta">
+                        <i class="fas fa-check me-1"></i>Sí, Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Rechazar Ruta -->
+    <div class="modal fade" id="rechazarRutaModal" tabindex="-1" aria-labelledby="rechazarRutaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="rechazarRutaModalLabel">
+                        <i class="fas fa-times-circle me-2"></i>Rechazar Recolección
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                        <h5>Ingrese el motivo del rechazo</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motivoRechazo" class="form-label">Motivo del Rechazo <span class="text-danger">*</span></label>
+                        <textarea 
+                            class="form-control" 
+                            id="motivoRechazo" 
+                            rows="4" 
+                            placeholder="Por favor, explique detalladamente el motivo del rechazo..."
+                            required
+                        ></textarea>
+                        <div class="form-text">Este motivo será enviado al usuario por correo electrónico.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="btnRechazarRuta">
+                        <i class="fas fa-ban me-1"></i>Rechazar Ruta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Scripts necesarios -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Configuración de toastr
+            toastr.options = {
+                closeButton: true,
+                progressBar: true,
+                positionClass: "toast-top-right",
+                timeOut: 3000,
+                showMethod: 'fadeIn',
+                hideMethod: 'fadeOut',
+                showDuration: 300,
+                hideDuration: 300,
+                showEasing: 'swing',
+                hideEasing: 'linear',
+                preventDuplicates: true,
+                newestOnTop: true
+            };
+            
+            // ========== INICIALIZAR FLATPICKR Y TIME PICKERS SOLO PARA CONDUCTOR ==========
+            {% if user.role == 'conductor' %}
+            const festivosFijos = [
+                '2025-01-01', '2025-05-01', '2025-07-20', '2025-08-07', '2025-12-08', '2025-12-25',
+                '2026-01-01', '2026-05-01', '2026-07-20', '2026-08-07', '2026-12-08', '2026-12-25'
+            ];
+            
+            const festivosLunes = [
+                '2025-01-06', '2025-03-24', '2025-06-30', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
+                '2026-01-12', '2026-03-23', '2026-06-29', '2026-08-17', '2026-10-12', '2026-11-02', '2026-11-16'
+            ];
+            
+            const todosFestivos = [...festivosFijos, ...festivosLunes];
+            
+            flatpickr(".flatpickr-date", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                minDate: "today",
+                disable: [
+                    function(date) {
+                        return (date.getDay() === 0); // Deshabilitar domingos
+                    },
+                    ...todosFestivos
+                ],
+                onChange: function(selectedDates, dateStr, instance) {
+                    console.log("Fecha seleccionada:", dateStr);
+                }
+            });
+            
+            // ========== FUNCIONES PARA SELECTORES DE HORA ==========
+            function setupTimePicker(prefix) {
+                const hourSlider = $(`#${prefix}HourSlider`);
+                const minuteSlider = $(`#${prefix}MinuteSlider`);
+                const hourDisplay = $(`#${prefix}HourDisplay`);
+                const minuteDisplay = $(`#${prefix}MinuteDisplay`);
+                const hourValue = $(`#${prefix}HourValue`);
+                const minuteValue = $(`#${prefix}MinuteValue`);
+                const periodDisplay = $(`#${prefix}PeriodDisplay`);
+                const amBtn = $(`#${prefix}AmBtn`);
+                const pmBtn = $(`#${prefix}PmBtn`);
+                const hiddenInput = $(`#${prefix}Hora`);
+                
+                let currentPeriod = 'PM';
+                
+                function updateTime() {
+                    const hour = parseInt(hourSlider.val());
+                    const minute = parseInt(minuteSlider.val());
+                    
+                    // Actualizar displays
+                    hourDisplay.text(hour);
+                    minuteDisplay.text(minute.toString().padStart(2, '0'));
+                    hourValue.text(hour);
+                    minuteValue.text(minute.toString().padStart(2, '0'));
+                    periodDisplay.text(currentPeriod === 'AM' ? 'a. m.' : 'p. m.');
+                    
+                    // Convertir a formato 24 horas
+                    let hour24 = hour;
+                    if (currentPeriod === 'PM' && hour !== 12) {
+                        hour24 = hour + 12;
+                    } else if (currentPeriod === 'AM' && hour === 12) {
+                        hour24 = 0;
+                    }
+                    
+                    const timeString = `${hour24.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                    hiddenInput.val(timeString);
+                }
+                
+                // Event listeners para sliders
+                hourSlider.on('input', updateTime);
+                minuteSlider.on('input', updateTime);
+                
+                // Event listeners para botones AM/PM
+                amBtn.on('click', function(e) {
+                    e.preventDefault();
+                    currentPeriod = 'AM';
+                    amBtn.addClass('active');
+                    pmBtn.removeClass('active');
+                    updateTime();
+                });
+                
+                pmBtn.on('click', function(e) {
+                    e.preventDefault();
+                    currentPeriod = 'PM';
+                    pmBtn.addClass('active');
+                    amBtn.removeClass('active');
+                    updateTime();
+                });
+                
+                // Función para establecer hora desde formato 24h
+                function setTimeFrom24h(timeString) {
+                    if (!timeString) return;
+                    
+                    const [hourStr, minuteStr] = timeString.split(':');
+                    let hour24 = parseInt(hourStr);
+                    const minute = parseInt(minuteStr);
+                    
+                    // Determinar AM/PM y convertir a formato 12h
+                    if (hour24 >= 12) {
+                        currentPeriod = 'PM';
+                        pmBtn.addClass('active');
+                        amBtn.removeClass('active');
+                        if (hour24 > 12) hour24 -= 12;
+                    } else {
+                        currentPeriod = 'AM';
+                        amBtn.addClass('active');
+                        pmBtn.removeClass('active');
+                        if (hour24 === 0) hour24 = 12;
+                    }
+                    
+                    hourSlider.val(hour24);
+                    minuteSlider.val(minute);
+                    updateTime();
+                }
+                
+                return { updateTime, setTimeFrom24h };
+            }
+            
+            // Inicializar time pickers
+            const editTimePicker = setupTimePicker('edit');
+            const reagendarTimePicker = setupTimePicker('reagendar');
+            {% endif %}
+
+            // Configuración de restricciones de fecha (sin domingos ni festivos)
+            function configurarRestriccionesFecha() {
+                // Festivos fijos de Colombia 2025-2026
+                const festivosFijos = [
+                    '2025-01-01', // Año Nuevo
+                    '2025-05-01', // Día del Trabajo
+                    '2025-07-20', // Día de la Independencia
+                    '2025-08-07', // Batalla de Boyacá
+                    '2025-12-08', // Inmaculada Concepción
+                    '2025-12-25', // Navidad
+                    '2026-01-01', // Año Nuevo
+                    '2026-05-01', // Día del Trabajo
+                    '2026-07-20', // Día de la Independencia
+                    '2026-08-07', // Batalla de Boyacá
+                    '2026-12-08', // Inmaculada Concepción
+                    '2026-12-25'  // Navidad
+                ];
+
+                // Festivos que se corren al lunes en Colombia (aproximados)
+                const festivosLunes = [
+                    '2025-01-06', // Reyes Magos
+                    '2025-03-24', // San José
+                    '2025-06-30', // San Pedro y San Pablo
+                    '2025-08-18', // Asunción
+                    '2025-10-13', // Día de la Raza
+                    '2025-11-03', // Todos los Santos
+                    '2025-11-17', // Independencia de Cartagena
+                    '2026-01-12', // Reyes Magos
+                    '2026-03-23', // San José
+                    '2026-06-29', // San Pedro y San Pablo
+                    '2026-08-17', // Asunción
+                    '2026-10-12', // Día de la Raza
+                    '2026-11-02', // Todos los Santos
+                    '2026-11-16'  // Independencia de Cartagena
+                ];
+
+                const todosFestivos = [...festivosFijos, ...festivosLunes];
+
+                function esDomingo(fecha) {
+                    return fecha.getDay() === 0; // 0 = domingo
+                }
+
+                function esFestivo(fechaString) {
+                    return todosFestivos.includes(fechaString);
+                }
+
+                function validarFecha(input) {
+                    const fechaSeleccionada = new Date(input.value + 'T00:00:00');
+                    const fechaString = input.value;
+                    
+                    if (esDomingo(fechaSeleccionada)) {
+                        toastr.warning('No se pueden programar rutas los domingos');
+                        input.value = '';
+                        return false;
+                    }
+                    
+                    if (esFestivo(fechaString)) {
+                        toastr.warning('No se pueden programar rutas en días festivos');
+                        input.value = '';
+                        return false;
+                    }
+                    
+                    return true;
+                }
+
+                // Aplicar validación a los inputs de fecha
+                $('#addFecha, #editFecha, #reagendarFecha').on('change', function() {
+                    validarFecha(this);
+                });
+
+                // Establecer fecha mínima como mañana
+                const manana = new Date();
+                manana.setDate(manana.getDate() + 1);
+                const fechaMinima = manana.toISOString().split('T')[0];
+                $('#addFecha, #editFecha, #reagendarFecha').attr('min', fechaMinima);
+            }
+
+            // Inicializar restricciones de fecha
+            configurarRestriccionesFecha();
+
+            // Función para validar fecha (usada en reagendar)
+            window.esFechaValida = function(fechaString) {
+                const fechaSeleccionada = new Date(fechaString + 'T00:00:00');
+                
+                // Verificar si es domingo
+                if (fechaSeleccionada.getDay() === 0) {
+                    toastr.warning('No se pueden programar rutas los domingos');
+                    return false;
+                }
+                
+                // Lista de festivos
+                const festivos = [
+                    '2025-01-01', '2025-05-01', '2025-07-20', '2025-08-07', '2025-12-08', '2025-12-25',
+                    '2026-01-01', '2026-05-01', '2026-07-20', '2026-08-07', '2026-12-08', '2026-12-25',
+                    '2025-01-06', '2025-03-24', '2025-06-30', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
+                    '2026-01-12', '2026-03-23', '2026-06-29', '2026-08-17', '2026-10-12', '2026-11-02', '2026-11-16'
+                ];
+                
+                // Verificar si es festivo
+                if (festivos.includes(fechaString)) {
+                    toastr.warning('No se pueden programar rutas en días festivos');
+                    return false;
+                }
+                
+                return true;
+            };
+
+            // Manejo de formulario Agregar Ruta
+            $('#addRouteForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Validar fecha antes de enviar
+                const fechaInput = document.getElementById('addFecha');
+                const fechaSeleccionada = new Date(fechaInput.value + 'T00:00:00');
+                
+                if (fechaSeleccionada.getDay() === 0) {
+                    toastr.error('No se pueden programar rutas los domingos');
+                    return false;
+                }
+                
+                // Lista de festivos (misma que arriba)
+                const festivos = [
+                    '2025-01-01', '2025-05-01', '2025-07-20', '2025-08-07', '2025-12-08', '2025-12-25',
+                    '2026-01-01', '2026-05-01', '2026-07-20', '2026-08-07', '2026-12-08', '2026-12-25',
+                    '2025-01-06', '2025-03-24', '2025-06-30', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
+                    '2026-01-12', '2026-03-23', '2026-06-29', '2026-08-17', '2026-10-12', '2026-11-02', '2026-11-16'
+                ];
+                
+                if (festivos.includes(fechaInput.value)) {
+                    toastr.error('No se pueden programar rutas en días festivos');
+                    return false;
+                }
+                
+                let form = $(this);
+                let formData = form.serialize();
+
+                $.ajax({
+                    url: '/add_ruta/',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            $('#addRouteModal').modal('hide');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('Ha ocurrido un error. Por favor, intente nuevamente.');
+                        console.error('Error AJAX:', xhr.responseText);
+                    }
+                });
+            });
+
+            // Rellenar Modal Editar Ruta al abrir
+            $(document).on('click', '.edit-btn', function() {
+                let routeId = $(this).data('id');
+                let fecha = $(this).data('fecha');
+                let hora = $(this).data('hora');
+                let barrio = $(this).data('barrio');
+                let referencia = $(this).data('referencia');
+                let direccion = $(this).data('direccion');
+
+                $('#editRouteId').val(routeId);
+                $('#editFecha').val(fecha);
+                {% if user.role == 'conductor' %}
+                editTimePicker.setTimeFrom24h(hora); // Usar el time picker para conductor
+                {% else %}
+                $('#editHora').val(hora); // Input normal para admin
+                {% endif %}
+                $('#editBarrio').val(barrio);
+                $('#editReferencia').val(referencia);
+                $('#editDireccion').val(direccion);
+            });
+
+            // Manejo de formulario Editar Ruta
+            $('#editRouteForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Validar fecha antes de enviar
+                const fechaInput = document.getElementById('editFecha');
+                const fechaSeleccionada = new Date(fechaInput.value + 'T00:00:00');
+                
+                if (fechaSeleccionada.getDay() === 0) {
+                    toastr.error('No se pueden programar rutas los domingos');
+                    return false;
+                }
+                
+                // Lista de festivos
+                const festivos = [
+                    '2025-01-01', '2025-05-01', '2025-07-20', '2025-08-07', '2025-12-08', '2025-12-25',
+                    '2026-01-01', '2026-05-01', '2026-07-20', '2026-08-07', '2026-12-08', '2026-12-25',
+                    '2025-01-06', '2025-03-24', '2025-06-30', '2025-08-18', '2025-10-13', '2025-11-03', '2025-11-17',
+                    '2026-01-12', '2026-03-23', '2026-06-29', '2026-08-17', '2026-10-12', '2026-11-02', '2026-11-16'
+                ];
+                
+                if (festivos.includes(fechaInput.value)) {
+                    toastr.error('No se pueden programar rutas en días festivos');
+                    return false;
+                }
+                
+                let form = $(this);
+                let routeId = $('#editRouteId').val();
+                let formData = form.serialize();
+
+                $.ajax({
+                    url: '/edit_ruta/' + routeId + '/',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            $('#editRouteModal').modal('hide');
+                            
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('Ha ocurrido un error. Por favor, intente nuevamente.');
+                        console.error('Error AJAX:', xhr.responseText);
+                    }
+                });
+            });
+
+            // Mostrar Modal Eliminar Ruta
+            $(document).on('click', '.delete-btn', function() {
+                let routeId = $(this).data('id');
+                $('#deleteRouteId').val(routeId);
+                $('#deleteRouteModal').modal('show');
+            });
+
+            // Confirmar Eliminación de Ruta
+            $('#confirmDeleteRouteBtn').on('click', function() {
+                let routeId = $('#deleteRouteId').val();
+
+                $.ajax({
+                    url: '/delete_ruta/' + routeId + '/',
+                    type: 'POST',
+                    data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            $('#deleteRouteModal').modal('hide');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('Ha ocurrido un error. Por favor, intente nuevamente.');
+                        console.error('Error AJAX:', xhr.responseText);
+                    }
+                });
+            });
+
+            // Rellenar Modal Reagendar al abrir
+            $('#reagendarModal').on('show.bs.modal', function(event) {
+                let button = $(event.relatedTarget);
+                let routeId = button.data('id');
+                let fecha = button.data('fecha');
+                let hora = button.data('hora');
+
+                $('#reagendarRouteId').val(routeId);
+                $('#reagendarFecha').val(fecha);
+                {% if user.role == 'conductor' %}
+                reagendarTimePicker.setTimeFrom24h(hora); // Usar el time picker para conductor
+                {% else %}
+                $('#reagendarHora').val(hora); // Input normal para admin
+                {% endif %}
+            });
+
+            // Manejo de formulario Reagendar Ruta
+            $('#reagendarForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                let fechaInput = $('#reagendarFecha').val();
+                
+                // Validar que no sea domingo o festivo
+                if (fechaInput && !esFechaValida(fechaInput)) {
+                    return; // No continuar con el envío
+                }
+                
+                let form = $(this);
+                let routeId = $('#reagendarRouteId').val();
+                let formData = form.serialize();
+
+                $.ajax({
+                    url: '/reagendar_ruta/' + routeId + '/',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            $('#reagendarModal').modal('hide');
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('Ha ocurrido un error. Por favor, intente nuevamente.');
+                        console.error('Error AJAX:', xhr.responseText);
+                    }
+                });
+            });
+
+            // Event listeners para botones de confirmar y rechazar ruta (data-attribute pattern)
+            $(document).on('click', '.btn-confirmar-ruta', function() {
+                let routeId = $(this).data('ruta-id');
+                confirmarRuta(routeId);
+            });
+
+            $(document).on('click', '.btn-rechazar-ruta', function() {
+                let routeId = $(this).data('ruta-id');
+                rechazarRuta(routeId);
+            });
+        });
+
+        // Variables globales para almacenar el ID de la ruta actual
+        let currentConfirmarRutaId = null;
+        let currentRechazarRutaId = null;
+
+        // Función para confirmar ruta (ahora abre el modal)
+        function confirmarRuta(routeId) {
+            currentConfirmarRutaId = routeId;
+            $('#confirmarRutaModal').modal('show');
+        }
+
+        // Evento del botón confirmar dentro del modal
+        $('#btnConfirmarRuta').on('click', function() {
+            if (currentConfirmarRutaId) {
+                $.ajax({
+                    url: '/confirmar_ruta/' + currentConfirmarRutaId + '/',
+                    type: 'POST',
+                    data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                    success: function(response) {
+                        $('#confirmarRutaModal').modal('hide');
+                        if (response.success) {
+                            toastr.success(response.message);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#confirmarRutaModal').modal('hide');
+                        toastr.error('Ha ocurrido un error. Por favor, intente nuevamente.');
+                        console.error('Error AJAX:', xhr.responseText);
+                    }
+                });
+            }
+        });
+
+        // Función para rechazar ruta (ahora abre el modal)
+        function rechazarRuta(routeId) {
+            currentRechazarRutaId = routeId;
+            $('#motivoRechazo').val(''); // Limpiar el textarea
+            $('#rechazarRutaModal').modal('show');
+        }
+
+        // Evento del botón rechazar dentro del modal
+        $('#btnRechazarRuta').on('click', function() {
+            const motivo = $('#motivoRechazo').val().trim();
+            
+            if (motivo === '') {
+                toastr.warning('Por favor, ingrese el motivo del rechazo.');
+                $('#motivoRechazo').focus();
+                return;
+            }
+
+            if (currentRechazarRutaId) {
+                $.ajax({
+                    url: '/rechazar_ruta/' + currentRechazarRutaId + '/',
+                    type: 'POST',
+                    data: { 
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        motivo: motivo
+                    },
+                    success: function(response) {
+                        $('#rechazarRutaModal').modal('hide');
+                        if (response.success) {
+                            toastr.success(response.message);
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#rechazarRutaModal').modal('hide');
+                        toastr.error('Ha ocurrido un error. Por favor, intente nuevamente.');
+                        console.error('Error AJAX:', xhr.responseText);
+                    }
+                });
+            }
+        });
+
+        // Función para mostrar modal de reagendamiento (llamada desde views.py)
+        function mostrarModalReagendamiento(fecha, hora) {
+            $('#nuevaFechaReagendada').text(fecha);
+            $('#nuevaHoraReagendada').text(hora);
+            $('#reagendamientoModal').modal('show');
+        }
+
+        // Verificar si hay reagendamiento al cargar la página
+        $(document).ready(function() {
+            // Verificar URL parameters para reagendamiento
+            const urlParams = new URLSearchParams(window.location.search);
+            const reagendada = urlParams.get('reagendada');
+            const nuevaFecha = urlParams.get('nueva_fecha');
+            const nuevaHora = urlParams.get('nueva_hora');
+            
+            if (reagendada === 'true' && nuevaFecha && nuevaHora) {
+                // Formatear fecha para mostrar
+                const fecha = new Date(nuevaFecha + 'T00:00:00');
+                const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+                const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
+                
+                // Formatear hora
+                const horaFormateada = nuevaHora;
+                
+                setTimeout(function() {
+                    mostrarModalReagendamiento(fechaFormateada, horaFormateada);
+                }, 500);
+                
+                // Limpiar URL después de mostrar modal
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
+</body>
+</html>

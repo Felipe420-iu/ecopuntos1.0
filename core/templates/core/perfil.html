@@ -1,0 +1,767 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Mi Perfil | Eco Puntos{% endblock %}
+
+{% block extra_css %}  <style>
+    :root {
+      --primary: #4caf50;
+      --primary-dark: #388e3c;
+      --primary-light: #c8e6c9;
+      --accent: #8bc34a;
+      --text-dark: #263238;
+      --text-light: #f5f5f5;
+      --gray-light: #f9f9f9;
+      --gray: #e0e0e0;
+      --success: #66bb6a;
+      --info: #29b6f6;
+      --warning: #ffa726;
+      --gradient-1: linear-gradient(135deg, #43a047 0%, #7cb342 100%);
+      --gradient-2: linear-gradient(135deg, #2e7d32 0%, #558b2f 100%);
+      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #42e457;
+      color: var(--text-dark);
+      position: relative;
+      overflow-x: hidden;
+      background-image: url('{% static "core/img/perfilfondo.jpg" %}');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-blend-mode: multiply;
+      opacity: 1;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.2);
+      z-index: 1;
+      pointer-events: none;    }
+    
+    .page-wrapper {
+      position: relative;
+      min-height: 100vh;
+      backdrop-filter: blur(2px);
+      background-color: rgba(255, 255, 255, 0.1);
+      z-index: 2;    }
+    
+    /* Header Styles - Moderno y Elegante */
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 30px 0;
+      background: rgba(79, 165, 71, 0.4);
+      border-radius: 20px;
+      backdrop-filter: blur(3px);
+      border: 1px solid rgba(255, 255, 255, 0.3);    }
+    
+    .navbar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 30px 0 18px 0;
+    }
+    
+    .navbar-logo-title {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .navbar-logo {
+      width: 56px;
+      height: 56px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 3px solid #e0e0e0;
+    }
+    
+    .navbar-logo img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      border-radius: 50%;
+    }
+    
+    .navbar-title {
+      font-size: 2.2rem;
+      font-weight: 500;
+      color: white;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    
+    .navbar-menu {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .navbar-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.35);      color: rgb(13, 27, 9);
+      font-weight: 500;
+      border: none;
+      border-radius: 22px;
+      padding: 8px 22px;
+      font-size: 1rem;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);      transition: background 0.2s, color 0.2s, transform 0.2s;
+      cursor: pointer;
+      outline: none;
+    }
+    
+    .navbar-btn i {
+      font-size: 1.1em;
+    }
+    
+    .navbar-btn:hover, .navbar-btn:focus {
+      background: rgba(255,255,255,0.55);      color: #333;
+      transform: translateY(-2px) scale(1.04);
+    }
+    
+    .navbar-btn.active {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    /* Contenido Principal - Más Moderno */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Perfil Header - Diseño Mejorado */
+    .profile-header {
+      background-color: white;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 30px;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .profile-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      background: var(--gradient-1);
+      z-index: 0;
+      border-radius: 15px 15px 0 0;
+    }
+    
+    .profile-img-container {
+      position: relative;
+      z-index: 1;
+      margin-bottom: 20px;
+    }
+    
+    .profile-img {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid white;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .avatar-svg {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 5px solid white;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .avatar-svg svg {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+    .card:hover {
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px);
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      border-bottom: none;
+      padding: 25px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .card-icon {
+      width: 50px;
+      height: 50px;
+      background-color: rgba(255, 255, 255, 0.3);      color: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin: 0;
+      color: white;
+    }
+    
+    /* Mejoras para Formularios */
+    form {
+      padding: 30px;
+    }
+    
+    .form-label {
+      font-weight: 500;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    
+    .form-control {
+      border-radius: 10px;
+      border: 1px solid #e0e0e0;
+      padding: 12px 15px;
+      transition: all 0.3s ease;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+      background-color: white;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      border: none;
+      border-radius: 10px;
+      padding: 12px 25px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      transition: all 0.3s ease;
+      margin-left: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+    }
+    
+    /* Mejoras para Estadísticas */
+    .stats-card {
+      background-color: rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      height: 100%;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(3px);    }
+    
+    .stats-card:hover {
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px);
+    }
+    
+    .stats-card h3 {
+      color: var(--primary-dark);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+    
+    .stats-card p.text-muted {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #666;
+    }
+    
+    .stats-card h4 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 15px;
+    }
+    
+    /* Mejoras para Logros */
+    .achievement-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background-color: rgba(255, 255, 255, 0.75);      border-radius: 12px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+    .achievement-item:hover {
+      background-color: rgba(255, 255, 255, 0.85);      transform: translateX(5px);
+    }
+    
+    .achievement-icon {
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    
+    .achievement-info h4 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text-dark);
+    }
+    
+    .achievement-info p {
+      font-size: 0.9rem;
+      color: #666;
+      margin: 0;
+    }
+    
+    .slide-up {
+      animation: slideUp 0.8s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Botón Flotante */
+    .floating-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+    
+    .floating-btn:hover {
+      background-color: var(--primary-dark);
+      transform: scale(1.1);
+    }
+    
+    /* Footer Mejorado */
+    .footer {
+      background-color: #263238;
+      color: white;
+      padding: 50px 0 20px;
+      margin-top: 50px;
+    }
+    
+    .footer-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .footer-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background-color: var(--primary);
+    }
+    
+    .footer-link {
+      display: block;
+      color: #b0bec5;
+      text-decoration: none;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+    }
+    
+    .footer-link:hover {
+      color: white;
+      transform: translateX(5px);
+    }
+    
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 20px;
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #b0bec5;
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .social-link {
+      width: 40px;
+      height: 40px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    .social-link:hover {
+      background-color: var(--primary);
+      transform: translateY(-5px);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .navbar-menu {
+        justify-content: center;
+      }
+      
+      .profile-name {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container my-5">      <!-- Profile Header -->
+      <div class="profile-header fade-in">
+        <div class="profile-img-container">
+          {% if user.foto_perfil %}
+            <img src="{{ user.foto_perfil.url }}?v={{ user.last_login|date:'U'|default:'0' }}" alt="Foto de Perfil" class="profile-img" id="profile-main-img">
+          {% else %}
+            <div class="profile-img avatar-svg" id="profile-main-img">
+              {{ user.get_avatar_svg|safe }}
+            </div>
+          {% endif %}
+          <div class="profile-badges" style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 10px;">
+            <span class="profile-level-badge" style="background: #e0b973; color: #fff; font-weight: 600; border-radius: 12px; padding: 6px 18px; font-size: 1em; box-shadow: 0 2px 8px rgba(224,185,115,0.12);">
+              <i class="fas fa-medal" style="margin-right: 6px; color: #b08d57;"></i>
+              Nivel {{ user.get_level_display|default:'Bronce' }}
+            </span>
+            <!-- Botón para cambiar la foto -->
+            <button type="button" class="btn-change-photo" data-bs-toggle="modal" data-bs-target="#photoModal" style="background: #fff; border: none; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 8px; cursor: pointer;">
+              <i class="fas fa-camera" style="font-size: 2.2em; color: #4caf50;"></i>
+            </button>
+          </div>
+        </div>
+        <h2 class="profile-name">{{ user.get_full_name|default:user.username }}</h2>
+        <p class="profile-bio">{{ user.testimonio|default:'Agrega tu testimonio desde la edición de tu perfil.' }}</p>
+        <div class="progress" style="width: 70%; margin: 0 auto;">
+          <div class="progress-bar" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <small class="text-muted d-block mt-2 mb-4">{{ user.puntos }}/500 puntos para el siguiente nivel</small>
+        <a href="{% url 'canjes' %}" class="btn btn-primary pulse">Canjear Mis Puntos</a>
+      </div>
+
+      <!-- Mensajes -->
+      {% if messages %}
+        <div class="mt-3">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <!-- Formulario de Edición de Perfil y Configuración -->
+      <div class="card slide-up mt-4" style="animation-delay: 0.4s">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-user-cog"></i>
+          </div>
+          <h3 class="card-title">Editar Perfil</h3>
+        </div>
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          {{ profile_form.non_field_errors }}
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nombre de Usuario</label>
+              {{ profile_form.username|as_crispy_field }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Correo Electrónico</label>
+              {{ profile_form.email|as_crispy_field }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Teléfono</label>
+              {{ profile_form.telefono|as_crispy_field }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Dirección</label>
+              {{ profile_form.direccion|as_crispy_field }}
+            </div>
+            <div class="col-12 mb-3">
+              <small class="text-muted d-block mb-2">Comparte tu experiencia o motivación con la comunidad.</small>
+              {{ profile_form.testimonio|as_crispy_field }}
+            </div>
+            <!-- Se eliminó la sección de Foto de Perfil -->
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Notificaciones por Email</label><br>
+              {{ profile_form.notificaciones_email|as_crispy_field }}
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Perfil Público</label><br>
+              {{ profile_form.perfil_publico|as_crispy_field }}
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Mostrar mis puntos a otros usuarios</label><br>
+              {{ profile_form.mostrar_puntos|as_crispy_field }}
+            </div>
+          </div>
+          <button type="submit" name="profile_submit" class="btn btn-primary">Guardar Cambios</button>
+        </form>
+      </div>
+      <!-- Cambio de Contraseña -->
+      <div class="card slide-up" style="animation-delay: 0.6s">
+        <div class="card-header">
+          <div class="card-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <h3 class="card-title">Cambiar Contraseña</h3>
+        </div>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ password_form.non_field_errors }}
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Contraseña Actual</label>
+              {{ password_form.old_password|as_crispy_field }}
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Nueva Contraseña</label>
+              {{ password_form.new_password1|as_crispy_field }}
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Confirmar Nueva</label>
+              {{ password_form.new_password2|as_crispy_field }}
+            </div>
+          </div>
+          <button type="submit" name="password_submit" class="btn btn-primary">Actualizar Contraseña</button>
+        </form>
+      </div>
+    </div>    <!-- Botón flotante para volver -->
+    <a href="{% url 'dashusuario' %}" class="floating-btn">
+      <i class="fas fa-home"></i>
+    </a>
+    <!-- Estadísticas y Logros -->
+<div class="row mt-4">
+  <div class="col-md-6">
+    <div class="stats-card">
+      <h3 class="mb-4"><i class="fas fa-chart-line me-2"></i> Mis Estadísticas</h3>
+      <div class="row">
+        <div class="col-6 mb-3">
+          <p class="text-muted mb-1">Total Canjes</p>
+          <h4>{{ total_canjes|default:"0" }}</h4>
+        </div>
+        <div class="col-6 mb-3">
+          <p class="text-muted mb-1">Puntos Canjeados</p>
+          <h4>{{ total_puntos_canjeados|default:"0" }}</h4>
+        </div>
+        <div class="col-6">
+          <p class="text-muted mb-1">Dinero Redimido</p>
+          <h4>${{ total_dinero|default:"0" }}</h4>
+        </div>
+        <div class="col-6">
+          <p class="text-muted mb-1">Nivel Actual</p>
+          <h4>{{ user.get_level_display|default:'Bronce' }}</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="stats-card">
+      <h3 class="mb-4"><i class="fas fa-trophy me-2"></i> Logros Recientes</h3>
+      {% if logros_usuario %}
+        {% for logro in logros_usuario %}
+          <div class="achievement-item">
+            <div class="achievement-icon">
+              <i class="{{ logro.icono|default:'fas fa-award' }}"></i>
+            </div>
+            <div class="achievement-info">
+              <h4>{{ logro.nombre }}</h4>
+              <p>{{ logro.descripcion }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">Aún no tienes logros. ¡Comienza a reciclar para desbloquearlos!</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}<!-- Añadir antes del cierre del body -->
+<!-- Modal para cambiar foto -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="photoModalLabel">Cambiar Foto de Perfil</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" enctype="multipart/form-data" id="photoForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="id_foto_perfil_modal" class="form-label">Selecciona una nueva foto</label>
+            <input type="file" name="foto_perfil" class="form-control" id="id_foto_perfil_modal" accept="image/*">
+          </div>
+          <div class="preview-container mt-3 d-none">
+            <p>Vista previa:</p>
+            <img id="preview-img" src="#" alt="Vista previa" class="img-fluid rounded-circle" style="max-width: 150px; max-height: 150px;">
+          </div>
+          <input type="hidden" name="photo_only" value="true">
+          <div class="mt-3 text-end">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" name="photo_submit" class="btn btn-primary">Guardar Foto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // Vista previa de la imagen
+  document.getElementById('id_foto_perfil_modal').addEventListener('change', function(e) {
+    const previewContainer = document.querySelector('.preview-container');
+    const previewImg = document.getElementById('preview-img');
+    
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        previewContainer.classList.remove('d-none');
+      }
+      
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+  // Función para actualizar todas las imágenes de perfil en la página
+  function updateProfileImages(newImageUrl) {
+    // Actualizar imagen principal del perfil
+    const mainImg = document.getElementById('profile-main-img');
+    if (mainImg) {
+      mainImg.src = newImageUrl + '?v=' + Date.now();
+    }
+    
+    // Actualizar imagen en el dropdown del navbar
+    const navImg = document.querySelector('.user-avatar');
+    if (navImg) {
+      navImg.src = newImageUrl + '?v=' + Date.now();
+    }
+    
+    // Actualizar imagen en el sidebar si existe
+    const sidebarImg = document.querySelector('.sidebar-logo');
+    if (sidebarImg) {
+      sidebarImg.src = newImageUrl + '?v=' + Date.now();
+    }
+  }
+
+  // Detectar envío de formulario de foto
+  document.getElementById('photoForm').addEventListener('submit', function(e) {
+    // Marcar que se está actualizando foto
+    localStorage.setItem('eco_last_action', JSON.stringify({
+      type: 'photo_update',
+      timestamp: Date.now()
+    }));
+    console.log('📸 Formulario de foto enviado');
+  });
+
+  // Detectar envío de formulario de perfil
+  const profileForms = document.querySelectorAll('form[method="post"]');
+  profileForms.forEach(form => {
+    if (form.id !== 'photoForm') {
+      form.addEventListener('submit', function(e) {
+        localStorage.setItem('eco_last_action', JSON.stringify({
+          type: 'profile_update', 
+          timestamp: Date.now()
+        }));
+        console.log('👤 Formulario de perfil enviado');
+      });
+    }
+  });
+</script>
+
+<!-- Sistema de Notificaciones Flotantes -->
+{% include 'core/includes/notification_system.html' %}
+
+{% endblock %}
