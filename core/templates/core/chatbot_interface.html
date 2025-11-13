@@ -498,6 +498,9 @@
             </div>
         </div>
         
+        <!-- Token CSRF para APIs -->
+        {% csrf_token %}
+        
         <div class="input-group">
             <textarea 
                 id="messageInput" 
@@ -732,11 +735,27 @@ function displayEscalationNotice(data) {
 }
 
 // Enviar mensaje
-function sendMessage() {
+async function sendMessage() {
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
     
-    if (!message || !isConnected) {
+    if (!message) {
+        return;
+    }
+    
+    // Si chat directo está activo, usar esa función
+    if (chatDirectoActivo) {
+        const success = await enviarMensajeChatDirecto(message);
+        if (success) {
+            input.value = '';
+            adjustTextareaHeight(input);
+        }
+        return;
+    }
+    
+    // Función normal del chatbot - SIEMPRE funciona si hay conexión
+    if (!isConnected) {
+        toastr.error('No hay conexión con el chatbot');
         return;
     }
     
@@ -768,8 +787,7 @@ function sendQuickMessage(message) {
     sendMessage();
 }
 
-// Solicitar agente humano
-function requestHuman() {
+async function requestHuman() {
     if (!isConnected) {
         toastr.error('No hay conexión');
         return;
@@ -777,12 +795,41 @@ function requestHuman() {
     
     const reason = prompt('¿Por qué necesitas hablar con un humano? (opcional)') || 'Solicitud directa del usuario';
     
-    chatSocket.send(JSON.stringify({
-        'type': 'request_human',
-        'reason': reason
-    }));
-    
-    toastr.info('Solicitando agente humano...');
+    try {
+        toastr.info('Solicitando agente humano...');
+        
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('mensaje', reason);
+        
+        const response = await fetch('{% url "escalar_a_humano" %}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.chat_activo) {
+                // Ya hay un chat activo
+                toastr.success('Chat directo activado');
+                iniciarModoChateDirecto(data.conversation_id);
+            } else if (data.pendiente) {
+                toastr.success('Solicitud ya enviada. Esperando respuesta del administrador.');
+                mostrarNotificacionPendiente();
+            } else {
+                toastr.success('Solicitud enviada al equipo de soporte');
+                mostrarNotificacionPendiente();
+                // Continuar verificando cada 15 segundos
+                iniciarVerificacionPeriodica();
+            }
+        } else {
+            toastr.error(data.message || 'Error al procesar solicitud');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        toastr.error('Error de conexión');
+    }
 }
 
 // Terminar conversación
@@ -929,14 +976,297 @@ function showHelp() {
 }
 
 function loadChatHistory() {
+    // Verificar si hay chat directo activo al cargar la página (solo chat activo, no pendiente)
+    verificarChatDirectoSoloActivo();
+    
     // Aquí podrías cargar mensajes recientes de conversaciones anteriores
     // Por ahora, solo mostramos un mensaje de bienvenida si no hay mensajes
     setTimeout(() => {
         const messagesContainer = document.getElementById('chatMessages');
-        if (messagesContainer.children.length === 0) {
+        if (messagesContainer.children.length === 0 && !chatDirectoActivo) {
             displaySystemMessage('¡Hola! Espera un momento mientras EcoBot se conecta...');
         }
     }, 1000);
+}
+
+// ============================================
+// FUNCIONES PARA CHAT DIRECTO USUARIO-ADMIN
+// ============================================
+
+let chatDirectoActivo = false;
+let conversationId = null;
+let adminNombre = null;
+let checkMessagesInterval = null;
+let verificacionInterval = null;
+
+async function verificarChatDirectoSoloActivo() {
+    try {
+        const response = await fetch('{% url "verificar_chat_directo" %}');
+        const data = await response.json();
+        
+        console.log('Verificación chat directo:', data);
+        
+        // SOLO activar si realmente hay chat activo, no pendiente
+        if (data.chat_activo === true && data.conversation_id) {
+            iniciarModoChateDirecto(data.conversation_id, data.admin_nombre);
+        }
+        // Si está pendiente o no hay chat, NO hacer nada, dejar que funcione el chatbot normal
+    } catch (error) {
+        console.error('Error verificando chat directo:', error);
+        // En caso de error, asumir que no hay chat activo
+    }
+}
+
+async function verificarChatDirecto() {
+    try {
+        const response = await fetch('{% url "verificar_chat_directo" %}');
+        const data = await response.json();
+        
+        console.log('Verificación chat directo completa:', data);
+        
+        if (data.chat_activo === true && data.conversation_id) {
+            iniciarModoChateDirecto(data.conversation_id, data.admin_nombre);
+            return true;
+        } else if (data.pendiente === true) {
+            return false; // Pendiente pero no activo
+        }
+        return false;
+    } catch (error) {
+        console.error('Error verificando chat directo:', error);
+        return false;
+    }
+}
+
+function iniciarVerificacionPeriodica() {
+    if (verificacionInterval) {
+        clearInterval(verificacionInterval);
+    }
+    
+    // Verificar cada 10 segundos si el admin aceptó la solicitud
+    verificacionInterval = setInterval(async () => {
+        const chatActivo = await verificarChatDirecto();
+        if (chatActivo) {
+            clearInterval(verificacionInterval);
+            verificacionInterval = null;
+            // Mostrar notificación de que el chat se activó
+            toastr.success('¡Un administrador se conectó contigo!');
+        }
+    }, 10000);
+}
+
+function mostrarNotificacionPendiente() {
+    // Solo mostrar una pequeña notificación, NO cambiar la interfaz completamente
+    displaySystemMessage(`
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin: 10px 0;">
+            <strong>📩 Solicitud enviada</strong><br>
+            Un administrador revisará tu solicitud pronto. Mientras tanto, puedes seguir usando el chatbot normalmente.
+        </div>
+    `);
+    
+    // NO cambiar el header ni deshabilitar funciones
+    // El chatbot sigue funcionando con normalidad
+}
+
+function iniciarModoChateDirecto(convId, adminName = null) {
+    chatDirectoActivo = true;
+    conversationId = convId;
+    adminNombre = adminName;
+    
+    // Limpiar verificación periódica si existe
+    if (verificacionInterval) {
+        clearInterval(verificacionInterval);
+        verificacionInterval = null;
+    }
+    
+    // Cambiar la interfaz
+    document.querySelector('.chat-header h2').innerHTML = `
+        💬 Chat Directo con ${adminNombre || 'Administrador'} 
+        <small style="font-size: 14px; opacity: 0.9;">En línea</small>
+    `;
+    
+    // Mostrar mensaje de inicio SIN limpiar el chat anterior
+    displaySystemMessage(`
+        <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 12px; margin: 10px 0;">
+            <strong>✅ Chat directo iniciado</strong><br>
+            Ahora estás hablando directamente con ${adminNombre || 'un administrador'}.<br>
+            Tus mensajes serán respondidos por una persona real.
+        </div>
+    `);
+    
+    // Cargar mensajes existentes
+    cargarMensajesChatDirecto();
+    
+    // Iniciar polling para nuevos mensajes
+    if (checkMessagesInterval) {
+        clearInterval(checkMessagesInterval);
+    }
+    checkMessagesInterval = setInterval(cargarMensajesChatDirecto, 3000);
+    
+    // Cambiar el placeholder del input
+    document.getElementById('messageInput').placeholder = 'Escribe tu mensaje al administrador...';
+    
+    // Deshabilitar el botón de humano
+    const humanBtn = document.getElementById('humanBtn');
+    if (humanBtn) {
+        humanBtn.style.display = 'none';
+    }
+}
+
+function mostrarEstadoPendiente() {
+    // ELIMINADA - esta función ya no se usa
+}
+
+async function cargarMensajesChatDirecto() {
+    if (!chatDirectoActivo || !conversationId) {
+        console.log('Chat directo no activo, saltando carga de mensajes');
+        return;
+    }
+    
+    try {
+        const response = await fetch('{% url "obtener_mensajes_chat_directo" %}');
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Error obteniendo mensajes:', data.error);
+            // Si hay error, posiblemente el chat ya no está activo
+            if (data.error.includes('No hay chat activo') || data.error.includes('no activa')) {
+                // Desactivar modo chat directo y volver al chatbot normal
+                desactivarModoChateDirecto();
+            }
+            return;
+        }
+        
+        if (data.mensajes) {
+            mostrarMensajesChatDirecto(data.mensajes);
+            if (data.admin_nombre && data.admin_nombre !== adminNombre) {
+                adminNombre = data.admin_nombre;
+                document.querySelector('.chat-header h2').innerHTML = `
+                    💬 Chat Directo con ${adminNombre} 
+                    <small style="font-size: 14px; opacity: 0.9;">En línea</small>
+                `;
+            }
+        }
+    } catch (error) {
+        console.error('Error cargando mensajes:', error);
+    }
+}
+
+function desactivarModoChateDirecto() {
+    console.log('Desactivando modo chat directo');
+    chatDirectoActivo = false;
+    conversationId = null;
+    adminNombre = null;
+    
+    // Limpiar intervalos
+    if (checkMessagesInterval) {
+        clearInterval(checkMessagesInterval);
+        checkMessagesInterval = null;
+    }
+    
+    if (verificacionInterval) {
+        clearInterval(verificacionInterval);
+        verificacionInterval = null;
+    }
+    
+    // Restaurar interfaz normal
+    document.querySelector('.chat-header h2').innerHTML = `
+        🤖 EcoBot <span style="font-size: 16px; opacity: 0.9;">Asistente Virtual</span>
+    `;
+    
+    // Restaurar placeholder
+    document.getElementById('messageInput').placeholder = 'Escribe tu mensaje aquí... (máximo 1000 caracteres)';
+    
+    // Mostrar botón humano de nuevo
+    const humanBtn = document.getElementById('humanBtn');
+    if (humanBtn) {
+        humanBtn.style.display = 'block';
+    }
+    
+    // Mostrar mensaje de que se desconectó
+    displaySystemMessage(`
+        <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin: 10px 0;">
+            <strong>🔌 Chat directo finalizado</strong><br>
+            Has vuelto al chatbot automático. Puedes seguir haciendo preguntas normalmente.
+        </div>
+    `);
+}
+
+function mostrarMensajesChatDirecto(mensajes) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const mensajesExistentes = new Set();
+    
+    // Obtener IDs de mensajes existentes
+    messagesContainer.querySelectorAll('.message').forEach(msg => {
+        const id = msg.getAttribute('data-mensaje-id');
+        if (id) mensajesExistentes.add(id);
+    });
+    
+    mensajes.forEach(mensaje => {
+        if (!mensajesExistentes.has(mensaje.id.toString())) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${mensaje.autor === 'usuario' ? 'user-message' : 'bot-message'}`;
+            messageDiv.setAttribute('data-mensaje-id', mensaje.id);
+            
+            const isUser = mensaje.autor === 'usuario';
+            const avatarIcon = isUser ? '👤' : '👨‍💼';
+            const authorName = isUser ? 'Tú' : mensaje.nombre;
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-avatar">${avatarIcon}</span>
+                    <span class="message-author">${authorName}</span>
+                    <span class="message-time">${mensaje.timestamp}</span>
+                </div>
+                <div class="message-content">${mensaje.contenido}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+        }
+    });
+    
+    scrollToBottom();
+}
+
+async function enviarMensajeChatDirecto(contenido) {
+    if (!chatDirectoActivo || !conversationId) {
+        console.error('Chat directo no está activo');
+        toastr.error('Chat directo no está activo');
+        return false;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('mensaje', contenido);
+        
+        const response = await fetch('{% url "enviar_mensaje_usuario_chat" %}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // El mensaje se envió correctamente
+            // Se cargará en el próximo polling
+            setTimeout(cargarMensajesChatDirecto, 500);
+            return true;
+        } else {
+            console.error('Error enviando mensaje:', data.error);
+            if (data.error && data.error.includes('No tienes un chat directo activo')) {
+                // El chat ya no está activo, desactivar modo
+                desactivarModoChateDirecto();
+                toastr.warning('El chat directo se ha finalizado');
+            } else {
+                toastr.error(data.error || 'Error enviando mensaje');
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Error enviando mensaje:', error);
+        toastr.error('Error de conexión');
+        return false;
+    }
 }
 </script>
 {% endblock %}

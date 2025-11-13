@@ -3,6 +3,7 @@ Vistas para el chatbot IA de EcoPuntos
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.http import require_POST, require_http_methods
 from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
@@ -179,13 +180,32 @@ def gestionar_solicitud(request, solicitud_id):
         respuesta = request.POST.get('respuesta', '')
         
         if accion == 'aceptar':
-            solicitud.estado = 'aceptada'
-            solicitud.respuesta_admin = respuesta
+            from core.models import ConversacionDirecta
+            import uuid
+            
+            # Actualizar solicitud
+            solicitud.estado = 'en_chat'
+            solicitud.admin_asignado = request.user
             solicitud.save()
-            messages.success(request, f'Solicitud de {solicitud.usuario.username} ha sido aceptada exitosamente.')
+            
+            # Crear conversación directa
+            try:
+                conversacion = ConversacionDirecta.objects.create(
+                    solicitud_soporte=solicitud,
+                    usuario=solicitud.usuario,
+                    admin=request.user,
+                    session_id=f"chat_direct_{uuid.uuid4().hex[:8]}"
+                )
+                
+                messages.success(request, f'¡Chat iniciado con {solicitud.usuario.username}!')
+                return redirect('chat_directo', conversation_id=conversacion.id)
+                
+            except Exception as e:
+                messages.error(request, f'Error iniciando chat: {e}')
+                return redirect('listar_solicitudes_soporte')
+                
         elif accion == 'rechazar':
             solicitud.estado = 'rechazada'
-            solicitud.respuesta_admin = respuesta
             solicitud.save()
             messages.warning(request, f'Solicitud de {solicitud.usuario.username} ha sido rechazada.')
             
@@ -237,8 +257,328 @@ def chatbot_soporte(request):
 def escalar_a_humano(request):
     """Escala la solicitud de soporte a un humano"""
     if request.method == 'POST':
-        # Aquí puedes registrar la solicitud en la base de datos o enviar una notificación
-        messages.success(request, 'La solicitud de soporte humano ha sido enviada.')
-        return JsonResponse({'success': True, 'message': 'Solicitud enviada'})
+        # Crear solicitud de soporte
+        from core.models import SolicitudSoporte
+        
+        # Verificar si ya existe una solicitud pendiente o en chat
+        solicitud_existente = SolicitudSoporte.objects.filter(
+            usuario=request.user,
+            estado__in=['pendiente', 'en_chat']
+        ).first()
+        
+        if solicitud_existente:
+            if solicitud_existente.estado == 'en_chat':
+                # Ya hay un chat activo, devolver ID de conversación
+                if hasattr(solicitud_existente, 'conversacion_directa'):
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Chat directo ya activo',
+                        'chat_activo': True,
+                        'conversation_id': solicitud_existente.conversacion_directa.id
+                    })
+            return JsonResponse({
+                'success': True,
+                'message': 'Solicitud ya enviada, esperando respuesta del administrador',
+                'pendiente': True
+            })
+        
+        # Crear nueva solicitud
+        mensaje_contexto = request.POST.get('mensaje', 'Solicitud de chat directo desde el chatbot')
+        
+        solicitud = SolicitudSoporte.objects.create(
+            usuario=request.user,
+            mensaje=mensaje_contexto,
+            estado='pendiente'
+        )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Solicitud enviada al equipo de soporte',
+            'solicitud_id': solicitud.id
+        })
 
     return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+@login_required
+@require_http_methods(["GET"])
+def verificar_chat_directo(request):
+    """Verifica si el usuario tiene un chat directo activo"""
+    from core.models import SolicitudSoporte
+    
+    try:
+        # Buscar solicitud en chat activo
+        solicitud = SolicitudSoporte.objects.filter(
+            usuario=request.user,
+            estado='en_chat'
+        ).first()
+        
+        if solicitud and hasattr(solicitud, 'conversacion_directa'):
+            conversacion = solicitud.conversacion_directa
+            # Verificar que la conversación también esté activa
+            if conversacion.estado == 'activa':
+                return JsonResponse({
+                    'chat_activo': True,
+                    'conversation_id': conversacion.id,
+                    'admin_nombre': conversacion.admin.get_full_name() or conversacion.admin.username,
+                    'fecha_inicio': conversacion.fecha_inicio.strftime('%d/%m/%Y %H:%M')
+                })
+        
+        # Buscar solicitud pendiente
+        solicitud_pendiente = SolicitudSoporte.objects.filter(
+            usuario=request.user,
+            estado='pendiente'
+        ).first()
+        
+        if solicitud_pendiente:
+            return JsonResponse({
+                'chat_activo': False,
+                'pendiente': True,
+                'mensaje': 'Esperando que un administrador acepte tu solicitud'
+            })
+        
+        return JsonResponse({
+            'chat_activo': False,
+            'pendiente': False
+        })
+        
+    except Exception as e:
+        print(f"Error en verificar_chat_directo: {e}")
+        return JsonResponse({
+            'chat_activo': False,
+            'pendiente': False,
+            'error': str(e)
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def enviar_mensaje_usuario_a_chat(request):
+    """API para que el usuario envíe mensajes al chat directo desde el chatbot"""
+    from core.models import SolicitudSoporte, MensajeDirecto
+    from django.utils import timezone
+    
+    try:
+        # Verificar si tiene chat activo
+        solicitud = SolicitudSoporte.objects.filter(
+            usuario=request.user,
+            estado='en_chat'
+        ).first()
+        
+        if not solicitud or not hasattr(solicitud, 'conversacion_directa'):
+            return JsonResponse({'error': 'No tienes un chat directo activo'}, status=400)
+        
+        conversacion = solicitud.conversacion_directa
+        
+        # Verificar que la conversación esté activa
+        if conversacion.estado != 'activa':
+            return JsonResponse({'error': 'La conversación no está activa'}, status=400)
+        
+        mensaje_texto = request.POST.get('mensaje', '').strip()
+        
+        if not mensaje_texto:
+            return JsonResponse({'error': 'Mensaje vacío'}, status=400)
+        
+        # Crear mensaje
+        mensaje = MensajeDirecto.objects.create(
+            conversacion=conversacion,
+            autor=request.user,
+            contenido=mensaje_texto
+        )
+        
+        # Actualizar última actividad
+        conversacion.fecha_ultima_actividad = timezone.now()
+        conversacion.save()
+        
+        return JsonResponse({
+            'success': True,
+            'mensaje_id': mensaje.id,
+            'timestamp': mensaje.timestamp.strftime('%H:%M')
+        })
+        
+    except Exception as e:
+        print(f"Error en enviar_mensaje_usuario_a_chat: {e}")
+        return JsonResponse({'error': f'Error interno: {str(e)}'}, status=500)
+
+@login_required
+@require_http_methods(["GET"])
+def obtener_mensajes_chat_directo(request):
+    """API para obtener mensajes del chat directo del usuario"""
+    from core.models import SolicitudSoporte, MensajeDirecto
+    
+    try:
+        # Verificar si tiene chat activo
+        solicitud = SolicitudSoporte.objects.filter(
+            usuario=request.user,
+            estado='en_chat'
+        ).first()
+        
+        if not solicitud or not hasattr(solicitud, 'conversacion_directa'):
+            return JsonResponse({'mensajes': [], 'error': 'No hay chat activo'})
+        
+        conversacion = solicitud.conversacion_directa
+        
+        # Verificar que la conversación esté activa
+        if conversacion.estado != 'activa':
+            return JsonResponse({'mensajes': [], 'error': 'Conversación no activa'})
+        
+        # Obtener mensajes
+        mensajes = MensajeDirecto.objects.filter(
+            conversacion=conversacion
+        ).order_by('timestamp')
+        
+        # Marcar como leídos los mensajes del admin
+        MensajeDirecto.objects.filter(
+            conversacion=conversacion,
+            leido=False,
+            autor=conversacion.admin
+        ).update(leido=True)
+        
+        mensajes_data = []
+        for mensaje in mensajes:
+            mensajes_data.append({
+                'id': mensaje.id,
+                'autor': 'admin' if mensaje.autor == conversacion.admin else 'usuario',
+                'nombre': mensaje.autor.get_full_name() or mensaje.autor.username,
+                'contenido': mensaje.contenido,
+                'timestamp': mensaje.timestamp.strftime('%H:%M'),
+                'fecha': mensaje.timestamp.strftime('%d/%m/%Y'),
+                'es_admin': mensaje.autor == conversacion.admin
+            })
+        
+        return JsonResponse({
+            'mensajes': mensajes_data,
+            'admin_nombre': conversacion.admin.get_full_name() or conversacion.admin.username
+        })
+        
+    except Exception as e:
+        print(f"Error en obtener_mensajes_chat_directo: {e}")
+        return JsonResponse({'mensajes': [], 'error': str(e)})
+
+# ====================================
+# VISTAS PARA CHAT DIRECTO USUARIO-ADMIN
+# ====================================
+
+@login_required
+def chat_directo(request, conversation_id):
+    """Vista principal del chat directo entre usuario y administrador"""
+    from core.models import ConversacionDirecta, MensajeDirecto
+    
+    # Obtener la conversación
+    conversacion = get_object_or_404(ConversacionDirecta, id=conversation_id)
+    
+    # Verificar permisos: solo el usuario, el admin asignado o superuser pueden acceder
+    if not (request.user == conversacion.usuario or 
+            request.user == conversacion.admin or 
+            request.user.is_superuser):
+        messages.error(request, 'No tienes permisos para acceder a esta conversación.')
+        return redirect('/')
+    
+    # Marcar mensajes como leídos si no son del usuario actual
+    MensajeDirecto.objects.filter(
+        conversacion=conversacion,
+        leido=False
+    ).exclude(autor=request.user).update(leido=True)
+    
+    # Obtener mensajes
+    mensajes = MensajeDirecto.objects.filter(conversacion=conversacion).order_by('timestamp')
+    
+    context = {
+        'conversacion': conversacion,
+        'mensajes': mensajes,
+        'es_admin': request.user == conversacion.admin or request.user.is_superuser,
+        'es_usuario': request.user == conversacion.usuario,
+    }
+    
+    return render(request, 'core/chatbot/chat_directo.html', context)
+
+@login_required
+@require_POST
+def enviar_mensaje_directo(request, conversation_id):
+    """API para enviar mensajes en chat directo"""
+    from core.models import ConversacionDirecta, MensajeDirecto
+    from django.utils import timezone
+    
+    try:
+        conversacion = get_object_or_404(ConversacionDirecta, id=conversation_id)
+        
+        # Verificar permisos
+        if not (request.user == conversacion.usuario or 
+                request.user == conversacion.admin or 
+                request.user.is_superuser):
+            return JsonResponse({'error': 'Sin permisos'}, status=403)
+        
+        # Verificar que la conversación esté activa
+        if conversacion.estado != 'activa':
+            return JsonResponse({'error': 'Conversación no activa'}, status=400)
+        
+        contenido = request.POST.get('mensaje', '').strip()
+        if not contenido:
+            return JsonResponse({'error': 'Mensaje vacío'}, status=400)
+        
+        # Crear mensaje
+        mensaje = MensajeDirecto.objects.create(
+            conversacion=conversacion,
+            autor=request.user,
+            contenido=contenido
+        )
+        
+        # Actualizar última actividad
+        conversacion.fecha_ultima_actividad = timezone.now()
+        conversacion.save()
+        
+        return JsonResponse({
+            'success': True,
+            'mensaje': {
+                'id': mensaje.id,
+                'autor': mensaje.autor.get_full_name() or mensaje.autor.username,
+                'contenido': mensaje.contenido,
+                'timestamp': mensaje.timestamp.strftime('%H:%M'),
+                'es_admin': mensaje.es_admin
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def finalizar_chat_directo(request, conversation_id):
+    """API para finalizar una conversación directa"""
+    from core.models import ConversacionDirecta
+    
+    try:
+        conversacion = get_object_or_404(ConversacionDirecta, id=conversation_id)
+        
+        # Solo admin o superuser pueden finalizar
+        if not (request.user == conversacion.admin or request.user.is_superuser):
+            return JsonResponse({'error': 'Sin permisos'}, status=403)
+        
+        # Finalizar conversación
+        conversacion.finalizar()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def listar_conversaciones_activas(request):
+    """Vista para listar conversaciones activas (solo admins)"""
+    from core.models import ConversacionDirecta
+    from django.db.models import Count
+    
+    if not is_admin(request.user):
+        messages.error(request, 'No tienes permisos para acceder a esta página.')
+        return redirect('/')
+    
+    conversaciones_activas = ConversacionDirecta.objects.filter(
+        estado='activa'
+    ).select_related('usuario', 'admin', 'solicitud_soporte').annotate(
+        num_mensajes=Count('mensajes')
+    ).order_by('-fecha_ultima_actividad')
+    
+    context = {
+        'conversaciones': conversaciones_activas,
+        'total_activas': conversaciones_activas.count(),
+    }
+    
+    return render(request, 'core/chatbot/conversaciones_activas.html', context)

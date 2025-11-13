@@ -1,0 +1,238 @@
+{% extends 'core/base_admin.html' %}
+
+{% block title %}Conversaciones Activas - EcoPuntos Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="text-dark">
+                <i class="fas fa-comments text-primary"></i> 
+                Conversaciones Activas
+            </h3>
+            <p class="text-muted mb-0">Gestiona las conversaciones en tiempo real con los usuarios</p>
+        </div>
+        <div>
+            <a href="{% url 'listar_solicitudes_soporte' %}" class="btn btn-outline-primary">
+                <i class="fas fa-list"></i> Ver Solicitudes
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-primary">
+                        <i class="fas fa-comments fa-2x mb-2"></i>
+                    </div>
+                    <h4 class="text-primary">{{ total_activas }}</h4>
+                    <p class="text-muted mb-0">Conversaciones Activas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Conversaciones -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-gradient-primary text-white">
+            <h6 class="mb-0">
+                <i class="fas fa-list"></i> Conversaciones en Curso
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            {% if conversaciones %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="20%">
+                                    <i class="fas fa-user"></i> Usuario
+                                </th>
+                                <th width="15%">
+                                    <i class="fas fa-clock"></i> Iniciado
+                                </th>
+                                <th width="15%">
+                                    <i class="fas fa-clock"></i> Última Actividad
+                                </th>
+                                <th width="25%">
+                                    <i class="fas fa-comment"></i> Motivo
+                                </th>
+                                <th width="10%">
+                                    <i class="fas fa-comments"></i> Mensajes
+                                </th>
+                                <th width="15%">
+                                    <i class="fas fa-cogs"></i> Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for conversacion in conversaciones %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-primary text-white me-2 d-flex align-items-center justify-content-center"
+                                                 style="width: 35px; height: 35px; border-radius: 50%; font-size: 14px;">
+                                                {{ conversacion.usuario.get_initials }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ conversacion.usuario.get_full_name|default:conversacion.usuario.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ conversacion.usuario.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">
+                                            {{ conversacion.fecha_inicio|date:"d/m/Y" }}<br>
+                                            <small>{{ conversacion.fecha_inicio|date:"H:i" }}</small>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">
+                                            {{ conversacion.fecha_ultima_actividad|timesince }} ago<br>
+                                            <small>{{ conversacion.fecha_ultima_actividad|date:"H:i" }}</small>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-wrap">
+                                            {% if conversacion.solicitud_soporte.mensaje %}
+                                                {{ conversacion.solicitud_soporte.mensaje|truncatechars:60 }}
+                                            {% else %}
+                                                <em class="text-muted">Sin motivo especificado</em>
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">
+                                            {{ conversacion.num_mensajes }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'chat_directo' conversacion.id %}" 
+                                               class="btn btn-primary btn-sm" 
+                                               title="Abrir Chat">
+                                                <i class="fas fa-comment-dots"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger btn-sm" 
+                                                    title="Finalizar Conversación"
+                                                    onclick="finalizarConversacion({{ conversacion.id }}, '{{ conversacion.usuario.username }}')">
+                                                <i class="fas fa-stop-circle"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay conversaciones activas</h5>
+                    <p class="text-muted">Las conversaciones aparecerán aquí cuando los usuarios soliciten chat directo.</p>
+                    <a href="{% url 'listar_solicitudes_soporte' %}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Ver Solicitudes Pendientes
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="finalizarModal" tabindex="-1" aria-labelledby="finalizarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="finalizarModalLabel">
+                    <i class="fas fa-stop-circle text-warning"></i> Finalizar Conversación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres finalizar la conversación con <strong id="usuario-nombre"></strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmar-finalizar">
+                    <i class="fas fa-stop-circle"></i> Finalizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .table td {
+        vertical-align: middle;
+    }
+    
+    .btn-group .btn {
+        margin: 0 1px;
+    }
+</style>
+
+<script>
+let conversacionAFinalizar = null;
+
+function finalizarConversacion(conversationId, nombreUsuario) {
+    conversacionAFinalizar = conversationId;
+    document.getElementById('usuario-nombre').textContent = nombreUsuario;
+    
+    const modal = new bootstrap.Modal(document.getElementById('finalizarModal'));
+    modal.show();
+}
+
+document.getElementById('confirmar-finalizar').addEventListener('click', async function() {
+    if (!conversacionAFinalizar) return;
+    
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando...';
+    
+    try {
+        const response = await fetch(`/chat-directo/${conversacionAFinalizar}/finalizar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                // Cerrar modal y recargar página
+                bootstrap.Modal.getInstance(document.getElementById('finalizarModal')).hide();
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } else {
+            throw new Error('Error en la respuesta');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error finalizando conversación. Intenta de nuevo.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-stop-circle"></i> Finalizar';
+    }
+});
+
+// Auto-actualizar cada 30 segundos
+setInterval(function() {
+    location.reload();
+}, 30000);
+</script>
+{% endblock %}
