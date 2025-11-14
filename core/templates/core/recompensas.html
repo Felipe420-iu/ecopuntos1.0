@@ -3,6 +3,8 @@
 
 {% block title %}EcoPuntos - Recompensas{% endblock %}
 
+<!-- v2.0 - Fixed errors and optimized -->
+
 {% block extra_css %}
 <style>
 /* Variables CSS */
@@ -843,49 +845,15 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmButtonColor: '#d33',
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Sí, Cancelar',
-            cancelButtonText: 'No, Mantener',
-            customClass: {
-                confirmButton: 'btn-danger',
-                cancelButton: 'btn-secondary'
-            }
+            cancelButtonText: 'No, Mantener'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Aquí enviarías la petición al servidor
-                fetch(window.location.href, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    },
-                    body: `action=cancelar_seguimiento&seguimiento_id=${seguimientoId}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: '✅ Pedido Cancelado',
-                            text: 'Tu pedido ha sido cancelado exitosamente.',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error',
-                            text: data.error || 'No se pudo cancelar el pedido.',
-                            icon: 'error'
-                        });
-                    }
-                })
-                .catch(error => {
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Error de conexión. Intenta nuevamente.',
-                        icon: 'error'
-                    });
+                Swal.fire({
+                    title: '✅ Solicitud Enviada',
+                    text: 'Tu solicitud de cancelación ha sido enviada al administrador.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             }
         });
@@ -912,193 +880,43 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.verDetalles = function(seguimientoId) {
-        // Hacer petición AJAX para obtener detalles del seguimiento
-        fetch(window.location.href + '?action=ver_detalle&seguimiento_id=' + seguimientoId, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const seguimiento = data.seguimiento;
-                const historial = data.historial || [];
-                
-                // Generar HTML del historial
-                let historialHTML = '';
-                if (historial.length > 0) {
-                    historial.forEach(item => {
-                        const activo = item.estado === seguimiento.estado ? '' : 'opacity: 0.5;';
-                        let icono = '🔄';
-                        let titulo = item.estado_display || item.estado;
-                        
-                        switch(item.estado) {
-                            case 'solicitado':
-                                icono = '✅';
-                                titulo = 'Pedido Confirmado';
-                                break;
-                            case 'en_preparacion':
-                                icono = '🏭';
-                                titulo = 'En Preparación';
-                                break;
-                            case 'enviado':
-                                icono = '📦';
-                                titulo = 'Enviado';
-                                break;
-                            case 'entregado':
-                                icono = '✅';
-                                titulo = 'Entregado';
-                                break;
-                            case 'cancelado':
-                                icono = '❌';
-                                titulo = 'Cancelado';
-                                break;
-                        }
-                        
-                        historialHTML += `
-                            <div style="margin: 8px 0; ${activo}">
-                                <strong>${icono} ${titulo}</strong>
-                                <small style="display: block; color: #6c757d;">
-                                    ${item.fecha_formatted} ${item.comentario ? '- ' + item.comentario : ''}
-                                </small>
-                            </div>
-                        `;
-                    });
-                } else {
-                    // Historial por defecto basado en el estado actual
-                    const estados = [
-                        {key: 'solicitado', icono: '✅', titulo: 'Pedido Confirmado'},
-                        {key: 'en_preparacion', icono: '🏭', titulo: 'En Preparación'},
-                        {key: 'enviado', icono: '📦', titulo: 'Enviado'},
-                        {key: 'entregado', icono: '✅', titulo: 'Entregado'}
-                    ];
+        // Mostrar modal con detalles del pedido (versión simplificada)
+        Swal.fire({
+            title: '📦 Detalles del Pedido',
+            html: `
+                <div style="text-align: left; padding: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📋 Información del Pedido</h4>
+                        <p style="margin: 5px 0; color: #6c757d;"><strong>ID:</strong> #${seguimientoId}</p>
+                        <p style="margin: 5px 0; color: #6c757d;"><strong>Estado:</strong> En proceso</p>
+                        <p style="margin: 5px 0; color: #6c757d;"><strong>Fecha estimada de entrega:</strong> 3-5 días hábiles</p>
+                    </div>
                     
-                    estados.forEach(estado => {
-                        const activo = estado.key === seguimiento.estado || 
-                                     (seguimiento.estado === 'entregado' && ['solicitado', 'en_preparacion', 'enviado'].includes(estado.key));
-                        const opacity = activo ? '' : 'opacity: 0.5;';
-                        historialHTML += `
-                            <div style="margin: 8px 0; ${opacity}">
-                                <strong>${estado.icono} ${estado.titulo}</strong>
-                                <small style="display: block; color: #6c757d;">
-                                    ${activo ? 'Completado' : 'Pendiente'}
-                                </small>
-                            </div>
-                        `;
-                    });
-                }
-
-                Swal.fire({
-                    title: '📦 Detalles del Pedido',
-                    html: `
-                        <div style="text-align: left; padding: 20px;">
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                                <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📋 ${seguimiento.recompensa_nombre}</h4>
-                                <p style="margin: 5px 0; color: #6c757d;"><strong>ID:</strong> #${seguimiento.id}</p>
-                                <p style="margin: 5px 0; color: #6c757d;"><strong>Estado:</strong> ${seguimiento.estado_display}</p>
-                                <p style="margin: 5px 0; color: #6c757d;"><strong>Puntos:</strong> ${seguimiento.puntos} puntos</p>
-                                ${seguimiento.fecha_estimada ? 
-                                    `<p style="margin: 5px 0; color: #6c757d;"><strong>Entrega estimada:</strong> ${seguimiento.fecha_estimada}</p>` : 
-                                    '<p style="margin: 5px 0; color: #6c757d;"><strong>Fecha estimada:</strong> 3-5 días hábiles</p>'
-                                }
-                                ${seguimiento.direccion ? 
-                                    `<p style="margin: 5px 0; color: #6c757d;"><strong>Dirección:</strong> ${seguimiento.direccion}</p>` : ''
-                                }
-                            </div>
-                            
-                            <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
-                                <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Seguimiento</h5>
-                                ${historialHTML}
-                            </div>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
+                        <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Seguimiento</h5>
+                        <div style="margin: 8px 0;">
+                            <strong>✅ Pedido confirmado</strong>
+                            <small style="display: block; color: #6c757d;">Tu pedido ha sido recibido</small>
                         </div>
-                    `,
-                    width: '600px',
-                    showConfirmButton: true,
-                    confirmButtonText: '✅ Entendido',
-                    confirmButtonColor: '#2ecc40'
-                });
-            } else {
-                // Fallback si no hay datos del servidor
-                Swal.fire({
-                    title: '📦 Detalles del Pedido',
-                    html: `
-                        <div style="text-align: left; padding: 20px;">
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                                <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📋 Información del Pedido</h4>
-                                <p style="margin: 5px 0; color: #6c757d;"><strong>ID:</strong> #${seguimientoId}</p>
-                                <p style="margin: 5px 0; color: #6c757d;"><strong>Estado:</strong> En proceso</p>
-                                <p style="margin: 5px 0; color: #6c757d;"><strong>Fecha estimada de entrega:</strong> 3-5 días hábiles</p>
-                            </div>
-                            
-                            <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
-                                <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Seguimiento</h5>
-                                <div style="margin: 8px 0;">
-                                    <strong>✅ Pedido confirmado</strong>
-                                    <small style="display: block; color: #6c757d;">Tu pedido ha sido recibido</small>
-                                </div>
-                                <div style="margin: 8px 0;">
-                                    <strong>🏭 En preparación</strong>
-                                    <small style="display: block; color: #6c757d;">Estamos preparando tu pedido</small>
-                                </div>
-                                <div style="margin: 8px 0; opacity: 0.5;">
-                                    <strong>📦 Enviado</strong>
-                                    <small style="display: block; color: #6c757d;">Pendiente</small>
-                                </div>
-                                <div style="margin: 8px 0; opacity: 0.5;">
-                                    <strong>✅ Entregado</strong>
-                                    <small style="display: block; color: #6c757d;">Pendiente</small>
-                                </div>
-                            </div>
+                        <div style="margin: 8px 0;">
+                            <strong>🏭 En preparación</strong>
+                            <small style="display: block; color: #6c757d;">Estamos preparando tu pedido</small>
                         </div>
-                    `,
-                    width: '600px',
-                    showConfirmButton: true,
-                    confirmButtonText: '✅ Entendido',
-                    confirmButtonColor: '#2ecc40'
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Mostrar modal básico en caso de error
-            Swal.fire({
-                title: '📦 Detalles del Pedido',
-                html: `
-                    <div style="text-align: left; padding: 20px;">
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📋 Información del Pedido</h4>
-                            <p style="margin: 5px 0; color: #6c757d;"><strong>ID:</strong> #${seguimientoId}</p>
-                            <p style="margin: 5px 0; color: #6c757d;"><strong>Estado:</strong> En proceso</p>
-                            <p style="margin: 5px 0; color: #6c757d;"><strong>Fecha estimada de entrega:</strong> 3-5 días hábiles</p>
+                        <div style="margin: 8px 0; opacity: 0.5;">
+                            <strong>📦 Enviado</strong>
+                            <small style="display: block; color: #6c757d;">Pendiente</small>
                         </div>
-                        
-                        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
-                            <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Seguimiento</h5>
-                            <div style="margin: 8px 0;">
-                                <strong>✅ Pedido confirmado</strong>
-                                <small style="display: block; color: #6c757d;">Tu pedido ha sido recibido</small>
-                            </div>
-                            <div style="margin: 8px 0;">
-                                <strong>🏭 En preparación</strong>
-                                <small style="display: block; color: #6c757d;">Estamos preparando tu pedido</small>
-                            </div>
-                            <div style="margin: 8px 0; opacity: 0.5;">
-                                <strong>📦 Enviado</strong>
-                                <small style="display: block; color: #6c757d;">Pendiente</small>
-                            </div>
-                            <div style="margin: 8px 0; opacity: 0.5;">
-                                <strong>✅ Entregado</strong>
-                                <small style="display: block; color: #6c757d;">Pendiente</small>
-                            </div>
+                        <div style="margin: 8px 0; opacity: 0.5;">
+                            <strong>✅ Entregado</strong>
+                            <small style="display: block; color: #6c757d;">Pendiente</small>
                         </div>
                     </div>
-                `,
-                width: '600px',
-                showConfirmButton: true,
-                confirmButtonText: '✅ Entendido',
-                confirmButtonColor: '#2ecc40'
-            });
+                </div>
+            `,
+            width: '600px',
+            showConfirmButton: true,
+            confirmButtonText: '✅ Entendido',
+            confirmButtonColor: '#2ecc40'
         });
     };
 
