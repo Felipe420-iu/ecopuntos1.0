@@ -209,7 +209,7 @@
                     </div>
                 </div>
                 <div class="mt-3">
-                    <a href="{% url 'impacto_detallado' %}" class="btn btn-light btn-sm">
+                    <a href="{% url 'historial' %}" class="btn btn-light btn-sm">
                         <i class="fas fa-chart-pie me-2"></i>Ver Impacto Detallado
                     </a>
                 </div>
@@ -315,19 +315,10 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Animar contadores
-    const statValues = document.querySelectorAll('.stat-value');
+    // Animaciones de contadores DESACTIVADAS para mejor experiencia UX
+    // Los valores se muestran directamente sin animación
     
-    statValues.forEach((stat, index) => {
-        const finalValue = parseInt(stat.textContent);
-        if (finalValue > 0) {
-            setTimeout(() => {
-                animateCounter(stat, 0, finalValue, 1500);
-            }, index * 200);
-        }
-    });
-    
-    // Animar barras de progreso de insights
+    // Animar barras de progreso de insights (mantenemos solo estas)
     const progressBars = document.querySelectorAll('.insight-item .progress-fill');
     progressBars.forEach((bar, index) => {
         setTimeout(() => {
@@ -341,20 +332,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 800 + (index * 200));
     });
 });
-
-function animateCounter(element, start, end, duration) {
-    const range = end - start;
-    const increment = end > start ? 1 : -1;
-    const stepTime = Math.abs(Math.floor(duration / range));
-    
-    let current = start;
-    const timer = setInterval(() => {
-        current += increment;
-        element.textContent = current.toLocaleString();
-        
-        if (current === end) {
-            clearInterval(timer);
-        }
-    }, stepTime);
-}
 </script>

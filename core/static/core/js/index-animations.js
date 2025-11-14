@@ -8,6 +8,12 @@ const observerOptions = {
 
 // Función para animar contadores
 function animateCounter(element, target, duration = 2000) {
+  // No animar contadores en el dashboard
+  if (window.location.pathname.includes('dashusuario')) {
+    element.textContent = target.toLocaleString();
+    return;
+  }
+  
   let start = 0;
   const increment = target / (duration / 16);
   

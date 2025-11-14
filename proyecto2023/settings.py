@@ -156,6 +156,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Keep your existing STATICFILES_DIRS configuration
 STATICFILES_DIRS = [
     BASE_DIR / 'core' / 'static',
+    BASE_DIR / 'static',  # Archivos CSS del dashboard modular
 ]
 # Media files
 MEDIA_URL = '/media/'

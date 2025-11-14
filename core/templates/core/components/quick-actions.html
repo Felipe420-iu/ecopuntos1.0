@@ -11,7 +11,7 @@
     
     <div class="quick-actions-container">
         <!-- Registrar Canje -->
-        <a href="{% url 'registrar_canje' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.3s;">
+        <a href="{% url 'canjes' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.3s;">
             <div class="action-icon" style="background: linear-gradient(135deg, var(--success), #4caf50);">
                 <i class="fas fa-plus-circle"></i>
             </div>
@@ -25,7 +25,7 @@
         </a>
 
         <!-- Ver Mis Canjes -->
-        <a href="{% url 'mis_canjes' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.4s;">
+        <a href="{% url 'historial' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.4s;">
             <div class="action-icon" style="background: linear-gradient(135deg, var(--secondary), #1976d2);">
                 <i class="fas fa-list-alt"></i>
             </div>
@@ -81,7 +81,7 @@
         </a>
 
         <!-- Soporte -->
-        <a href="{% url 'soporte' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.8s;">
+        <a href="{% url 'soportusu' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.8s;">
             <div class="action-icon" style="background: linear-gradient(135deg, #795548, #5d4037);">
                 <i class="fas fa-headset"></i>
             </div>
@@ -164,9 +164,9 @@
                 </div>
                 <h6 class="mb-2">¡Impulsa tu Impacto!</h6>
                 <p class="small mb-3 opacity-75">Invita amigos y gana bonificaciones especiales</p>
-                <a href="{% url 'referir_amigos' %}" class="btn btn-light btn-sm">
+                <button class="btn btn-light btn-sm" onclick="alert('Función de invitar amigos próximamente disponible')">
                     <i class="fas fa-share-alt me-2"></i>Invitar Amigos
-                </a>
+                </button>
             </div>
         </div>
     </div>

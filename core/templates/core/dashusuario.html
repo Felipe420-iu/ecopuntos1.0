@@ -98,6 +98,25 @@
         </div>
     </main>
     
+    <!-- EcoBot Floating Chatbot -->
+    {% include 'core/components/floating_chatbot.html' %}
+    
+    <!-- Estilos adicionales para EcoBot en Dashboard -->
+    <style>
+        /* Asegurar que EcoBot esté por encima de todo en el dashboard */
+        #floating-chatbot {
+            z-index: 99999 !important;
+        }
+        
+        /* Ajustar posición para móvil en dashboard */
+        @media (max-width: 768px) {
+            #floating-chatbot {
+                bottom: 25px !important;
+                right: 25px !important;
+            }
+        }
+    </style>
+    
     <!-- Scripts - Carga optimizada -->
     
     <!-- Framework Scripts -->
@@ -106,7 +125,7 @@
     
     <!-- Custom Scripts - Carga modular -->
     <script src="{% static 'js/dashboard/navigation.js' %}"></script>
-    <script src="{% static 'js/dashboard/fab.js' %}"></script>
+    <!-- <script src="{% static 'js/dashboard/fab.js' %}"></script> FAB reemplazado por EcoBot -->
     
     <!-- Analytics (lazy loaded) -->
     <script>

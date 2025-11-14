@@ -783,9 +783,9 @@ const fabStyles = `
 `;
 
 // Inyectar estilos
-const fabStyleSheet = document.createElement('style');
-fabStyleSheet.textContent = fabStyles;
-document.head.appendChild(fabStyleSheet);
+const styleSheet = document.createElement('style');
+styleSheet.textContent = fabStyles;
+document.head.appendChild(styleSheet);
 
 // Inicialización automática
 document.addEventListener('DOMContentLoaded', function() {
