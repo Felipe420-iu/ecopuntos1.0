@@ -5087,19 +5087,16 @@ def redimir_puntos(request):
     
     return redirect('pagos')
 
-@login_required
 def verificar_sesion_activa(request):
     """
     Endpoint AJAX para verificar si la sesión del usuario sigue activa
+    NO usa @login_required para evitar bucles de redirección
     """
     import logging
     logger = logging.getLogger(__name__)
     
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         try:
-            # Log para debugging
-            logger.info(f"Verificando sesión para usuario: {request.user.username}")
-            
             # Primero verificar si el usuario está autenticado en Django
             if not request.user.is_authenticated:
                 logger.info("Usuario no autenticado en Django")
