@@ -1,0 +1,335 @@
+<!-- ============================================
+     📊 STATS OVERVIEW COMPONENT - ECOPUNTOS
+     ============================================ -->
+{% load static %}
+
+<div class="section-header mb-4 animate-fade-in">
+    <h2><i class="fas fa-chart-line me-2" style="color: var(--primary)"></i>Resumen de Estadísticas</h2>
+    <p>Tu impacto ambiental en números</p>
+</div>
+
+<div class="row g-3">
+    
+    <!-- Stat Card 1: Puntos Totales -->
+    <div class="col-6 col-md-3">
+        <div class="dashboard-card text-center animate-scale-in" style="animation-delay: 0.1s;">
+            <div class="card-body">
+                <div class="stat-icon mb-3" style="color: var(--primary);">
+                    <i class="fas fa-coins fa-2x"></i>
+                </div>
+                <div class="stat-value h3 mb-1 text-primary">{{ user.puntos|default:0 }}</div>
+                <div class="stat-label text-muted small">Puntos Totales</div>
+                <div class="stat-trend mt-2">
+                    <span class="badge badge-success">
+                        <i class="fas fa-arrow-up me-1"></i>+12%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Card 2: Kg Reciclados -->
+    <div class="col-6 col-md-3">
+        <div class="dashboard-card text-center animate-scale-in" style="animation-delay: 0.2s;">
+            <div class="card-body">
+                <div class="stat-icon mb-3" style="color: var(--success);">
+                    <i class="fas fa-weight fa-2x"></i>
+                </div>
+                <div class="stat-value h3 mb-1 text-success">{{ user.kg_reciclados|default:0 }}</div>
+                <div class="stat-label text-muted small">Kg Reciclados</div>
+                <div class="stat-trend mt-2">
+                    <span class="badge badge-success">
+                        <i class="fas fa-arrow-up me-1"></i>+8%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Card 3: Canjes Realizados -->
+    <div class="col-6 col-md-3">
+        <div class="dashboard-card text-center animate-scale-in" style="animation-delay: 0.3s;">
+            <div class="card-body">
+                <div class="stat-icon mb-3" style="color: var(--info);">
+                    <i class="fas fa-exchange-alt fa-2x"></i>
+                </div>
+                <div class="stat-value h3 mb-1 text-info">{{ user.canjes_count|default:0 }}</div>
+                <div class="stat-label text-muted small">Canjes Realizados</div>
+                <div class="stat-trend mt-2">
+                    <span class="badge badge-info">
+                        <i class="fas fa-arrow-up me-1"></i>+5%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Card 4: CO2 Ahorrado -->
+    <div class="col-6 col-md-3">
+        <div class="dashboard-card text-center animate-scale-in" style="animation-delay: 0.4s;">
+            <div class="card-body">
+                <div class="stat-icon mb-3" style="color: var(--warning);">
+                    <i class="fas fa-leaf fa-2x"></i>
+                </div>
+                <div class="stat-value h3 mb-1 text-warning">{{ user.co2_ahorrado|default:0 }}</div>
+                <div class="stat-label text-muted small">Kg CO₂ Ahorrado</div>
+                <div class="stat-trend mt-2">
+                    <span class="badge badge-warning">
+                        <i class="fas fa-arrow-up me-1"></i>+15%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Detailed Stats Row -->
+<div class="row g-3 mt-4">
+    
+    <!-- Monthly Progress Chart -->
+    <div class="col-md-8">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 0.5s;">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-area me-2 text-primary"></i>
+                    Progreso Mensual
+                </h6>
+                <div class="card-actions">
+                    <select class="form-select form-select-sm" style="width: auto;">
+                        <option>Últimos 6 meses</option>
+                        <option>Este año</option>
+                        <option>Todo el tiempo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 200px;">
+                    <!-- Placeholder para gráfico -->
+                    <div class="chart-placeholder d-flex align-items-center justify-content-center h-100 bg-light rounded">
+                        <div class="text-center">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Gráfico de progreso mensual</p>
+                            <small class="text-muted">Se cargará dinámicamente</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Insights -->
+    <div class="col-md-4">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 0.6s;">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>
+                    Insights Rápidos
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="insight-list">
+                    
+                    <div class="insight-item mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="insight-icon me-2" style="color: var(--success);">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <strong class="insight-title">Mejor Mes</strong>
+                        </div>
+                        <p class="insight-text mb-1">Octubre 2024 - 45kg reciclados</p>
+                        <div class="progress-container" style="height: 4px;">
+                            <div class="progress-fill" style="width: 90%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="insight-item mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="insight-icon me-2" style="color: var(--info);">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <strong class="insight-title">Racha Actual</strong>
+                        </div>
+                        <p class="insight-text mb-1">7 días consecutivos reciclando</p>
+                        <div class="progress-container" style="height: 4px;">
+                            <div class="progress-fill" style="width: 70%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="insight-item">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="insight-icon me-2" style="color: var(--warning);">
+                                <i class="fas fa-target"></i>
+                            </div>
+                            <strong class="insight-title">Meta Mensual</strong>
+                        </div>
+                        <p class="insight-text mb-1">15/30kg este mes</p>
+                        <div class="progress-container" style="height: 4px;">
+                            <div class="progress-fill" style="width: 50%;"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Impact Summary -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="dashboard-card animate-fade-in" style="animation-delay: 0.7s; background: var(--bg-gradient-main); color: var(--text-white);">
+            <div class="card-body text-center">
+                <h5 class="mb-3">🌍 Tu Impacto Ambiental</h5>
+                <div class="row">
+                    <div class="col-6 col-md-3">
+                        <div class="impact-stat">
+                            <div class="h4 mb-1">{{ user.arboles_salvados|default:12 }}</div>
+                            <div class="small opacity-75">Árboles Salvados</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="impact-stat">
+                            <div class="h4 mb-1">{{ user.agua_ahorrada|default:2840 }}</div>
+                            <div class="small opacity-75">Litros de Agua Ahorrados</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="impact-stat">
+                            <div class="h4 mb-1">{{ user.energia_ahorrada|default:156 }}</div>
+                            <div class="small opacity-75">kWh de Energía Ahorrados</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="impact-stat">
+                            <div class="h4 mb-1">{{ user.residuos_evitados|default:89 }}</div>
+                            <div class="small opacity-75">Kg Residuos Evitados</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'historial' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-chart-pie me-2"></i>Ver Impacto Detallado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-icon {
+    opacity: 0.8;
+}
+
+.stat-value {
+    font-weight: var(--font-weight-bold);
+    font-size: 1.5rem !important;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: var(--font-weight-medium);
+}
+
+.stat-trend .badge {
+    font-size: 10px;
+    padding: 0.25rem 0.4rem;
+}
+
+.chart-placeholder {
+    border: 2px dashed var(--border-color);
+}
+
+.insight-item {
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.insight-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0 !important;
+}
+
+.insight-icon {
+    font-size: var(--font-size-sm);
+}
+
+.insight-title {
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+}
+
+.insight-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.impact-stat {
+    padding: var(--spacing-sm);
+}
+
+/* Animaciones para los números */
+@keyframes countUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.stat-value {
+    animation: countUp 0.8s ease-out forwards;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+    .stat-value {
+        font-size: 1.25rem !important;
+    }
+    
+    .stat-icon i {
+        font-size: 1.5rem !important;
+    }
+    
+    .impact-stat .h4 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .card-actions select {
+        font-size: var(--font-size-xs);
+    }
+    
+    .chart-container {
+        height: 150px !important;
+    }
+    
+    .impact-stat {
+        padding: var(--spacing-xs);
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animaciones de contadores DESACTIVADAS para mejor experiencia UX
+    // Los valores se muestran directamente sin animación
+    
+    // Animar barras de progreso de insights (mantenemos solo estas)
+    const progressBars = document.querySelectorAll('.insight-item .progress-fill');
+    progressBars.forEach((bar, index) => {
+        setTimeout(() => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            bar.style.transition = 'width 1s ease-out';
+            
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 50);
+        }, 800 + (index * 200));
+    });
+});
+</script>

@@ -1,0 +1,279 @@
+<!-- ============================================
+     ⚡ QUICK ACTIONS COMPONENT - ECOPUNTOS
+     ============================================ -->
+{% load static %}
+
+<div class="col-lg-4">
+    <div class="section-header mb-4 animate-fade-in" style="animation-delay: 0.2s;">
+        <h2><i class="fas fa-bolt me-2" style="color: var(--accent)"></i>Acciones Rápidas</h2>
+        <p>Accesos directos para una mejor experiencia</p>
+    </div>
+    
+    <div class="quick-actions-container">
+        <!-- Registrar Canje -->
+        <a href="{% url 'canjes' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.3s;">
+            <div class="action-icon" style="background: linear-gradient(135deg, var(--success), #4caf50);">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <div class="action-content">
+                <h6 class="action-title">Registrar Canje</h6>
+                <p class="action-description">Agrega nuevos materiales reciclables y gana puntos</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+
+        <!-- Ver Mis Canjes -->
+        <a href="{% url 'historial' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.4s;">
+            <div class="action-icon" style="background: linear-gradient(135deg, var(--secondary), #1976d2);">
+                <i class="fas fa-list-alt"></i>
+            </div>
+            <div class="action-content">
+                <h6 class="action-title">Mis Canjes</h6>
+                <p class="action-description">Revisa el historial de tus canjes realizados</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+
+        <!-- Explorar Categorías -->
+        <a href="{% url 'categorias' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.5s;">
+            <div class="action-icon" style="background: linear-gradient(135deg, var(--accent), #f57c00);">
+                <i class="fas fa-th-large"></i>
+            </div>
+            <div class="action-content">
+                <h6 class="action-title">Explorar Categorías</h6>
+                <p class="action-description">Descubre todos los materiales reciclables</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+
+        <!-- Mi Perfil -->
+        <a href="{% url 'perfil' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.6s;">
+            <div class="action-icon" style="background: linear-gradient(135deg, #9c27b0, #673ab7);">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="action-content">
+                <h6 class="action-title">Mi Perfil</h6>
+                <p class="action-description">Personaliza tu cuenta y configuración</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+
+        <!-- Ranking -->
+        <a href="{% url 'ranking' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.7s;">
+            <div class="action-icon" style="background: linear-gradient(135deg, #00bcd4, #0097a7);">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="action-content">
+                <h6 class="action-title">Ranking</h6>
+                <p class="action-description">Ve tu posición en el ranking</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+
+        <!-- Soporte -->
+        <a href="{% url 'soportusu' %}" class="quick-action-card animate-slide-in-right" style="animation-delay: 0.8s;">
+            <div class="action-icon" style="background: linear-gradient(135deg, #795548, #5d4037);">
+                <i class="fas fa-headset"></i>
+            </div>
+            <div class="action-content">
+                <h6 class="action-title">Soporte</h6>
+                <p class="action-description">Obtén ayuda y contacta con nosotros</p>
+            </div>
+            <div class="action-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- Quick Stats Card -->
+    <div class="mt-4">
+        <div class="dashboard-card animate-scale-in" style="animation-delay: 0.9s;">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-zap me-2 text-warning"></i>
+                    Resumen Rápido
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="text-center p-2 rounded" style="background: var(--bg-secondary);">
+                            <div class="h5 mb-1 text-primary">{{ user.puntos|default:0 }}</div>
+                            <div class="small text-muted">Puntos</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-2 rounded" style="background: var(--bg-secondary);">
+                            <div class="h5 mb-1 text-success">{{ user.canjes_count|default:0 }}</div>
+                            <div class="small text-muted">Canjes</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-2 rounded" style="background: var(--bg-secondary);">
+                            <div class="h5 mb-1 text-info">{{ user.nivel|default:'Bronce' }}</div>
+                            <div class="small text-muted">Nivel</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-2 rounded" style="background: var(--bg-secondary);">
+                            <div class="h5 mb-1 text-warning">{{ user.kg_reciclados|default:0 }}</div>
+                            <div class="small text-muted">Kg Total</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="mt-4">
+        <div class="dashboard-card animate-scale-in" style="animation-delay: 1s;">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>
+                    Tip Ecológico del Día
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="ecoTip" class="text-center">
+                    <div class="mb-2">
+                        <i class="fas fa-leaf" style="font-size: 2rem; color: var(--success);"></i>
+                    </div>
+                    <p class="mb-0 small" id="tipText">Cargando tip ecológico...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="mt-4">
+        <div class="dashboard-card" style="background: var(--bg-gradient-main); border: none; color: var(--text-white);">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-rocket" style="font-size: 2.5rem;"></i>
+                </div>
+                <h6 class="mb-2">¡Impulsa tu Impacto!</h6>
+                <p class="small mb-3 opacity-75">Invita amigos y gana bonificaciones especiales</p>
+                <button class="btn btn-light btn-sm" onclick="alert('Función de invitar amigos próximamente disponible')">
+                    <i class="fas fa-share-alt me-2"></i>Invitar Amigos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tips ecológicos rotativos
+const ecoTips = [
+    "💡 Separar correctamente los residuos puede ahorrar hasta un 30% de energía en el reciclaje.",
+    "🌱 Un solo aluminio reciclado puede alimentar un televisor por 3 horas.",
+    "🧻 Reciclar una tonelada de papel salva 17 árboles y 26,000 litros de agua.",
+    "♻️ El vidrio puede reciclarse infinitas veces sin perder calidad.",
+    "📱 Los celulares contienen oro, plata y otros metales preciosos recuperables.",
+    "🌍 El reciclaje reduce las emisiones de CO2 hasta en un 85%.",
+    "💧 Reutilizar botellas plásticas evita que contaminen océanos por 450 años.",
+    "🔋 Las baterías recicladas evitan la contaminación de hasta 600,000 litros de agua."
+];
+
+let currentTipIndex = 0;
+
+function showRandomTip() {
+    const tipElement = document.getElementById('tipText');
+    if (tipElement) {
+        const randomIndex = Math.floor(Math.random() * ecoTips.length);
+        tipElement.textContent = ecoTips[randomIndex];
+        tipElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            tipElement.style.transition = 'opacity 0.5s ease-in-out';
+            tipElement.style.opacity = '1';
+        }, 100);
+    }
+}
+
+function rotateTips() {
+    setInterval(() => {
+        showRandomTip();
+    }, 10000); // Cambiar cada 10 segundos
+}
+
+// Inicializar tips
+document.addEventListener('DOMContentLoaded', function() {
+    showRandomTip();
+    rotateTips();
+    
+    // Agregar efectos hover mejorados
+    const actionCards = document.querySelectorAll('.quick-action-card');
+    
+    actionCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(8px) scale(1.02)';
+            this.style.boxShadow = 'var(--shadow-xl)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0) scale(1)';
+            this.style.boxShadow = 'var(--card-shadow)';
+        });
+    });
+    
+    // Tracking de clics para analytics
+    actionCards.forEach((card, index) => {
+        card.addEventListener('click', function() {
+            const actionName = this.querySelector('.action-title').textContent;
+            console.log(`Quick Action clicked: ${actionName}`);
+            
+            // Aquí puedes agregar tracking de analytics
+            if (window.ecoAnalytics) {
+                window.ecoAnalytics.trackEvent('quick_action_click', {
+                    action: actionName,
+                    position: index + 1
+                });
+            }
+        });
+    });
+});
+
+// Función para mostrar badge de nuevo en acciones
+function showNewBadge(actionSelector) {
+    const action = document.querySelector(actionSelector);
+    if (action) {
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-danger position-absolute';
+        badge.style.cssText = 'top: 10px; right: 10px; font-size: 0.7rem;';
+        badge.textContent = 'NUEVO';
+        action.style.position = 'relative';
+        action.appendChild(badge);
+    }
+}
+
+// Función para destacar acción recomendada
+function highlightRecommendedAction() {
+    const userPoints = {{ user.puntos|default:0 }};
+    const userCanjes = {{ user.canjes_count|default:0 }};
+    
+    // Lógica para recomendar acciones basada en el comportamiento del usuario
+    if (userCanjes === 0) {
+        // Usuario nuevo - destacar registro de canje
+        showNewBadge('.quick-action-card:first-child');
+    } else if (userPoints > 100 && userCanjes < 5) {
+        // Usuario con puntos pero pocos canjes - destacar explorar categorías
+        showNewBadge('.quick-action-card:nth-child(3)');
+    }
+}
+
+// Ejecutar recomendaciones al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(highlightRecommendedAction, 2000);
+});
+</script>

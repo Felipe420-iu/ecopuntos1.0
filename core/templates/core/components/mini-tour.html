@@ -1,0 +1,192 @@
+<!-- ============================================
+     🎯 MINI TOUR COMPONENT - ECOPUNTOS
+     ============================================ -->
+{% load static %}
+
+<div id="miniTour" class="mini-tour">
+    <!-- Paso 1: Bienvenida Personalizada -->
+    <div id="step1" class="tour-step">
+        <h4 class="tour-title">
+            <i class="fas fa-seedling me-3"></i>
+            ¡Bienvenido a EcoPuntos, {{ user.first_name|default:user.username }}!
+        </h4>
+        <div class="tour-content">
+            <p class="mb-3">🎉 Tienes <span class="text-warning fw-bold">{{ user.puntos }}</span> puntos acumulados</p>
+            <div class="tour-highlight">
+                <p class="mb-2">🌍 Tu plataforma de reciclaje inteligente:</p>
+                <div class="mb-0">
+                    ✨ <strong>Convierte residuos</strong> en recompensas increíbles<br>
+                    🌱 <strong>Salva el planeta</strong> una acción a la vez<br>
+                    🎁 <strong>Desbloquea productos</strong> y experiencias únicas
+                </div>
+            </div>
+        </div>
+        <div class="tour-navigation">
+            <button onclick="skipTour()" class="btn btn-tour-secondary">
+                <i class="fas fa-forward me-2"></i>Saltar
+            </button>
+            <button onclick="nextStep()" class="btn btn-tour">
+                <i class="fas fa-arrow-right me-2"></i>¡Comenzar!
+            </button>
+        </div>
+    </div>
+
+    <!-- Paso 2: Cómo ganar puntos -->
+    <div id="step2" class="tour-step" style="display: none;">
+        <h4 class="tour-title">
+            <i class="fas fa-coins me-3"></i>
+            ¡Gana Puntos Como Un Pro!
+        </h4>
+        <div class="tour-content">
+            <p class="mb-3">💰 <strong>Cada material vale puntos reales:</strong></p>
+            <div class="tour-highlight">
+                <div class="row">
+                    <div class="col-6">
+                        <div>📄 <strong>Papel:</strong> <span class="text-warning">10 pts/kg</span></div>
+                        <div>🥤 <strong>Plástico:</strong> <span class="text-warning">15 pts/kg</span></div>
+                    </div>
+                    <div class="col-6">
+                        <div>🍾 <strong>Vidrio:</strong> <span class="text-warning">12 pts/kg</span></div>
+                        <div>🔧 <strong>Metal:</strong> <span class="text-warning">20 pts/kg</span></div>
+                    </div>
+                </div>
+                <div class="mt-2 pt-2 border-top border-light">
+                    📱 <strong>Electrónicos:</strong> <span class="text-info">Puntos variables</span> según dispositivo
+                </div>
+            </div>
+            <p class="text-center mb-0">
+                🎯 <strong>Proceso súper fácil:</strong> Selecciona → Pesa → ¡Gana!
+            </p>
+        </div>
+        <div class="tour-navigation">
+            <button onclick="prevStep()" class="btn btn-tour-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Anterior
+            </button>
+            <button onclick="nextStep()" class="btn btn-tour">
+                <i class="fas fa-arrow-right me-2"></i>Siguiente
+            </button>
+        </div>
+    </div>
+
+    <!-- Paso 3: Navegación -->
+    <div id="step3" class="tour-step" style="display: none;">
+        <h4 class="tour-title">
+            <i class="fas fa-map me-3"></i>
+            Navega Como Un Experto
+        </h4>
+        <div class="tour-content">
+            <div class="tour-highlight">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-tachometer-alt text-warning me-3" style="width: 25px;"></i>
+                    <div><strong>Dashboard:</strong> Tu centro de comando personal</div>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-plus-circle text-success me-3" style="width: 25px;"></i>
+                    <div><strong>Registrar:</strong> Agrega materiales y gana al instante</div>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-user-circle text-warning me-3" style="width: 25px;"></i>
+                    <div><strong>Mi Cuenta:</strong> Personaliza tu experiencia</div>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-chart-bar text-purple me-3" style="width: 25px;"></i>
+                    <div><strong>Estadísticas:</strong> Visualiza tu impacto ambiental</div>
+                </div>
+                <div class="d-flex align-items-center mb-0">
+                    <i class="fas fa-headset text-info me-3" style="width: 25px;"></i>
+                    <div><strong>Soporte 24/7:</strong> Ayuda siempre disponible</div>
+                </div>
+            </div>
+        </div>
+        <div class="tour-navigation">
+            <button onclick="prevStep()" class="btn btn-tour-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Anterior
+            </button>
+            <button onclick="finishTour()" class="btn btn-tour">
+                <i class="fas fa-rocket me-2"></i>¡COMENZAR AHORA!
+            </button>
+        </div>
+    </div>
+
+    <!-- Indicadores de progreso -->
+    <div class="tour-indicators">
+        <span id="dot1" class="tour-dot active"></span>
+        <span id="dot2" class="tour-dot"></span>
+        <span id="dot3" class="tour-dot"></span>
+    </div>
+</div>
+
+<script>
+// Sistema de Mini Tour
+let currentTourStep = 1;
+const totalTourSteps = 3;
+
+function nextStep() {
+    if (currentTourStep < totalTourSteps) {
+        document.getElementById('step' + currentTourStep).style.display = 'none';
+        currentTourStep++;
+        document.getElementById('step' + currentTourStep).style.display = 'block';
+        updateTourDots();
+    }
+}
+
+function prevStep() {
+    if (currentTourStep > 1) {
+        document.getElementById('step' + currentTourStep).style.display = 'none';
+        currentTourStep--;
+        document.getElementById('step' + currentTourStep).style.display = 'block';
+        updateTourDots();
+    }
+}
+
+function skipTour() {
+    document.getElementById('miniTour').style.display = 'none';
+    localStorage.setItem('ecopuntos_tour_skipped', 'true');
+}
+
+function finishTour() {
+    document.getElementById('miniTour').style.display = 'none';
+    localStorage.setItem('ecopuntos_tour_completed', 'true');
+    
+    // Mostrar mensaje de felicitación
+    showSuccessToast('¡Tutorial completado! Ya conoces todas las funciones principales.');
+}
+
+function updateTourDots() {
+    for (let i = 1; i <= totalTourSteps; i++) {
+        const dot = document.getElementById('dot' + i);
+        if (i === currentTourStep) {
+            dot.classList.add('active');
+        } else {
+            dot.classList.remove('active');
+        }
+    }
+}
+
+function showSuccessToast(message) {
+    // Crear toast de éxito temporal
+    const toast = document.createElement('div');
+    toast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 10000; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 4000);
+}
+
+// Verificar si el tour ya fue completado o saltado
+document.addEventListener('DOMContentLoaded', function() {
+    const tourCompleted = localStorage.getItem('ecopuntos_tour_completed');
+    const tourSkipped = localStorage.getItem('ecopuntos_tour_skipped');
+    
+    if (tourCompleted || tourSkipped) {
+        document.getElementById('miniTour').style.display = 'none';
+    }
+});
+</script>

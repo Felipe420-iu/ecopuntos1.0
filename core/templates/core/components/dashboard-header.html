@@ -1,0 +1,299 @@
+<!-- ============================================
+     📊 DASHBOARD HEADER COMPONENT - ECOPUNTOS
+     ============================================ -->
+{% load static %}
+
+<div class="welcome-container">
+    <div class="welcome-avatar">
+        {% if user.foto_perfil %}
+            <img src="{{ user.foto_perfil.url }}?v={{ user.last_login|date:'U'|default:'0' }}" 
+                 alt="Foto de perfil" 
+                 class="profile-image">
+        {% else %}
+            <div class="profile-image avatar-dashboard">
+                {{ user.get_avatar_svg|safe }}
+            </div>
+        {% endif %}
+        <div class="welcome-status-indicator" title="En línea"></div>
+    </div>
+    
+    <div class="welcome-text">
+        <h1 class="welcome-title">
+            ¡Hola, <span class="user-highlight">{{ user.first_name|default:user.username }}</span>! 👋
+        </h1>
+        <p class="welcome-subtitle">
+            Bienvenido a tu panel de control. Aquí puedes gestionar tus puntos, explorar categorías de reciclaje y revisar tu actividad.
+        </p>
+        
+        <!-- Quick Stats -->
+        <div class="quick-stats d-flex gap-4 mt-3 d-none d-md-flex">
+            <div class="quick-stat-item">
+                <div class="stat-value text-primary">{{ user.puntos|default:0 }}</div>
+                <div class="stat-label">Puntos</div>
+            </div>
+            <div class="quick-stat-item">
+                <div class="stat-value text-success">{{ user.nivel|default:'Bronce' }}</div>
+                <div class="stat-label">Nivel</div>
+            </div>
+            <div class="quick-stat-item">
+                <div class="stat-value text-warning">{{ user.kg_reciclados|default:0 }}</div>
+                <div class="stat-label">Kg Reciclados</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="header-actions">
+        <!-- Campana de Notificaciones -->
+        <div class="notification-container">
+            <div class="notification-icon" id="notificationIcon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationBadge">0</span>
+            </div>
+            
+            <!-- Dropdown de notificaciones -->
+            <div class="notification-dropdown" id="notificationDropdown">
+                <div class="notification-header">
+                    <h6>Notificaciones</h6>
+                    <span class="notification-count" id="notificationCount">0 nuevas</span>
+                </div>
+                <div class="notification-list" id="notificationList">
+                    <!-- Las notificaciones se cargan dinámicamente -->
+                </div>
+                <div class="notification-footer">
+                    <button class="btn btn-sm btn-outline-secondary" id="markAllRead">
+                        <i class="fas fa-check me-1"></i>Marcar todas
+                    </button>
+                    <a href="{% url 'notificaciones' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-list me-1"></i>Ver todas
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Menu Dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" 
+                    type="button" 
+                    id="userMenuDropdown" 
+                    data-bs-toggle="dropdown" 
+                    aria-expanded="false">
+                <i class="fas fa-user-circle me-2"></i>
+                <span class="d-none d-sm-inline">{{ user.username }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuDropdown">
+                <li>
+                    <a class="dropdown-item" href="{% url 'perfil' %}">
+                        <i class="fas fa-user me-2"></i>Mi Perfil
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'historial' %}">
+                        <i class="fas fa-history me-2"></i>Mi Historial
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'logros' %}">
+                        <i class="fas fa-trophy me-2"></i>Mis Logros
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'soportusu' %}">
+                        <i class="fas fa-headset me-2"></i>Soporte
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Progress to Next Level -->
+{% if user.progreso_nivel %}
+<div class="level-progress-container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small text-muted">Progreso al siguiente nivel</span>
+        <span class="small fw-bold text-primary">{{ user.porcentaje_progreso|default:0 }}%</span>
+    </div>
+    <div class="progress-container">
+        <div class="progress-fill" style="width: {{ user.porcentaje_progreso|default:0 }}%;"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-1">
+        <span class="small text-muted">{{ user.nivel_actual|default:'Bronce' }}</span>
+        <span class="small text-muted">{{ user.siguiente_nivel|default:'Plata' }}</span>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* Quick Stats Styles */
+.quick-stats {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color-light);
+}
+
+.quick-stat-item {
+    text-align: center;
+    min-width: 60px;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Level Progress */
+.level-progress-container {
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color-light);
+}
+
+/* User Menu Enhancements */
+.dropdown-menu {
+    border: none;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+}
+
+.dropdown-item {
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: var(--transition-fast);
+}
+
+.dropdown-item:hover {
+    background: var(--bg-secondary);
+    transform: translateX(2px);
+}
+
+.dropdown-item.text-danger:hover {
+    background: rgba(var(--danger), 0.1);
+    color: var(--danger) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .welcome-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--spacing-md);
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+    
+    .quick-stats {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+        margin-top: 0;
+        margin-bottom: var(--spacing-md);
+        padding-top: 0;
+        border-top: none;
+        border-bottom: 1px solid var(--border-color-light);
+        padding-bottom: var(--spacing-md);
+    }
+    
+    .welcome-text {
+        width: 100%;
+    }
+    
+    .welcome-title {
+        font-size: var(--font-size-2xl);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .stat-value {
+        font-size: 1rem;
+    }
+    
+    .welcome-title {
+        font-size: var(--font-size-xl);
+    }
+    
+    .welcome-subtitle {
+        font-size: var(--font-size-sm);
+    }
+}
+</style>
+
+<script>
+// Header interactivity
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate quick stats on load
+    const statValues = document.querySelectorAll('.stat-value');
+    statValues.forEach((stat, index) => {
+        setTimeout(() => {
+            stat.style.opacity = '0';
+            stat.style.transform = 'translateY(10px)';
+            stat.style.transition = 'all 0.5s ease-out';
+            
+            setTimeout(() => {
+                stat.style.opacity = '1';
+                stat.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 100);
+    });
+    
+    // Level progress animation
+    const progressFill = document.querySelector('.level-progress-container .progress-fill');
+    if (progressFill) {
+        setTimeout(() => {
+            const width = progressFill.style.width;
+            progressFill.style.width = '0%';
+            progressFill.style.transition = 'width 2s ease-out';
+            
+            setTimeout(() => {
+                progressFill.style.width = width;
+            }, 100);
+        }, 500);
+    }
+    
+    // Status indicator pulse
+    const statusIndicator = document.querySelector('.welcome-status-indicator');
+    if (statusIndicator) {
+        setInterval(() => {
+            statusIndicator.style.animation = 'pulse 2s ease-in-out';
+            setTimeout(() => {
+                statusIndicator.style.animation = '';
+            }, 2000);
+        }, 5000);
+    }
+});
+
+// Pulse animation
+const pulseStyles = `
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = pulseStyles;
+document.head.appendChild(styleSheet);
+</script>

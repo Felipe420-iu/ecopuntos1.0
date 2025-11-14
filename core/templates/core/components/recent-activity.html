@@ -1,0 +1,225 @@
+<!-- ============================================
+     📈 RECENT ACTIVITY COMPONENT - ECOPUNTOS
+     ============================================ -->
+{% load static %}
+
+<div class="section-header mb-4 animate-fade-in">
+    <h2><i class="fas fa-history me-2" style="color: var(--info)"></i>Actividad Reciente</h2>
+    <p>Revisa tus últimas acciones y logros en la plataforma</p>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Últimas Actividades</h6>
+                <a href="{% url 'historial_completo' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>Ver Todo
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="activity-timeline">
+                    
+                    <!-- Actividad 1 -->
+                    <div class="activity-item animate-slide-in-left" style="animation-delay: 0.1s;">
+                        <div class="activity-icon" style="background: var(--success);">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Canje Registrado</div>
+                            <div class="activity-subtitle">Registraste 2.5kg de plásticos PET</div>
+                            <div class="activity-time">Hace 2 horas</div>
+                        </div>
+                        <div class="activity-points">
+                            <span class="badge badge-success">+38 pts</span>
+                        </div>
+                    </div>
+
+                    <!-- Actividad 2 -->
+                    <div class="activity-item animate-slide-in-left" style="animation-delay: 0.2s;">
+                        <div class="activity-icon" style="background: var(--warning);">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Juego Completado</div>
+                            <div class="activity-subtitle">Clasificación de Vidrios - Nivel 3</div>
+                            <div class="activity-time">Hace 5 horas</div>
+                        </div>
+                        <div class="activity-points">
+                            <span class="badge badge-warning">+15 pts</span>
+                        </div>
+                    </div>
+
+                    <!-- Actividad 3 -->
+                    <div class="activity-item animate-slide-in-left" style="animation-delay: 0.3s;">
+                        <div class="activity-icon" style="background: var(--info);">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Logro Desbloqueado</div>
+                            <div class="activity-subtitle">¡Has alcanzado el rango Eco Warrior!</div>
+                            <div class="activity-time">Ayer</div>
+                        </div>
+                        <div class="activity-points">
+                            <span class="badge badge-info">Logro</span>
+                        </div>
+                    </div>
+
+                    <!-- Actividad 4 -->
+                    <div class="activity-item animate-slide-in-left" style="animation-delay: 0.4s;">
+                        <div class="activity-icon" style="background: var(--primary);">
+                            <i class="fas fa-recycle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Material Procesado</div>
+                            <div class="activity-subtitle">Tu canje de papel fue procesado exitosamente</div>
+                            <div class="activity-time">Hace 2 días</div>
+                        </div>
+                        <div class="activity-points">
+                            <span class="badge badge-primary">Procesado</span>
+                        </div>
+                    </div>
+
+                    <!-- Actividad 5 -->
+                    <div class="activity-item animate-slide-in-left" style="animation-delay: 0.5s;">
+                        <div class="activity-icon" style="background: var(--secondary);">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Referido Exitoso</div>
+                            <div class="activity-subtitle">Tu amigo se unió a EcoPuntos</div>
+                            <div class="activity-time">Hace 3 días</div>
+                        </div>
+                        <div class="activity-points">
+                            <span class="badge badge-secondary">+50 pts</span>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- Empty state si no hay actividad -->
+                <div class="empty-activity" style="display: none;">
+                    <div class="text-center py-5">
+                        <i class="fas fa-history text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h6 class="text-muted">No hay actividad reciente</h6>
+                        <p class="text-muted mb-3">¡Comienza registrando tu primer canje!</p>
+                        <a href="{% url 'canjes' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Registrar Canje
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.activity-timeline {
+    position: relative;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--border-color-light);
+    gap: var(--spacing-md);
+    transition: var(--transition-normal);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-sm);
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    margin: 0 calc(var(--spacing-md) * -1);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-white);
+    font-size: var(--font-size-base);
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    line-height: var(--line-height-tight);
+}
+
+.activity-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+    line-height: var(--line-height-normal);
+}
+
+.activity-time {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    line-height: var(--line-height-normal);
+}
+
+.activity-points {
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .activity-content {
+        width: 100%;
+        order: 1;
+    }
+    
+    .activity-icon {
+        order: 0;
+        align-self: flex-start;
+    }
+    
+    .activity-points {
+        order: 2;
+        align-self: flex-end;
+        margin-top: var(--spacing-xs);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .activity-icon {
+        width: 35px;
+        height: 35px;
+        font-size: var(--font-size-sm);
+    }
+    
+    .activity-title {
+        font-size: var(--font-size-sm);
+    }
+    
+    .activity-subtitle {
+        font-size: var(--font-size-xs);
+    }
+}
+</style>

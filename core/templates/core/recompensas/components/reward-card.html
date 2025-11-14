@@ -1,0 +1,159 @@
+<!-- ============================================
+     🏆 TARJETA DE RECOMPENSA INDIVIDUAL  
+     ============================================ -->
+<div class="reward-card fade-in 
+    {% if recompensa.stock <= 0 %}out-of-stock{% endif %}
+    {% if user.puntos < recompensa.puntos_requeridos %}insufficient-points{% endif %}"
+    data-points="{{ recompensa.puntos_requeridos }}"
+    data-category="{{ recompensa.categoria.id|default:'' }}"
+    data-name="{{ recompensa.nombre|lower }}">
+    
+    <!-- Imagen de la recompensa -->
+    <div class="reward-image-container">
+        {% if recompensa.imagen %}
+            <img src="{{ recompensa.imagen.url }}" 
+                 alt="{{ recompensa.nombre }}" 
+                 class="reward-image"
+                 onerror="this.src='{% static 'core/img/recom.jpg' %}';">
+        {% else %}
+            <img src="{% static 'core/img/recom.jpg' %}" 
+                 alt="{{ recompensa.nombre }}" 
+                 class="reward-image">
+        {% endif %}
+        
+        <!-- Botón de favorito -->
+        <button class="favorite-btn {% if recompensa.id in favoritos_ids %}active{% endif %}" 
+                onclick="toggleFavorito({{ recompensa.id }}, this)"
+                data-recompensa-id="{{ recompensa.id }}">
+            <i class="fas fa-heart"></i>
+        </button>
+        
+        <!-- Badge de categoría -->
+        {% if recompensa.categoria %}
+        <div class="reward-badge">
+            {{ recompensa.categoria.nombre }}
+        </div>
+        {% endif %}
+        
+        <!-- Badges adicionales -->
+        {% if recompensa.es_nuevo %}
+        <div class="reward-badge nuevo">Nuevo</div>
+        {% endif %}
+        {% if recompensa.es_popular %}
+        <div class="reward-badge popular">Popular</div>
+        {% endif %}
+        {% if recompensa.es_oferta %}
+        <div class="reward-badge oferta">Oferta</div>
+        {% endif %}
+    </div>
+
+    <!-- Contenido de la tarjeta -->
+    <div class="reward-content">
+        <h4 class="reward-title">{{ recompensa.nombre }}</h4>
+        <p class="reward-description">{{ recompensa.descripcion|truncatechars:100 }}</p>
+        
+        <div class="reward-meta">
+            <div class="reward-points">
+                <span class="points-value">{{ recompensa.puntos_requeridos|floatformat:0 }}</span>
+                <span class="points-label">puntos</span>
+            </div>
+            
+            <div class="reward-stock">
+                <span class="stock-indicator 
+                    {% if recompensa.stock <= 0 %}out{% elif recompensa.stock <= 5 %}low{% endif %}">
+                </span>
+                {% if recompensa.stock <= 0 %}
+                    Agotado
+                {% elif recompensa.stock <= 5 %}
+                    Quedan {{ recompensa.stock }} unidades
+                {% else %}
+                    Disponible ({{ recompensa.stock }} unidades)
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer de la tarjeta -->
+    <div class="reward-footer">
+        {% if recompensa.stock > 0 %}
+            {% if user.puntos >= recompensa.puntos_requeridos %}
+                <button class="btn-exchange" onclick="abrirModalCanje({{ recompensa.id }})">
+                    <i class="fas fa-exchange-alt me-2"></i>Canjear
+                </button>
+            {% else %}
+                <button class="btn-exchange" disabled>
+                    <i class="fas fa-coins me-2"></i>
+                    Puntos insuficientes
+                </button>
+            {% endif %}
+        {% else %}
+            <button class="btn-exchange" disabled>
+                <i class="fas fa-times me-2"></i>Agotado
+            </button>
+        {% endif %}
+    </div>
+</div>
+            </div>
+            
+            <!-- Botón de favorito -->
+            <button class="favorite-btn {% if recompensa.id in favoritos_ids %}active{% endif %}" 
+                    data-recompensa-id="{{ recompensa.id }}">
+                <i class="fas fa-heart"></i>
+            </button>
+        </div>
+        
+        <div class="reward-content">
+            <h3 class="reward-title">{{ recompensa.nombre }}</h3>
+            <p class="reward-description">{{ recompensa.descripcion }}</p>
+            
+            <div class="reward-info">
+                <div class="reward-points">
+                    <i class="fas fa-star"></i>
+                    {{ recompensa.puntos_requeridos }} Puntos
+                </div>
+                
+                <!-- Barra de progreso -->
+                {% if user.puntos < recompensa.puntos_requeridos %}
+                    {% widthratio user.puntos recompensa.puntos_requeridos 100 as progreso %}
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-progress="{{ progreso }}"></div>
+                    </div>
+                    <div class="progress-text">
+                        Te faltan {{ recompensa.puntos_requeridos|add:"-"|add:user.puntos }} puntos
+                    </div>
+                {% endif %}
+                
+                <!-- Información de stock -->
+                <div class="stock-info">
+                    <i class="fas fa-box"></i>
+                    {% if recompensa.stock > 0 %}
+                        {{ recompensa.stock }} disponibles
+                    {% else %}
+                        Sin stock
+                    {% endif %}
+                    {% if recompensa.veces_canjeada > 0 %}
+                        • {{ recompensa.veces_canjeada }} canjeadas
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="reward-actions">
+                {% if recompensa.stock > 0 %}
+                    {% if recompensa in recompensas_reclamables %}
+                        <button type="button" class="reward-btn canje-btn" 
+                                data-recompensa-id="{{ recompensa.id }}" 
+                                data-nombre="{{ recompensa.nombre|escapejs }}" 
+                                data-puntos="{{ recompensa.puntos_requeridos }}" 
+                                data-stock="{{ recompensa.stock }}">
+                            🎁 Canjear Ahora
+                        </button>
+                    {% else %}
+                        <button class="reward-btn" disabled>💰 Puntos insuficientes</button>
+                    {% endif %}
+                {% else %}
+                    <button class="reward-btn" disabled>📦 Sin stock</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

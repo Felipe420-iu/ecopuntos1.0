@@ -42,6 +42,9 @@
                 <button class="mini-action-btn" onclick="openFullChat()">
                     <i class="fas fa-expand"></i> Chat Completo
                 </button>
+                <button class="mini-action-btn" onclick="requestHumanSupport()" style="margin-left: 5px;">
+                    <i class="fas fa-user"></i> Soporte Humano
+                </button>
             </div>
         </div>
     </div>
@@ -383,18 +386,23 @@
 <script>
 let miniChatSocket = null;
 let isMiniChatOpen = false;
+let isHumanSupportRequested = false;
 
 function updateConnectionStatus(text, color) {
-    const statusText = document.getElementById('status-text');
-    const onlineIndicator = document.querySelector('.online-indicator');
-    
-    if (statusText) {
-        statusText.textContent = text;
-        statusText.style.color = color;
-    }
-    
-    if (onlineIndicator) {
-        onlineIndicator.style.background = color;
+    try {
+        const statusText = document.getElementById('status-text');
+        const onlineIndicator = document.querySelector('.online-indicator');
+        
+        if (statusText) {
+            statusText.textContent = text;
+            statusText.style.color = color;
+        }
+        
+        if (onlineIndicator) {
+            onlineIndicator.style.background = color;
+        }
+    } catch (error) {
+        console.error('Error updating connection status:', error);
     }
 }
 
@@ -470,14 +478,34 @@ function connectMiniChat() {
                 const data = JSON.parse(e.data);
                 console.log('📨 Mensaje recibido:', data);
                 
-                // Actualizar status a conectado cuando recibimos cualquier mensaje
-                updateConnectionStatus('Conectado', '#28a745');
+                // Actualizar status basado en el tipo de mensaje
+                if (data.type === 'human_connected') {
+                    updateConnectionStatus('Conectado con humano', '#2196f3');
+                    isHumanSupportRequested = true;
+                    const input = document.getElementById('mini-chat-input');
+                    if (input) {
+                        input.placeholder = 'Chateando con soporte humano...';
+                    }
+                } else if (data.type === 'human_disconnected') {
+                    updateConnectionStatus('Conectado con IA', '#28a745');
+                    isHumanSupportRequested = false;
+                    const input = document.getElementById('mini-chat-input');
+                    if (input) {
+                        input.placeholder = 'Escribe tu mensaje...';
+                    }
+                } else {
+                    updateConnectionStatus('Conectado', '#28a745');
+                }
                 
                 // Manejar diferentes tipos de mensajes
                 if (data.type === 'bot_message' || data.type === 'chatbot_message') {
                     addMiniMessage(data.message, 'bot');
+                } else if (data.type === 'human_message') {
+                    addMiniMessage('👤 ' + data.message, 'bot');
                 } else if (data.type === 'system_message') {
-                    addMiniMessage(data.message, 'bot');
+                    addMiniMessage('🔧 ' + data.message, 'bot');
+                } else if (data.type === 'human_support_confirmation') {
+                    addMiniMessage('✅ ' + (data.message || 'Conectando con soporte humano...'), 'bot');
                 } else if (data.type === 'error_message') {
                     addMiniMessage('❌ ' + data.message, 'bot');
                 } else if (data.message) {
@@ -516,32 +544,49 @@ function connectMiniChat() {
 }
 
 function sendMiniMessage() {
-    const input = document.getElementById('mini-chat-input');
-    if (!input) {
-        console.error('Input del mini chat no encontrado');
-        return;
-    }
-    
-    const message = input.value.trim();
-    
-    if (message) {
-        // Agregar mensaje del usuario inmediatamente
-        addMiniMessage(message, 'user');
-        
-        if (miniChatSocket && miniChatSocket.readyState === WebSocket.OPEN) {
-            console.log('📤 Enviando mensaje:', message);
-            miniChatSocket.send(JSON.stringify({
-                'type': 'user_message',
-                'message': message
-            }));
-        } else {
-            console.log('❌ WebSocket no conectado, reconectando...');
-            addMiniMessage('Reconectando...', 'bot');
-            connectMiniChat();
+    try {
+        const input = document.getElementById('mini-chat-input');
+        if (!input) {
+            console.error('Input del mini chat no encontrado');
+            return;
         }
         
-        // Limpiar input
-        input.value = '';
+        const message = input.value.trim();
+        
+        if (message) {
+            // Agregar mensaje del usuario inmediatamente
+            addMiniMessage(message, 'user');
+            
+            if (miniChatSocket && miniChatSocket.readyState === WebSocket.OPEN) {
+                console.log('📤 Enviando mensaje:', message);
+                const messageData = {
+                    'type': isHumanSupportRequested ? 'human_support_message' : 'user_message',
+                    'message': message,
+                    'support_requested': isHumanSupportRequested
+                };
+                miniChatSocket.send(JSON.stringify(messageData));
+            } else {
+                console.log('❌ WebSocket no conectado, reconectando...');
+                addMiniMessage('Reconectando...', 'bot');
+                connectMiniChat();
+                // Reenviar mensaje después de reconectar
+                setTimeout(() => {
+                    if (miniChatSocket && miniChatSocket.readyState === WebSocket.OPEN) {
+                        miniChatSocket.send(JSON.stringify({
+                            'type': isHumanSupportRequested ? 'human_support_message' : 'user_message',
+                            'message': message,
+                            'support_requested': isHumanSupportRequested
+                        }));
+                    }
+                }, 1000);
+            }
+            
+            // Limpiar input
+            input.value = '';
+        }
+    } catch (error) {
+        console.error('Error enviando mensaje:', error);
+        addMiniMessage('Error enviando mensaje. Por favor intenta de nuevo.', 'bot');
     }
 }
 
@@ -575,6 +620,46 @@ function addMiniMessage(message, sender) {
 
 function openFullChat() {
     window.open('/chatbot/', '_blank');
+}
+
+function requestHumanSupport() {
+    try {
+        if (!isHumanSupportRequested) {
+            isHumanSupportRequested = true;
+            addMiniMessage('Solicitando conexión con soporte humano...', 'bot');
+            
+            if (miniChatSocket && miniChatSocket.readyState === WebSocket.OPEN) {
+                miniChatSocket.send(JSON.stringify({
+                    'type': 'request_human_support',
+                    'message': 'Usuario solicita soporte humano desde mini chat'
+                }));
+            } else {
+                connectMiniChat();
+                setTimeout(() => {
+                    if (miniChatSocket && miniChatSocket.readyState === WebSocket.OPEN) {
+                        miniChatSocket.send(JSON.stringify({
+                            'type': 'request_human_support',
+                            'message': 'Usuario solicita soporte humano desde mini chat'
+                        }));
+                    }
+                }, 1000);
+            }
+            
+            // Actualizar estado visual
+            updateConnectionStatus('Conectando con humano...', '#ff9800');
+            
+            // Cambiar el placeholder del input
+            const input = document.getElementById('mini-chat-input');
+            if (input) {
+                input.placeholder = 'Esperando respuesta de soporte...';
+            }
+        } else {
+            addMiniMessage('Ya hay una solicitud de soporte humano activa.', 'bot');
+        }
+    } catch (error) {
+        console.error('Error solicitando soporte humano:', error);
+        addMiniMessage('Error al solicitar soporte humano. Por favor intenta de nuevo.', 'bot');
+    }
 }
 
 // Event listeners

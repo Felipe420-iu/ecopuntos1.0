@@ -1,0 +1,186 @@
+/* ===========================================================
+   ESTILOS ADICIONALES PARA MEJORAR LA GESTIÓN DE USUARIOS
+   =========================================================== */
+
+/* Modal de Creación de Usuario - Estilos mejorados */
+#crearUsuarioModal .modal-dialog {
+    max-width: 800px;
+}
+
+#crearUsuarioModal .modal-header {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-bottom: none;
+}
+
+#crearUsuarioModal .form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+#crearUsuarioModal .form-control:focus,
+#crearUsuarioModal .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+}
+
+/* Información de permisos */
+#permisosInfo {
+    margin-top: 1rem;
+    animation: fadeIn 0.3s ease-in;
+}
+
+#permisosInfo .alert {
+    border-left: 4px solid #17a2b8;
+}
+
+#permisosInfo ul {
+    padding-left: 1.5rem;
+}
+
+#permisosInfo li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Selector de roles con iconos */
+#role option {
+    padding: 10px;
+}
+
+/* Modal de Edición */
+#editarUsuarioModal .modal-header {
+    background: linear-gradient(135deg, #ffc107, #ffb300);
+}
+
+/* Modal de Cambio de Rol */
+#cambiarRolModal .modal-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+/* Badges de roles mejorados */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Switches mejorados */
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-check-input:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+}
+
+/* Botones con iconos */
+.btn i {
+    margin-right: 0.25rem;
+}
+
+/* Loading state */
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* Alertas personalizadas */
+.alert-warning {
+    border-left: 4px solid #ffc107;
+}
+
+/* Hover effects en la tabla */
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: scale(1.01);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #crearUsuarioModal .modal-dialog,
+    #editarUsuarioModal .modal-dialog {
+        max-width: 95%;
+        margin: 1rem auto;
+    }
+    
+    .action-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Animaciones de entrada de modales */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Tooltips personalizados */
+[data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+
+/* Sección de permisos estilizada */
+.alert-heading {
+    color: #17a2b8;
+    font-weight: 600;
+}
+
+/* Input groups mejorados */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+/* Estados de validación */
+.was-validated .form-control:valid {
+    border-color: #28a745;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+/* Mejora visual de badges en tabla */
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Separadores de sección */
+hr {
+    border-color: rgba(0, 0, 0, 0.1);
+    margin: 1.5rem 0;
+}
+
+/* Títulos de sección */
+h6.text-primary {
+    color: #007bff !important;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+h6.text-primary i {
+    margin-right: 0.5rem;
+}

@@ -386,8 +386,8 @@
     <!-- Sección Hero Modificada -->
     <section id="hero">
       <img src="" alt="">
-      <div class="hero-content">
-        <h1>NO VENDEMOS MAGIA  |  ¡LA RECICLAMOS!</h1>
+      <div class="hero-content" style="animation: none !important; transform: none !important;">
+        <h1 style="animation: none !important; transform: none !important;">NO VENDEMOS MAGIA  |  ¡LA RECICLAMOS!</h1>
         <p>En EcoPuntos, lo imposible se convierte en puntos y los puntos en impacto.</p>
         <a href="#como-funciona" class="btn btn-hero">mira como funciona</a>
       </div>
@@ -545,59 +545,13 @@
                 </div>
               </div>
 
-              <video controls width="100%" poster="{% static 'core/img/eco.jpg' %}">
-                <source src="{% static 'core/media/eco.mp4' %}" type="video/mp4">
-
               <video controls width="100%" poster="{% static 'core/img/video-poster.jpg' %}">
-                <source src="{{ MEDIA_URL }}ecopu.mp4" type="video/mp4">
-
+                <source src="{% static 'core/media/eco.mp4' %}" type="video/mp4">
                 Tu navegador no soporta el elemento de video.
               </video>
             </div>
           </div>
-          
-          <!-- Estadísticas -->
-          <div class="col-lg-6">
-            <div class="stats-container p-4">
-              <h3 class="mb-4" style="color: #4caf50;">Nuestro Impacto</h3>
-              
-              <!-- Estadística 1 -->
-              <div class="stat-item mb-4">
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="stat-label">Toneladas Recicladas</span>
-                  <span class="stat-value">1,500+</span>
-                </div>
-                <div class="progress" style="height: 10px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
-                </div>
-              </div>
-              
-              <!-- Estadística 2 -->
-              <div class="stat-item mb-4">
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="stat-label">Usuarios Activos</span>
-                  <span class="stat-value">5,000+</span>
-                </div>
-                <div class="progress" style="height: 10px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
-                </div>
-              </div>
-              
-              <!-- Estadística 3 -->
-              <div class="stat-item mb-4">
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="stat-label">Puntos Canjeados</span>
-                  <span class="stat-value">250,000+</span>
-                </div>
-                <div class="progress" style="height: 10px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: 65%"></div>
-                </div>
-              </div>
-              
-              <!-- Botón de Acción -->
-              <a href="{% url 'registrate' %}" class="btn btn-success btn-lg mt-3">
-                <i class="fas fa-leaf me-2"></i>Únete a Nosotros
-              </a>
+  
             </div>
           </div>
         </div>
@@ -1078,7 +1032,7 @@
           </div>
           <h2 style="color: #000000;">¡Valoramos tu contribución!</h2>
           <p style="color: #000000;">Tu contribución es fundamental para nuestro proyecto. ¡Únete a nosotros y contribuye al cambio!</p>
-          <a href="{% url 'iniciosesion' %}" class="btn btn-valor" style="color: #000000;">¡Contribuye ahora!</a>
+          <a href="#" class="btn btn-valor" style="color: #000000;" data-bs-toggle="modal" data-bs-target="#donationModal">¡Contribuye ahora!</a>
         </div>
         <div class="valor-decoration">
           <div class="decoration-circle circle-1"></div>
@@ -1087,25 +1041,6 @@
         </div>
       </div>
     </div>
-    <!-- Elemento llamativo debajo de categorías -->
-    <div class="container mt-5">
-      <div class="promo-banner">
-        <div class="promo-content">
-          <div class="promo-icon">
-            <i class="fas fa-star"></i>
-          </div>
-          <h2>¡Descubre más beneficios!</h2>
-          <p>Recicla con nosotros y obtén recompensas exclusivas. ¡Cuida el planeta mientras ganas!</p>
-          <a href="{% url 'iniciosesion' %}" class="btn btn-promo">¡Únete ahora!</a>
-        </div>
-        <div class="promo-decoration">
-          <div class="decoration-circle circle-1"></div>
-          <div class="decoration-circle circle-2"></div>
-          <div class="decoration-circle circle-3"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Elemento llamativo debajo de valor -->
     
     <!-- Añade estos estilos para la sección de categorías -->
     <style>
@@ -1468,7 +1403,7 @@
               <li><a href="#hero">Inicio</a></li>
               <li><a href="#nosotros">Quiénes Somos</a></li>
               <li><a href="#categorias">Categorías</a></li>
-              <li><a href="#cta">Contáctanos</a></li>
+              <li><a href="#como-funciona">Como Funciona?</a></li>
             </ul>
           </div>
           
@@ -1518,9 +1453,9 @@
           </div>
           <div class="col-md-6 text-md-end">
             <div class="footer-legal">
-              <a href="{% static 'core/pdf/PDFA_A3_00_POL_003_Politica_de_Seguridad_y_privacidad_de_la_Informacion.pdf' %}">Políticas de privacidad</a>
+                <a href="{% url 'politica_privacidad' %}">Políticas de privacidad</a>
               <span class="separator">|</span>
-              <a href="#">Términos de uso</a>
+              <a href="{% url 'terminos_condiciones' %}">Términos de uso</a>
             </div>
           </div>
         </div>
@@ -1749,6 +1684,431 @@
     highlightNavLink(); // Ejecutar al cargar la página
   });
 </script>
+
+<!-- JavaScript para el Modal de Donación -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Manejar selección de tipo de contribución
+  const donationOptions = document.querySelectorAll('.donation-option');
+  const monetaryForm = document.getElementById('monetaryForm');
+  const volunteerForm = document.getElementById('volunteerForm');
+
+  donationOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      // Remover selección previa
+      donationOptions.forEach(opt => {
+        opt.querySelector('.card').style.border = '2px solid #e0e0e0';
+        opt.querySelector('.card').style.backgroundColor = '';
+      });
+      
+      // Seleccionar opción actual
+      this.querySelector('.card').style.border = '2px solid #4caf50';
+      this.querySelector('.card').style.backgroundColor = 'rgba(76, 175, 80, 0.05)';
+      
+      // Mostrar formulario correspondiente
+      const type = this.getAttribute('data-type');
+      if (type === 'monetary') {
+        monetaryForm.style.display = 'block';
+        volunteerForm.style.display = 'none';
+      } else if (type === 'volunteer') {
+        volunteerForm.style.display = 'block';
+        monetaryForm.style.display = 'none';
+      }
+    });
+  });
+
+  // Manejar botones de monto
+  const amountBtns = document.querySelectorAll('.amount-btn');
+  const customAmount = document.getElementById('customAmount');
+
+  amountBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      // Remover selección previa
+      amountBtns.forEach(b => {
+        b.classList.remove('btn-success');
+        b.classList.add('btn-outline-success');
+      });
+      
+      // Seleccionar botón actual
+      this.classList.remove('btn-outline-success');
+      this.classList.add('btn-success');
+      
+      // Limpiar monto personalizado
+      customAmount.value = '';
+    });
+  });
+
+  // Limpiar selección de botones cuando se ingresa monto personalizado
+  customAmount.addEventListener('input', function() {
+    amountBtns.forEach(b => {
+      b.classList.remove('btn-success');
+      b.classList.add('btn-outline-success');
+    });
+  });
+
+  // Manejar envío del formulario
+  const submitBtn = document.getElementById('submitContribution');
+  submitBtn.addEventListener('click', function() {
+    // Obtener tipo de contribución seleccionado
+    const selectedOption = document.querySelector('.donation-option .card[style*="border: 2px solid rgb(76, 175, 80)"]');
+    
+    if (!selectedOption) {
+      alert('Por favor selecciona un tipo de contribución.');
+      return;
+    }
+
+    const isMonetary = selectedOption.closest('.donation-option').getAttribute('data-type') === 'monetary';
+    
+    if (isMonetary) {
+      handleMonetaryDonation();
+    } else {
+      handleVolunteerSubmission();
+    }
+  });
+
+  function handleMonetaryDonation() {
+    // Validar campos requeridos
+    const name = document.getElementById('donorName').value;
+    const email = document.getElementById('donorEmail').value;
+    
+    if (!name || !email) {
+      alert('Por favor completa todos los campos requeridos.');
+      return;
+    }
+
+    // Obtener monto
+    const selectedAmountBtn = document.querySelector('.amount-btn.btn-success');
+    const customAmount = document.getElementById('customAmount').value;
+    
+    let amount = 0;
+    if (selectedAmountBtn) {
+      amount = selectedAmountBtn.getAttribute('data-amount');
+    } else if (customAmount) {
+      amount = customAmount;
+    } else {
+      alert('Por favor selecciona un monto para donar.');
+      return;
+    }
+
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    const message = document.getElementById('donationMessage').value;
+
+    // Aquí puedes enviar los datos al servidor
+    console.log('Donación:', {
+      name: name,
+      email: email,
+      amount: amount,
+      paymentMethod: paymentMethod,
+      message: message
+    });
+
+    // Mostrar mensaje de éxito
+    alert(`¡Gracias ${name}! Tu donación de $${amount} ha sido registrada. Te contactaremos pronto para completar el proceso de pago.`);
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('donationModal'));
+    modal.hide();
+    
+    // Limpiar formulario
+    resetForm();
+  }
+
+  function handleVolunteerSubmission() {
+    // Validar campos requeridos
+    const name = document.getElementById('volunteerName').value;
+    const email = document.getElementById('volunteerEmail').value;
+    
+    if (!name || !email) {
+      alert('Por favor completa todos los campos requeridos.');
+      return;
+    }
+
+    const phone = document.getElementById('volunteerPhone').value;
+    const age = document.getElementById('volunteerAge').value;
+    const availability = document.getElementById('volunteerAvailability').value;
+    const experience = document.getElementById('volunteerExperience').value;
+    const motivation = document.getElementById('volunteerMotivation').value;
+
+    // Obtener áreas de interés seleccionadas
+    const areas = [];
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+      areas.push(checkbox.value);
+    });
+
+    // Aquí puedes enviar los datos al servidor
+    console.log('Voluntario:', {
+      name: name,
+      email: email,
+      phone: phone,
+      age: age,
+      areas: areas,
+      availability: availability,
+      experience: experience,
+      motivation: motivation
+    });
+
+    // Mostrar mensaje de éxito
+    alert(`¡Gracias ${name}! Tu solicitud para ser voluntario ha sido enviada. Te contactaremos pronto para coordinar tu participación.`);
+    
+    // Cerrar modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('donationModal'));
+    modal.hide();
+    
+    // Limpiar formulario
+    resetForm();
+  }
+
+  function resetForm() {
+    // Resetear selecciones
+    donationOptions.forEach(opt => {
+      opt.querySelector('.card').style.border = '2px solid #e0e0e0';
+      opt.querySelector('.card').style.backgroundColor = '';
+    });
+    
+    // Ocultar formularios
+    monetaryForm.style.display = 'none';
+    volunteerForm.style.display = 'none';
+    
+    // Limpiar campos
+    document.getElementById('donationForm').reset();
+    
+    // Resetear botones de monto
+    amountBtns.forEach(b => {
+      b.classList.remove('btn-success');
+      b.classList.add('btn-outline-success');
+    });
+  }
+
+  // Resetear formulario cuando se cierra el modal
+  document.getElementById('donationModal').addEventListener('hidden.bs.modal', function() {
+    resetForm();
+  });
+});
+</script>
+
+<!-- Modal de Donación -->
+<div class="modal fade" id="donationModal" tabindex="-1" aria-labelledby="donationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+      <div class="modal-header" style="background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; border-bottom: none; border-radius: 20px 20px 0 0;">
+        <div class="text-center w-100">
+          <h4 class="modal-title" id="donationModalLabel" style="font-weight: 700; margin: 0;">
+            <i class="fas fa-heart text-white me-2"></i>
+            Contribuye a EcoPuntos
+          </h4>
+          <p class="mb-0 mt-2" style="opacity: 0.9;">Tu aporte hace la diferencia en el cuidado del planeta</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body" style="padding: 30px;">
+        <form id="donationForm">
+          <!-- Opciones de Donación -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-center mb-3" style="color: #4caf50; font-weight: 600;">Selecciona tu tipo de contribución</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="donation-option" data-type="monetary">
+                    <div class="card h-100 text-center" style="border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease;">
+                      <div class="card-body">
+                        <i class="fas fa-dollar-sign fa-2x text-success mb-3"></i>
+                        <h6 style="color: #4caf50; font-weight: 600;">Donación Monetaria</h6>
+                        <p class="text-muted small">Apoya económicamente nuestros proyectos</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="donation-option" data-type="volunteer">
+                    <div class="card h-100 text-center" style="border: 2px solid #e0e0e0; border-radius: 15px; cursor: pointer; transition: all 0.3s ease;">
+                      <div class="card-body">
+                        <i class="fas fa-hands-helping fa-2x text-success mb-3"></i>
+                        <h6 style="color: #4caf50; font-weight: 600;">Ser Voluntario</h6>
+                        <p class="text-muted small">Únete a nuestro equipo de voluntarios</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulario de Donación Monetaria -->
+          <div id="monetaryForm" style="display: none;">
+            <h6 class="mb-3" style="color: #4caf50;">💰 Donación Monetaria</h6>
+            
+            <!-- Montos predefinidos -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <label class="form-label" style="font-weight: 600;">Selecciona un monto:</label>
+                <div class="row g-2">
+                  <div class="col-4">
+                    <button type="button" class="btn btn-outline-success w-100 amount-btn" data-amount="10">$10</button>
+                  </div>
+                  <div class="col-4">
+                    <button type="button" class="btn btn-outline-success w-100 amount-btn" data-amount="25">$25</button>
+                  </div>
+                  <div class="col-4">
+                    <button type="button" class="btn btn-outline-success w-100 amount-btn" data-amount="50">$50</button>
+                  </div>
+                  <div class="col-4">
+                    <button type="button" class="btn btn-outline-success w-100 amount-btn" data-amount="100">$100</button>
+                  </div>
+                  <div class="col-4">
+                    <button type="button" class="btn btn-outline-success w-100 amount-btn" data-amount="250">$250</button>
+                  </div>
+                  <div class="col-4">
+                    <input type="number" class="form-control" id="customAmount" placeholder="Otro" min="1">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Información del donante -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="donorName" class="form-label">Nombre completo</label>
+                <input type="text" class="form-control" id="donorName" required>
+              </div>
+              <div class="col-md-6">
+                <label for="donorEmail" class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" id="donorEmail" required>
+              </div>
+            </div>
+
+            <!-- Método de pago -->
+            <div class="mb-3">
+              <label class="form-label" style="font-weight: 600;">Método de pago:</label>
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" value="credit" checked>
+                    <label class="form-check-label" for="creditCard">
+                      <i class="fas fa-credit-card text-primary"></i> Tarjeta
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="paymentMethod" id="paypal" value="paypal">
+                    <label class="form-check-label" for="paypal">
+                      <i class="fab fa-paypal text-info"></i> PayPal
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="paymentMethod" id="bankTransfer" value="transfer">
+                    <label class="form-check-label" for="bankTransfer">
+                      <i class="fas fa-university text-warning"></i> Transferencia
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mensaje opcional -->
+            <div class="mb-3">
+              <label for="donationMessage" class="form-label">Mensaje (opcional)</label>
+              <textarea class="form-control" id="donationMessage" rows="3" placeholder="¿Quieres dejar algún mensaje sobre tu donación?"></textarea>
+            </div>
+          </div>
+
+          <!-- Formulario de Voluntariado -->
+          <div id="volunteerForm" style="display: none;">
+            <h6 class="mb-3" style="color: #4caf50;">🤝 Únete como Voluntario</h6>
+            
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="volunteerName" class="form-label">Nombre completo</label>
+                <input type="text" class="form-control" id="volunteerName" required>
+              </div>
+              <div class="col-md-6">
+                <label for="volunteerEmail" class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" id="volunteerEmail" required>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="volunteerPhone" class="form-label">Teléfono</label>
+                <input type="tel" class="form-control" id="volunteerPhone">
+              </div>
+              <div class="col-md-6">
+                <label for="volunteerAge" class="form-label">Edad</label>
+                <input type="number" class="form-control" id="volunteerAge" min="16" max="100">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="volunteerAreas" class="form-label">Áreas de interés (selecciona todas las que te interesen)</label>
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="area1" value="recoleccion">
+                    <label class="form-check-label" for="area1">Recolección de materiales</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="area2" value="educacion">
+                    <label class="form-check-label" for="area2">Educación ambiental</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="area3" value="eventos">
+                    <label class="form-check-label" for="area3">Organización de eventos</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="area4" value="tecnologia">
+                    <label class="form-check-label" for="area4">Soporte técnico</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="area5" value="promocion">
+                    <label class="form-check-label" for="area5">Promoción y marketing</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="area6" value="administracion">
+                    <label class="form-check-label" for="area6">Tareas administrativas</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="volunteerAvailability" class="form-label">Disponibilidad</label>
+              <select class="form-select" id="volunteerAvailability">
+                <option value="">Selecciona tu disponibilidad</option>
+                <option value="weekends">Fines de semana</option>
+                <option value="weekdays">Entre semana</option>
+                <option value="evenings">Noches</option>
+                <option value="flexible">Horario flexible</option>
+                <option value="specific">Horario específico (especificar en mensaje)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="volunteerExperience" class="form-label">Experiencia previa (opcional)</label>
+              <textarea class="form-control" id="volunteerExperience" rows="3" placeholder="Cuéntanos sobre tu experiencia en voluntariado o temas ambientales..."></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="volunteerMotivation" class="form-label">¿Por qué quieres ser voluntario en EcoPuntos?</label>
+              <textarea class="form-control" id="volunteerMotivation" rows="3" placeholder="Comparte tu motivación..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer" style="border-top: 1px solid #e0e0e0; padding: 20px 30px;">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 25px;">Cancelar</button>
+        <button type="button" class="btn btn-success" id="submitContribution" style="border-radius: 25px; font-weight: 600;">
+          <i class="fas fa-heart me-2"></i>Enviar Contribución
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

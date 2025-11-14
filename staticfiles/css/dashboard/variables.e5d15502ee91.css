@@ -1,0 +1,272 @@
+/* ============================================
+   🎨 SISTEMA DE VARIABLES CSS - ECOPUNTOS
+   ============================================ */
+
+:root {
+  /* === PALETA DE COLORES PRINCIPAL === */
+  --primary: #4caf50;
+  --primary-dark: #2e7d32;
+  --primary-light: #81c784;
+  --secondary: #2196f3;
+  --accent: #ff9800;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --danger: #f44336;
+  --info: #2196f3;
+  
+  /* === COLORES DE FONDO === */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-dark: #1a1a1a;
+  --bg-card: #ffffff;
+  --bg-sidebar: #2c3e50;
+  --bg-gradient-main: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  --bg-gradient-secondary: linear-gradient(135deg, var(--secondary) 0%, #1976d2 100%);
+  --bg-gradient-accent: linear-gradient(135deg, var(--accent) 0%, #f57c00 100%);
+  
+  /* === TEXTO === */
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --text-light: #bdc3c7;
+  --text-white: #ffffff;
+  --text-muted: #95a5a6;
+  
+  /* === SOMBRAS === */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 15px 35px rgba(0, 0, 0, 0.15);
+  --shadow-fab: 0 8px 25px rgba(76, 175, 80, 0.3);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+  
+  /* === BORDES === */
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;
+  --border-radius-xl: 25px;
+  --border-radius-full: 50%;
+  --border-color: #e9ecef;
+  --border-color-light: #f1f3f4;
+  
+  /* === ESPACIADO === */
+  --spacing-xs: 0.5rem;   /* 8px */
+  --spacing-sm: 0.75rem;  /* 12px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-xxl: 3rem;    /* 48px */
+  
+  /* === TIPOGRAFÍA === */
+  --font-family-primary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-secondary: 'Inter', sans-serif;
+  --font-family-mono: 'Fira Code', 'Consolas', monospace;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* === TRANSICIONES === */
+  --transition-fast: 0.15s ease-out;
+  --transition-normal: 0.3s ease-out;
+  --transition-slow: 0.5s ease-out;
+  --transition-bounce: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* === Z-INDEX === */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-max: 9999;
+  
+  /* === SIDEBAR === */
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 70px;
+  --sidebar-bg: var(--bg-sidebar);
+  --sidebar-text: var(--text-white);
+  
+  /* === BREAKPOINTS (para uso en JS) === */
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-xxl: 1400px;
+  
+  /* === COMPONENTES ESPECÍFICOS === */
+  
+  /* Dashboard Cards */
+  --card-bg: var(--bg-card);
+  --card-border: var(--border-color);
+  --card-radius: var(--border-radius-md);
+  --card-shadow: var(--shadow-card);
+  --card-padding: var(--spacing-lg);
+  
+  /* Botones */
+  --btn-padding-y: 0.75rem;
+  --btn-padding-x: 1.5rem;
+  --btn-font-size: var(--font-size-base);
+  --btn-border-radius: var(--border-radius-sm);
+  --btn-transition: var(--transition-normal);
+  
+  /* FAB (Floating Action Button) */
+  --fab-size: 60px;
+  --fab-bg: var(--bg-gradient-main);
+  --fab-shadow: var(--shadow-fab);
+  --fab-bottom: 30px;
+  --fab-right: 30px;
+  
+  /* Notifications */
+  --notification-bg: var(--bg-card);
+  --notification-border: var(--border-color);
+  --notification-shadow: var(--shadow-lg);
+  
+  /* Game Cards */
+  --game-card-bg: var(--bg-card);
+  --game-card-border: var(--border-color);
+  --game-card-radius: var(--border-radius-lg);
+  --game-card-shadow: var(--shadow-md);
+  
+  /* Achievement Cards */
+  --achievement-bg: var(--bg-card);
+  --achievement-border: var(--border-color);
+  --achievement-shadow: var(--shadow-md);
+  --achievement-radius: var(--border-radius-md);
+  
+  /* Progress Bars */
+  --progress-height: 8px;
+  --progress-bg: #e9ecef;
+  --progress-radius: var(--border-radius-sm);
+  --progress-fill: var(--primary);
+  
+  /* Animations */
+  --animation-duration-fast: 0.2s;
+  --animation-duration-normal: 0.3s;
+  --animation-duration-slow: 0.5s;
+  --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === TEMA OSCURO === */
+[data-theme="dark"] {
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-card: #2d2d2d;
+  --bg-sidebar: #1a1a1a;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-muted: #8a8a8a;
+  
+  --border-color: #3d3d3d;
+  --border-color-light: #2a2a2a;
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 15px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 15px 35px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === TEMA DE ALTO CONTRASTE === */
+[data-theme="high-contrast"] {
+  --primary: #000000;
+  --secondary: #ffffff;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f0f0;
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --border-color: #000000;
+}
+
+/* === UTILIDADES GLOBALES === */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.sr-only {
+  @extend .visually-hidden;
+}
+
+/* === RESET BÁSICO === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* === MEDIA QUERIES PARA VARIABLES RESPONSIVAS === */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 100vw;
+    --fab-size: 50px;
+    --fab-bottom: 20px;
+    --fab-right: 20px;
+    --card-padding: var(--spacing-md);
+    --font-size-3xl: 1.5rem;
+    --font-size-4xl: 1.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+    --card-padding: var(--spacing-sm);
+    --btn-padding-y: 0.5rem;
+    --btn-padding-x: 1rem;
+  }
+}
+
+/* === VARIABLES PARA ANIMACIONES === */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0s;
+    --transition-normal: 0s;
+    --transition-slow: 0s;
+    --animation-duration-fast: 0s;
+    --animation-duration-normal: 0s;
+    --animation-duration-slow: 0s;
+  }
+}

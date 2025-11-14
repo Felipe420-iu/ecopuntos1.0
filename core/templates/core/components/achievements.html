@@ -1,0 +1,113 @@
+<!-- ============================================
+     🏆 ACHIEVEMENTS COMPONENT - ECOPUNTOS
+     ============================================ -->
+{% load static %}
+
+<div class="section-header mb-4 animate-fade-in">
+    <h2><i class="fas fa-trophy me-2" style="color: #ffd700"></i>Logros y Reconocimientos</h2>
+    <p>Celebra tus hitos ecológicos y desbloquea nuevas recompensas</p>
+</div>
+
+<div class="row g-3">
+    <!-- Logro: Primer Canje -->
+    <div class="col-md-6 col-lg-4">
+        <div class="achievement-card {% if user.primer_canje %}completed{% endif %} animate-scale-in" style="animation-delay: 0.1s;">
+            <div class="achievement-icon" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <h6 class="achievement-title">Primer Paso Verde</h6>
+            <p class="achievement-description">Realiza tu primer canje de materiales reciclables</p>
+            <div class="achievement-progress">
+                <div class="progress-fill" style="width: {% if user.primer_canje %}100{% else %}0{% endif %}%;"></div>
+            </div>
+            <p class="achievement-status {% if user.primer_canje %}completed{% endif %}">
+                {% if user.primer_canje %}¡Completado!{% else %}0/1 canjes{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Logro: Eco Warrior -->
+    <div class="col-md-6 col-lg-4">
+        <div class="achievement-card {% if user.puntos >= 1000 %}completed{% endif %} animate-scale-in" style="animation-delay: 0.2s;">
+            <div class="achievement-icon" style="background: linear-gradient(135deg, #2196f3, #1565c0);">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h6 class="achievement-title">Eco Warrior</h6>
+            <p class="achievement-description">Alcanza 1,000 puntos acumulados</p>
+            <div class="achievement-progress">
+                <div class="progress-fill" style="width: {% widthratio user.puntos 1000 100 %}%;"></div>
+            </div>
+            <p class="achievement-status {% if user.puntos >= 1000 %}completed{% endif %}">
+                {{ user.puntos|default:0 }}/1,000 puntos
+            </p>
+        </div>
+    </div>
+
+    <!-- Logro: Reciclador Experto -->
+    <div class="col-md-6 col-lg-4">
+        <div class="achievement-card {% if user.kg_reciclados >= 50 %}completed{% endif %} animate-scale-in" style="animation-delay: 0.3s;">
+            <div class="achievement-icon" style="background: linear-gradient(135deg, #ff9800, #f57c00);">
+                <i class="fas fa-recycle"></i>
+            </div>
+            <h6 class="achievement-title">Reciclador Experto</h6>
+            <p class="achievement-description">Recicla 50kg de materiales</p>
+            <div class="achievement-progress">
+                <div class="progress-fill" style="width: {% widthratio user.kg_reciclados 50 100 %}%;"></div>
+            </div>
+            <p class="achievement-status {% if user.kg_reciclados >= 50 %}completed{% endif %}">
+                {{ user.kg_reciclados|default:0 }}/50 kg
+            </p>
+        </div>
+    </div>
+
+    <!-- Logro: Maestro del Juego -->
+    <div class="col-md-6 col-lg-4">
+        <div class="achievement-card {% if user.juegos_completados >= 10 %}completed{% endif %} animate-scale-in" style="animation-delay: 0.4s;">
+            <div class="achievement-icon" style="background: linear-gradient(135deg, #9c27b0, #673ab7);">
+                <i class="fas fa-gamepad"></i>
+            </div>
+            <h6 class="achievement-title">Maestro del Juego</h6>
+            <p class="achievement-description">Completa 10 juegos educativos</p>
+            <div class="achievement-progress">
+                <div class="progress-fill" style="width: {% widthratio user.juegos_completados 10 100 %}%;"></div>
+            </div>
+            <p class="achievement-status {% if user.juegos_completados >= 10 %}completed{% endif %}">
+                {{ user.juegos_completados|default:0 }}/10 juegos
+            </p>
+        </div>
+    </div>
+
+    <!-- Logro: Influyente Verde -->
+    <div class="col-md-6 col-lg-4">
+        <div class="achievement-card {% if user.referidos >= 5 %}completed{% endif %} animate-scale-in" style="animation-delay: 0.5s;">
+            <div class="achievement-icon" style="background: linear-gradient(135deg, #00bcd4, #0097a7);">
+                <i class="fas fa-users"></i>
+            </div>
+            <h6 class="achievement-title">Influyente Verde</h6>
+            <p class="achievement-description">Refiere 5 amigos a la plataforma</p>
+            <div class="achievement-progress">
+                <div class="progress-fill" style="width: {% widthratio user.referidos 5 100 %}%;"></div>
+            </div>
+            <p class="achievement-status {% if user.referidos >= 5 %}completed{% endif %}">
+                {{ user.referidos|default:0 }}/5 referidos
+            </p>
+        </div>
+    </div>
+
+    <!-- Logro: Leyenda Ecológica -->
+    <div class="col-md-6 col-lg-4">
+        <div class="achievement-card {% if user.puntos >= 10000 %}completed{% endif %} animate-scale-in" style="animation-delay: 0.6s;">
+            <div class="achievement-icon" style="background: linear-gradient(135deg, #ffd700, #ffb300);">
+                <i class="fas fa-crown"></i>
+            </div>
+            <h6 class="achievement-title">Leyenda Ecológica</h6>
+            <p class="achievement-description">Conviértete en una leyenda con 10,000 puntos</p>
+            <div class="achievement-progress">
+                <div class="progress-fill" style="width: {% widthratio user.puntos 10000 100 %}%;"></div>
+            </div>
+            <p class="achievement-status {% if user.puntos >= 10000 %}completed{% endif %}">
+                {{ user.puntos|default:0 }}/10,000 puntos
+            </p>
+        </div>
+    </div>
+</div>

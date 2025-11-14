@@ -88,6 +88,10 @@ class ChatbotConsumer(AsyncWebsocketConsumer):
             # Aceptar tanto 'chat_message' como 'user_message'
             if message_type in ['chat_message', 'user_message']:
                 await self._handle_chat_message(data)
+            elif message_type == 'human_support_message':
+                await self._handle_human_support_message(data)
+            elif message_type == 'request_human_support':
+                await self._handle_human_request(data)
             elif message_type == 'typing_indicator':
                 await self._handle_typing_indicator(data)
             elif message_type == 'request_human':
@@ -168,9 +172,40 @@ class ChatbotConsumer(AsyncWebsocketConsumer):
         # Por ahora no implementado - podría usarse para analytics
         pass
     
+    
+    async def _handle_human_support_message(self, data):
+        """Maneja mensajes cuando hay soporte humano activo"""
+        message = data.get('message', '').strip()
+        
+        if not message:
+            return
+        
+        try:
+            # Guardar mensaje del usuario
+            await database_sync_to_async(MensajeChatbot.objects.create)(
+                conversacion=self.conversacion,
+                usuario=self.user,
+                contenido=message,
+                es_de_usuario=True,
+                timestamp=timezone.now()
+            )
+            
+            # Enviar confirmación de que el mensaje fue enviado al soporte
+            await self.send(text_data=json.dumps({
+                'type': 'human_support_confirmation',
+                'message': 'Tu mensaje ha sido enviado al equipo de soporte. Te responderemos por email muy pronto. 📧',
+                'timestamp': timezone.now().isoformat()
+            }))
+            
+            logger.info(f"Mensaje de soporte humano guardado para usuario {self.user.username}")
+            
+        except Exception as e:
+            logger.error(f"Error procesando mensaje de soporte humano: {str(e)}")
+            await self._send_error_message("Error al enviar mensaje al soporte. Por favor intenta de nuevo.")
+    
     async def _handle_human_request(self, data):
         """Maneja solicitudes de escalamiento a humano"""
-        motivo = data.get('reason', 'Solicitud directa del usuario')
+        motivo = data.get('reason', 'Solicitud directa del usuario desde mini chat')
         
         try:
             # Escalar a humano (ahora solo envía email)
@@ -179,8 +214,15 @@ class ChatbotConsumer(AsyncWebsocketConsumer):
             if success:
                 # Enviar confirmación
                 await self.send(text_data=json.dumps({
-                    'type': 'escalation_success',
-                    'message': 'He enviado tu solicitud al equipo de soporte. Te contactaremos por email muy pronto. 📧',
+                    'type': 'human_support_confirmation',
+                    'message': 'He enviado tu solicitud al equipo de soporte. Te contactaremos por email muy pronto. 📧\n\nAhora puedes escribir mensajes directos al equipo de soporte.',
+                    'timestamp': timezone.now().isoformat()
+                }))
+                
+                # Indicar que ahora hay soporte humano conectado
+                await self.send(text_data=json.dumps({
+                    'type': 'human_connected',
+                    'message': 'Conectado con soporte humano',
                     'timestamp': timezone.now().isoformat()
                 }))
             else:
