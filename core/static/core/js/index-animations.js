@@ -329,17 +329,17 @@ function initializeIndex() {
 // CSS para animaciones (se inyecta dinámicamente)
 const animationStyles = `
   .animate-fade-in {
-    animation: fadeInUp 0.8s ease-out forwards;
+    animation: none !important;
   }
   
   .animate-slide-in {
-    animation: slideInLeft 0.8s ease-out forwards;
+    animation: none !important;
   }
   
   @keyframes fadeInUp {
     from {
-      opacity: 0;
-      transform: translateY(30px);
+      opacity: 1;
+      transform: translateY(0);
     }
     to {
       opacity: 1;
@@ -349,8 +349,8 @@ const animationStyles = `
   
   @keyframes slideInLeft {
     from {
-      opacity: 0;
-      transform: translateX(-30px);
+      opacity: 1;
+      transform: translateX(0);
     }
     to {
       opacity: 1;
@@ -372,6 +372,12 @@ const animationStyles = `
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  
+  /* Desactivar específicamente animaciones del hero */
+  .hero-content {
+    animation: none !important;
+    transform: none !important;
   }
 `;
 

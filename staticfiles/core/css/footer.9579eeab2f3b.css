@@ -1,0 +1,360 @@
+/* Footer Rediseñado */
+.footer-redesign {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+  color: var(--white);
+  overflow: hidden;
+}
+
+.footer-wave {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="%234caf50"/><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" fill="%234caf50"/><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="%234caf50"/></svg>');
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+.footer-content {
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95), rgba(45, 45, 45, 0.95));
+  padding: 100px 0 60px;
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+}
+
+.footer-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%234caf50" opacity="0.1"/><circle cx="80" cy="40" r="1.5" fill="%234caf50" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="%234caf50" opacity="0.1"/></svg>') repeat;
+  background-size: 100px 100px;
+  animation: twinkle 10s linear infinite;
+  z-index: -1;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  transition: transform 0.3s ease;
+}
+
+.footer-brand:hover {
+  transform: translateY(-5px);
+}
+
+.footer-logo {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid var(--primary-green);
+  padding: 3px;
+  margin-right: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+.footer-brand:hover .footer-logo {
+  transform: rotate(360deg) scale(1.1);
+  box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+}
+
+.footer-brand h3 {
+  color: var(--white);
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(45deg, var(--white), var(--primary-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.footer-description {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 30px;
+  max-width: 400px;
+}
+
+.footer-social {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.social-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(45deg, rgba(76, 175, 80, 0.2), rgba(56, 142, 60, 0.3));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 1.3rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.social-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.social-icon:hover::before {
+  left: 100%;
+}
+
+.social-icon:hover {
+  background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+  transform: translateY(-8px) scale(1.1) rotate(360deg);
+  box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+  border-color: var(--primary-green);
+}
+
+.footer-heading {
+  color: var(--white);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 30px;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+.footer-heading::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+  border-radius: 3px;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+  padding: 5px 0;
+  position: relative;
+  font-size: 1rem;
+}
+
+.footer-links a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+  transition: width 0.3s ease;
+}
+
+.footer-links a:hover::before {
+  width: 100%;
+}
+
+.footer-links a:hover {
+  color: var(--primary-green);
+  transform: translateX(10px);
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.footer-contact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-contact li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  padding: 10px 0;
+}
+
+.footer-contact li:hover {
+  color: var(--white);
+  transform: translateX(5px);
+}
+
+.contact-icon {
+  background: linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(56, 142, 60, 0.4));
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  color: var(--primary-green);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.footer-contact li:hover .contact-icon {
+  background: linear-gradient(45deg, var(--primary-green), var(--secondary-green));
+  color: var(--white);
+  transform: rotate(360deg) scale(1.1);
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.footer-bottom {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 25px 0;
+  position: relative;
+  backdrop-filter: blur(15px);
+  border-top: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.copyright {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  margin: 0;
+  text-align: center;
+}
+
+.footer-legal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.footer-legal a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.footer-legal a:hover {
+  color: var(--primary-green);
+  text-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.separator {
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 5px;
+}
+
+/* Responsive para footer */
+@media (max-width: 768px) {
+  .footer-content {
+    padding: 80px 0 40px;
+  }
+  
+  .footer-brand {
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .footer-description {
+    text-align: center;
+    max-width: 100%;
+  }
+  
+  .footer-social {
+    justify-content: center;
+  }
+  
+  .footer-heading {
+    text-align: center;
+    font-size: 1.3rem;
+  }
+  
+  .footer-heading::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .footer-links {
+    text-align: center;
+  }
+  
+  .footer-contact {
+    text-align: center;
+  }
+  
+  .footer-contact li {
+    justify-content: center;
+  }
+  
+  .footer-legal {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .separator {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .footer-brand h3 {
+    font-size: 1.8rem;
+  }
+  
+  .footer-logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .social-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+  
+  .footer-description {
+    font-size: 1rem;
+  }
+  
+  .contact-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,250 @@
+<!-- ============================================
+     🎮 GAME CARDS COMPONENT - ECOPUNTOS
+     ============================================ -->
+{% load static %}
+
+<div class="col-lg-8">
+    <div class="section-header mb-4 animate-fade-in">
+        <h2><i class="fas fa-gamepad me-2" style="color: var(--primary)"></i>Aprende Jugando</h2>
+        <p>Mejora tus conocimientos sobre reciclaje y gana puntos educativos mientras te diviertes.</p>
+    </div>
+    
+    <div class="row g-3">
+        <!-- Juego Plásticos -->
+        <div class="col-md-6">
+            <div class="game-card animate-fade-in" style="animation-delay: 0.1s;">
+                <div class="game-header">
+                    <div class="game-icon" style="background: linear-gradient(135deg, #e91e63, #ad1457);">
+                        <i class="fas fa-bottle-water"></i>
+                    </div>
+                    <div class="game-badge">
+                        <span class="points-value">{{ user.puntos_juego|default:0 }}</span>
+                        <span class="points-unit">pts</span>
+                    </div>
+                </div>
+                <div class="game-body">
+                    <h5 class="game-title">Plásticos</h5>
+                    <p class="game-description">Clasifica diferentes tipos de plásticos y aprende sobre reciclaje responsable</p>
+                    <div class="game-progress">
+                        <div class="progress-fill" style="width: {% if user.puntos_juego > 0 %}{% widthratio user.puntos_juego 500 100 %}{% else %}5{% endif %}%;"></div>
+                    </div>
+                    <a href="{% url 'juego_plasticos' %}" class="btn btn-game">
+                        <i class="fas fa-play me-2"></i>Jugar Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Juego Vidrios -->
+        <div class="col-md-6">
+            <div class="game-card animate-fade-in" style="animation-delay: 0.2s;">
+                <div class="game-header">
+                    <div class="game-icon" style="background: linear-gradient(135deg, #00bcd4, #0097a7);">
+                        <i class="fas fa-wine-glass-alt"></i>
+                    </div>
+                    <div class="game-badge">
+                        <span class="points-value">{{ user.puntos_juego_vidrios|default:0 }}</span>
+                        <span class="points-unit">pts</span>
+                    </div>
+                </div>
+                <div class="game-body">
+                    <h5 class="game-title">Vidrios</h5>
+                    <p class="game-description">Identifica y clasifica vidrios correctamente según su tipo</p>
+                    <div class="game-progress">
+                        <div class="progress-fill" style="width: {% if user.puntos_juego_vidrios > 0 %}{% widthratio user.puntos_juego_vidrios 500 100 %}{% else %}5{% endif %}%;"></div>
+                    </div>
+                    <a href="{% url 'juego_vidrios' %}" class="btn btn-game">
+                        <i class="fas fa-play me-2"></i>Jugar Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Juego Papel -->
+        <div class="col-md-6">
+            <div class="game-card animate-fade-in" style="animation-delay: 0.3s;">
+                <div class="game-header">
+                    <div class="game-icon" style="background: linear-gradient(135deg, #795548, #5d4037);">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="game-badge">
+                        <span class="points-value">{{ user.puntos_juego_papel|default:0 }}</span>
+                        <span class="points-unit">pts</span>
+                    </div>
+                </div>
+                <div class="game-body">
+                    <h5 class="game-title">Papel y Cartón</h5>
+                    <p class="game-description">Aprende sobre papel y cartón reciclable de forma divertida</p>
+                    <div class="game-progress">
+                        <div class="progress-fill" style="width: {% if user.puntos_juego_papel > 0 %}{% widthratio user.puntos_juego_papel 500 100 %}{% else %}5{% endif %}%;"></div>
+                    </div>
+                    <a href="{% url 'juego_papel' %}" class="btn btn-game">
+                        <i class="fas fa-play me-2"></i>Jugar Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Juego Metales -->
+        <div class="col-md-6">
+            <div class="game-card animate-fade-in" style="animation-delay: 0.4s;">
+                <div class="game-header">
+                    <div class="game-icon" style="background: linear-gradient(135deg, #607d8b, #455a64);">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="game-badge">
+                        <span class="points-value">{{ user.puntos_juego_metales|default:0 }}</span>
+                        <span class="points-unit">pts</span>
+                    </div>
+                </div>
+                <div class="game-body">
+                    <h5 class="game-title">Metales</h5>
+                    <p class="game-description">Clasifica diferentes tipos de metales y maximiza el reciclaje</p>
+                    <div class="game-progress">
+                        <div class="progress-fill" style="width: {% if user.puntos_juego_metales > 0 %}{% widthratio user.puntos_juego_metales 500 100 %}{% else %}5{% endif %}%;"></div>
+                    </div>
+                    <a href="{% url 'juego_metales' %}" class="btn btn-game">
+                        <i class="fas fa-play me-2"></i>Jugar Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Juego Electrónicos (Nuevo) -->
+        <div class="col-md-6">
+            <div class="game-card animate-fade-in" style="animation-delay: 0.5s;">
+                <div class="game-header">
+                    <div class="game-icon" style="background: linear-gradient(135deg, #9c27b0, #673ab7);">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="game-badge">
+                        <span class="points-value">{{ user.puntos_juego_electronicos|default:0 }}</span>
+                        <span class="points-unit">pts</span>
+                    </div>
+                </div>
+                <div class="game-body">
+                    <h5 class="game-title">Electrónicos</h5>
+                    <p class="game-description">Manejo responsable de residuos electrónicos y tecnológicos</p>
+                    <div class="game-progress">
+                        <div class="progress-fill" style="width: {% if user.puntos_juego_electronicos > 0 %}{% widthratio user.puntos_juego_electronicos 500 100 %}{% else %}5{% endif %}%;"></div>
+                    </div>
+                    <a href="#" class="btn btn-game" onclick="showComingSoon()">
+                        <i class="fas fa-clock me-2"></i>Próximamente
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Eco Quiz (Nuevo) -->
+        <div class="col-md-6">
+            <div class="game-card animate-fade-in" style="animation-delay: 0.6s;">
+                <div class="game-header">
+                    <div class="game-icon" style="background: linear-gradient(135deg, #ff9800, #f57c00);">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div class="game-badge">
+                        <span class="points-value">{{ user.puntos_quiz|default:0 }}</span>
+                        <span class="points-unit">pts</span>
+                    </div>
+                </div>
+                <div class="game-body">
+                    <h5 class="game-title">Eco Quiz</h5>
+                    <p class="game-description">Pon a prueba tus conocimientos sobre medio ambiente</p>
+                    <div class="game-progress">
+                        <div class="progress-fill" style="width: {% if user.puntos_quiz > 0 %}{% widthratio user.puntos_quiz 500 100 %}{% else %}5{% endif %}%;"></div>
+                    </div>
+                    <a href="#" class="btn btn-game" onclick="showComingSoon()">
+                        <i class="fas fa-clock me-2"></i>Próximamente
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estadísticas de Juegos -->
+    <div class="mt-4">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-trophy me-2 text-warning"></i>
+                    Progreso Total de Juegos
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="text-center">
+                            <div class="h4 mb-1 text-primary">{{ user.puntos_juego|add:user.puntos_juego_vidrios|add:user.puntos_juego_papel|add:user.puntos_juego_metales|default:0 }}</div>
+                            <div class="small text-muted">Puntos Totales</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-center">
+                            <div class="h4 mb-1 text-success">{{ user.juegos_completados|default:0 }}</div>
+                            <div class="small text-muted">Completados</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-center">
+                            <div class="h4 mb-1 text-info">{{ user.nivel_juegos|default:'Principiante' }}</div>
+                            <div class="small text-muted">Nivel Actual</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-center">
+                            <div class="h4 mb-1 text-warning">{{ user.medallas_juegos|default:0 }}</div>
+                            <div class="small text-muted">Medallas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showComingSoon() {
+    // Mostrar toast de próximamente
+    const toast = document.createElement('div');
+    toast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, var(--warning), #f57c00); color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 10000; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-clock"></i>
+            <span>¡Próximamente! Este juego estará disponible muy pronto.</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Animación de puntos en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const pointsElements = document.querySelectorAll('.points-value');
+    
+    pointsElements.forEach(element => {
+        const finalValue = parseInt(element.textContent);
+        if (finalValue > 0) {
+            animateCounter(element, 0, finalValue, 1000);
+        }
+    });
+});
+
+function animateCounter(element, start, end, duration) {
+    const range = end - start;
+    const increment = end > start ? 1 : -1;
+    const stepTime = Math.abs(Math.floor(duration / range));
+    
+    let current = start;
+    const timer = setInterval(() => {
+        current += increment;
+        element.textContent = current;
+        
+        if (current === end) {
+            clearInterval(timer);
+        }
+    }, stepTime);
+}
+</script>

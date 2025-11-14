@@ -177,7 +177,6 @@ body {
   z-index: 2;
   max-width: 800px;
   padding: 0 20px;
-  animation: fadeInUp 1s ease-out;
 }
 
 @keyframes fadeInUp {
