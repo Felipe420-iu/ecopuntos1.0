@@ -282,8 +282,11 @@ function optimizePerformance() {
 function handleLoadErrors() {
   // Manejar errores de imágenes
   document.addEventListener('error', function(e) {
-    if (e.target.tagName === 'IMG') {
-      e.target.src = '/static/core/img/placeholder.jpg';
+    if (e.target.tagName === 'IMG' && !e.target.classList.contains('error-handled')) {
+      // Marcar como manejado para evitar bucle infinito
+      e.target.classList.add('error-handled');
+      // Usar un placeholder inline base64 de 1x1 pixel transparente
+      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect width="300" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="14" fill="%23999"%3EImagen no disponible%3C/text%3E%3C/svg%3E';
       e.target.alt = 'Imagen no disponible';
     }
   }, true);

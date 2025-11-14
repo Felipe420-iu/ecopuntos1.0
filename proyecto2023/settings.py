@@ -68,6 +68,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.dynamic_session_middleware.DynamicSessionTimeoutMiddleware',  # Timeout dinámico según configuración
     'core.session_validation_middleware.SessionValidationMiddleware',  # Validación de sesiones cerradas por admin
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

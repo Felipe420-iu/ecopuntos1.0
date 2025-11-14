@@ -14,6 +14,7 @@ urlpatterns = [
     path('verificar-email/', views.verificar_email, name='verificar_email'),
     path('terminos-condiciones/', views.terminos_condiciones, name='terminos_condiciones'),
     path('politica-privacidad/', views.politica_privacidad, name='politica_privacidad'),
+    path('contacto-legal/', views.contacto_legal, name='contacto_legal'),
     path('iniciosesion/', views.iniciosesion, name='iniciosesion'),
     path('perfil/', views.perfil, name='perfil'),
     path('notificaciones/', views.notificaciones, name='notificaciones'),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('superuser/obtener-usuario/<int:user_id>/', views_superuser.obtener_usuario_superuser, name='obtener_usuario_superuser'),
     path('superuser/editar-usuario/<int:user_id>/', views_superuser.editar_usuario_superuser, name='editar_usuario_superuser'),
     path('superuser/eliminar-usuario/<int:user_id>/', views_superuser.eliminar_usuario_superuser, name='eliminar_usuario_superuser'),
+    path('superuser/ajustar-puntos/<int:user_id>/', views_superuser.ajustar_puntos_usuario, name='ajustar_puntos_usuario'),
     path('recompensas/', views.recompensas, name='recompensas'),
 
     path('pagos/', views.pagos, name='pagos'),

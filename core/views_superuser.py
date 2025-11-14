@@ -18,6 +18,7 @@ def obtener_usuario_superuser(request, user_id):
                 'role': user.role,
                 'is_active': user.is_active,
                 'suspended': user.suspended,
+                'puntos': user.puntos,
             }
         })
     except Exception as e:
@@ -48,6 +49,71 @@ def editar_usuario_superuser(request, user_id):
         return JsonResponse({'success': True, 'message': 'Usuario actualizado correctamente.'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)})
+
+# --- API: Ajustar puntos del usuario (añadir o quitar) ---
+@require_superuser_ajax
+@require_http_methods(["POST"])
+@csrf_exempt
+def ajustar_puntos_usuario(request, user_id):
+    try:
+        user = get_object_or_404(Usuario, id=user_id)
+        data = json.loads(request.body)
+        
+        action = data.get('action')  # 'add' o 'subtract'
+        cantidad = int(data.get('cantidad', 0))
+        motivo = data.get('motivo', '')
+        
+        if cantidad <= 0:
+            return JsonResponse({'success': False, 'message': 'La cantidad debe ser mayor a 0'})
+        
+        puntos_anteriores = user.puntos
+        
+        if action == 'add':
+            user.puntos += cantidad
+            mensaje = f'Se añadieron {cantidad} puntos'
+        elif action == 'subtract':
+            if user.puntos < cantidad:
+                return JsonResponse({
+                    'success': False, 
+                    'message': f'El usuario solo tiene {user.puntos} puntos. No se pueden quitar {cantidad} puntos.'
+                })
+            user.puntos -= cantidad
+            mensaje = f'Se quitaron {cantidad} puntos'
+        else:
+            return JsonResponse({'success': False, 'message': 'Acción no válida'})
+        
+        user.save()
+        
+        # Crear notificación para el usuario
+        accion_texto = 'añadido' if action == 'add' else 'quitado'
+        notif_mensaje = f'Un administrador ha {accion_texto} {cantidad} puntos a tu cuenta.'
+        if motivo:
+            notif_mensaje += f' Motivo: {motivo}'
+        
+        Notificacion.objects.create(
+            usuario=user,
+            tipo='puntos',
+            mensaje=notif_mensaje
+        )
+        
+        # Log de la operación
+        print(f"AJUSTE DE PUNTOS - Usuario: {user.username}")
+        print(f"  Acción: {action}")
+        print(f"  Cantidad: {cantidad}")
+        print(f"  Puntos anteriores: {puntos_anteriores}")
+        print(f"  Puntos nuevos: {user.puntos}")
+        if motivo:
+            print(f"  Motivo: {motivo}")
+        
+        return JsonResponse({
+            'success': True, 
+            'message': mensaje,
+            'puntos_anteriores': puntos_anteriores,
+            'puntos_nuevos': user.puntos
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -442,10 +508,22 @@ def configuracion_sistema_superuser(request):
     from .models import Configuracion
     
     if request.method == 'POST':
+        # DEBUG: Ver qué se está recibiendo
+        print("=" * 50)
+        print("DEBUG: Datos recibidos en POST")
+        for key, value in request.POST.items():
+            if key.startswith('config_'):
+                print(f"  {key}: {value}")
+        print("=" * 50)
+        
+        # Lista de checkboxes para manejar correctamente
+        checkboxes = ['email_notifications', 'sms_notifications', 'push_notifications']
+        
         # Procesar cambios de configuración
         for key, value in request.POST.items():
             if key.startswith('config_'):
                 config_name = key.replace('config_', '')
+                print(f"Guardando {config_name} = {value}")  # DEBUG
                 try:
                     config_obj, created = Configuracion.objects.get_or_create(
                         nombre=config_name,
@@ -454,8 +532,38 @@ def configuracion_sistema_superuser(request):
                     if not created:
                         config_obj.valor = value
                         config_obj.save()
+                        print(f"  ✓ Actualizado {config_name} a {value}")  # DEBUG
+                    else:
+                        print(f"  ✓ Creado {config_name} con valor {value}")  # DEBUG
                 except Exception as e:
+                    print(f"  ✗ ERROR en {config_name}: {str(e)}")  # DEBUG
                     messages.error(request, f'Error al actualizar {config_name}: {str(e)}')
+        
+        # Manejar checkboxes no marcados (no se envían en POST)
+        for checkbox in checkboxes:
+            if f'config_{checkbox}' not in request.POST:
+                try:
+                    config_obj, created = Configuracion.objects.get_or_create(
+                        nombre=checkbox,
+                        defaults={'valor': 'false', 'categoria': 'sistema'}
+                    )
+                    if not created:
+                        config_obj.valor = 'false'
+                        config_obj.save()
+                except Exception as e:
+                    messages.error(request, f'Error al actualizar {checkbox}: {str(e)}')
+            else:
+                # Checkbox marcado, guardar como 'true'
+                try:
+                    config_obj, created = Configuracion.objects.get_or_create(
+                        nombre=checkbox,
+                        defaults={'valor': 'true', 'categoria': 'sistema'}
+                    )
+                    if not created:
+                        config_obj.valor = 'true'
+                        config_obj.save()
+                except Exception as e:
+                    messages.error(request, f'Error al actualizar {checkbox}: {str(e)}')
         
         messages.success(request, 'Configuración actualizada exitosamente.')
         return redirect('configuracion_sistema_superuser')
@@ -463,8 +571,37 @@ def configuracion_sistema_superuser(request):
     # Obtener configuraciones existentes
     configs = Configuracion.objects.all().order_by('categoria', 'nombre')
     
+    # Crear diccionario de configuraciones para fácil acceso en template
+    config_dict = {config.nombre: config.valor for config in configs}
+    
+    # DEBUG: Imprimir valores en consola del servidor
+    print("=" * 50)
+    print("DEBUG: Valores cargados desde BD")
+    for key, value in config_dict.items():
+        print(f"  {key}: {value}")
+    print("=" * 50)
+    
+    # Valores por defecto si no existen en BD
+    defaults = {
+        'admin_session_timeout': '10',
+        'user_session_timeout': '15',
+        'max_login_attempts': '3',
+        'default_points': '100',
+        'points_to_cop': '0.50',
+        'sender_email': 'noreply@ecopuntos.com',
+        'email_notifications': 'true',
+        'sms_notifications': 'false',
+        'push_notifications': 'true',
+    }
+    
+    # Combinar con valores guardados
+    for key, default_value in defaults.items():
+        if key not in config_dict:
+            config_dict[key] = default_value
+    
     context = {
         'configs': configs,
+        'config_values': config_dict,
     }
     
     return render(request, 'core/superuser/configuracion_sistema.html', context)

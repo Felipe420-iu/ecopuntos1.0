@@ -55,21 +55,21 @@
                         <div class="config-section">
                             <label class="form-label">Timeout de Sesión Admin (minutos)</label>
                             <input type="number" class="form-control" name="config_admin_session_timeout" 
-                                   value="10" min="5" max="120">
+                                   value="{{ config_values.admin_session_timeout }}" min="1" max="120">
                             <small class="text-muted">Tiempo antes de cerrar sesión de administradores</small>
                         </div>
                         
                         <div class="config-section">
                             <label class="form-label">Timeout de Sesión Usuario (minutos)</label>
                             <input type="number" class="form-control" name="config_user_session_timeout" 
-                                   value="15" min="10" max="180">
+                                   value="{{ config_values.user_session_timeout }}" min="1" max="180">
                             <small class="text-muted">Tiempo antes de cerrar sesión de usuarios regulares</small>
                         </div>
                         
                         <div class="config-section">
                             <label class="form-label">Intentos de Login Máximos</label>
                             <input type="number" class="form-control" name="config_max_login_attempts" 
-                                   value="3" min="3" max="10">
+                                   value="{{ config_values.max_login_attempts }}" min="3" max="10">
                             <small class="text-muted">Intentos fallidos antes de bloquear</small>
                         </div>
                     </div>
@@ -86,21 +86,21 @@
                         <div class="config-section">
                             <label class="form-label">Puntos por Defecto</label>
                             <input type="number" class="form-control" name="config_default_points" 
-                                   value="100" min="0" max="1000">
+                                   value="{{ config_values.default_points }}" min="0" max="1000">
                             <small class="text-muted">Puntos iniciales para nuevos usuarios</small>
                         </div>
                         
                         <div class="config-section">
                             <label class="form-label">Conversión Puntos a COP</label>
                             <input type="number" step="0.01" class="form-control" name="config_points_to_cop" 
-                                   value="0.50" min="0.01" max="10">
+                                   value="{{ config_values.points_to_cop }}" min="0.01" max="10">
                             <small class="text-muted">Valor en pesos por punto</small>
                         </div>
                         
                         <div class="config-section">
                             <label class="form-label">Email Remitente</label>
                             <input type="email" class="form-control" name="config_sender_email" 
-                                   value="noreply@ecopuntos.com">
+                                   value="{{ config_values.sender_email }}">
                             <small class="text-muted">Email desde donde se envían las notificaciones</small>
                         </div>
                     </div>
@@ -120,7 +120,7 @@
                             <div class="col-md-4">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="emailNotifications" 
-                                           name="config_email_notifications" checked>
+                                           name="config_email_notifications" value="true" {% if config_values.email_notifications == 'true' %}checked{% endif %}>
                                     <label class="form-check-label" for="emailNotifications">
                                         Notificaciones por Email
                                     </label>
@@ -129,7 +129,7 @@
                             <div class="col-md-4">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="smsNotifications" 
-                                           name="config_sms_notifications">
+                                           name="config_sms_notifications" value="true" {% if config_values.sms_notifications == 'true' %}checked{% endif %}>
                                     <label class="form-check-label" for="smsNotifications">
                                         Notificaciones por SMS
                                     </label>
@@ -138,7 +138,7 @@
                             <div class="col-md-4">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="pushNotifications" 
-                                           name="config_push_notifications" checked>
+                                           name="config_push_notifications" value="true" {% if config_values.push_notifications == 'true' %}checked{% endif %}>
                                     <label class="form-check-label" for="pushNotifications">
                                         Notificaciones Push
                                     </label>
@@ -179,8 +179,7 @@
                                         <td><strong>{{ config.nombre }}</strong></td>
                                         <td>
                                             <input type="text" class="form-control form-control-sm" 
-                                                   name="config_{{ config.nombre }}" 
-                                                   value="{{ config.valor }}">
+                                                   value="{{ config.valor }}" readonly>
                                         </td>
                                         <td><small>{{ config.descripcion }}</small></td>
                                         <td><small>{{ config.fecha_modificacion|date:"d/m/Y H:i" }}</small></td>
@@ -200,7 +199,7 @@
             <div class="col-md-12">
                 <div class="config-card">
                     <div class="card-body text-center">
-                        <button type="submit" class="btn btn-success btn-lg me-3">
+                        <button type="submit" class="btn btn-success btn-lg me-3" id="btnGuardar">
                             <i class="fas fa-save"></i> Guardar Configuración
                         </button>
                         <a href="{% url 'panel_superuser' %}" class="btn btn-secondary btn-lg">
@@ -242,14 +241,52 @@
 
 {% block extra_js %}
 <script>
+// Debug: Mostrar valores actuales al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DEBUG: Valores de configuración cargados ===');
+    
+    const adminTimeout = document.querySelector('[name="config_admin_session_timeout"]');
+    const userTimeout = document.querySelector('[name="config_user_session_timeout"]');
+    const maxAttempts = document.querySelector('[name="config_max_login_attempts"]');
+    const defaultPoints = document.querySelector('[name="config_default_points"]');
+    const pointsToCop = document.querySelector('[name="config_points_to_cop"]');
+    const senderEmail = document.querySelector('[name="config_sender_email"]');
+    const emailNotif = document.querySelector('[name="config_email_notifications"]');
+    const smsNotif = document.querySelector('[name="config_sms_notifications"]');
+    const pushNotif = document.querySelector('[name="config_push_notifications"]');
+    
+    console.log('admin_session_timeout:', adminTimeout ? adminTimeout.value : 'NO ENCONTRADO');
+    console.log('user_session_timeout:', userTimeout ? userTimeout.value : 'NO ENCONTRADO');
+    console.log('max_login_attempts:', maxAttempts ? maxAttempts.value : 'NO ENCONTRADO');
+    console.log('default_points:', defaultPoints ? defaultPoints.value : 'NO ENCONTRADO');
+    console.log('points_to_cop:', pointsToCop ? pointsToCop.value : 'NO ENCONTRADO');
+    console.log('sender_email:', senderEmail ? senderEmail.value : 'NO ENCONTRADO');
+    console.log('email_notifications:', emailNotif ? emailNotif.checked : 'NO ENCONTRADO');
+    console.log('sms_notifications:', smsNotif ? smsNotif.checked : 'NO ENCONTRADO');
+    console.log('push_notifications:', pushNotif ? pushNotif.checked : 'NO ENCONTRADO');
+    console.log('==============================================');
+});
+
 // Interceptar envío del formulario para mostrar confirmación
 document.querySelector('form').addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    // Mostrar valores que se van a enviar
+    console.log('=== Valores a enviar ===');
+    const formData = new FormData(this);
+    for (let [key, value] of formData.entries()) {
+        if (key.startsWith('config_')) {
+            console.log(key + ':', value);
+        }
+    }
+    console.log('========================');
+    
     $('#confirmModal').modal('show');
 });
 
 function submitForm() {
     $('#confirmModal').modal('hide');
+    // Forzar recarga sin caché después de guardar
     document.querySelector('form').submit();
 }
 

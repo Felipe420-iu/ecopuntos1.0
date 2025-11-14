@@ -261,6 +261,14 @@ def politica_privacidad(request):
     }
     return render(request, 'core/politica_privacidad.html', context)
 
+def contacto_legal(request):
+    """Vista para mostrar la información de contacto legal"""
+    context = {
+        'fecha_actualizacion': '14 de noviembre de 2025',
+        'version': '1.0'
+    }
+    return render(request, 'core/contacto_legal.html', context)
+
 def logout_view(request):
     next_url = request.GET.get('next', 'index')
     # Invalidar sesión segura
