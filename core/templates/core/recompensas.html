@@ -497,6 +497,103 @@
             </div>
             {% endfor %}
         </div>
+
+        <!-- Sección de Mis Pedidos (estilo AliExpress) -->
+        <div class="mis-pedidos-section" style="margin-top: 60px;">
+            <div class="section-header" style="background: white; border-radius: var(--border-radius-xl); padding: 30px; margin-bottom: 30px; box-shadow: var(--shadow-md); border: 1px solid var(--gray-200);">
+                <h2 style="color: var(--text-dark); font-size: 2rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center;">
+                    <i class="fas fa-shopping-bag" style="color: var(--primary-green); margin-right: 15px; font-size: 2.2rem;"></i>
+                    Mis Pedidos
+                </h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem; margin: 0;">Historial completo de tus canjes de recompensas</p>
+            </div>
+
+            <div class="pedidos-grid">
+                {% for seguimiento in mis_seguimientos %}
+                <div class="pedido-card">
+                    <div class="pedido-header">
+                        <div class="pedido-info">
+                            <h4 class="pedido-titulo">{{ seguimiento.recompensa.nombre }}</h4>
+                            <span class="pedido-fecha">{{ seguimiento.fecha_solicitud|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        <div class="pedido-estado">
+                            <span class="estado-badge estado-{% if seguimiento.estado == 'entregado' %}completado{% elif seguimiento.estado == 'solicitado' %}pendiente{% elif seguimiento.estado == 'en_preparacion' %}pendiente{% elif seguimiento.estado == 'enviado' %}enviado{% else %}cancelado{% endif %}">
+                                {% if seguimiento.estado == 'entregado' %}
+                                    <i class="fas fa-check-circle"></i> Entregado
+                                {% elif seguimiento.estado == 'solicitado' %}
+                                    <i class="fas fa-clock"></i> Pendiente
+                                {% elif seguimiento.estado == 'en_preparacion' %}
+                                    <i class="fas fa-cogs"></i> Preparando
+                                {% elif seguimiento.estado == 'enviado' %}
+                                    <i class="fas fa-truck"></i> Enviado
+                                {% elif seguimiento.estado == 'cancelado' %}
+                                    <i class="fas fa-times-circle"></i> Cancelado
+                                {% else %}
+                                    <i class="fas fa-question-circle"></i> {{ seguimiento.get_estado_display }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="pedido-contenido">
+                        <div class="producto-info">
+                            {% if seguimiento.recompensa.imagen %}
+                                <img src="{{ seguimiento.recompensa.imagen.url }}" alt="{{ seguimiento.recompensa.nombre }}" class="producto-img">
+                            {% else %}
+                                <img src="{% static 'core/img/recom.jpg' %}" alt="{{ seguimiento.recompensa.nombre }}" class="producto-img">
+                            {% endif %}
+                            
+                            <div class="producto-detalles">
+                                <h5>{{ seguimiento.recompensa.nombre }}</h5>
+                                <p class="cantidad">Cantidad: 1 unidad</p>
+                                <p class="puntos-usados">
+                                    <i class="fas fa-star text-warning"></i> 
+                                    {{ seguimiento.redencion.puntos }} puntos
+                                </p>
+                                {% if seguimiento.fecha_estimada_entrega %}
+                                <p class="fecha-estimada">
+                                    <i class="fas fa-calendar text-info"></i> 
+                                    Entrega estimada: {{ seguimiento.fecha_estimada_entrega|date:"d/m/Y" }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if seguimiento.direccion_entrega %}
+                        <div class="direccion-entrega">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ seguimiento.direccion_entrega|truncatechars:80 }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="pedido-acciones">
+                        {% if seguimiento.estado == 'solicitado' %}
+                            <button class="btn btn-outline-danger btn-sm" onclick="cancelarPedido({{ seguimiento.id }})">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </button>
+                        {% endif %}
+                        
+                        {% if seguimiento.estado == 'entregado' %}
+                            <button class="btn btn-outline-primary btn-sm" onclick="volverAComprar({{ seguimiento.recompensa.id }})">
+                                <i class="fas fa-redo me-1"></i> Volver a Comprar
+                            </button>
+                        {% endif %}
+
+                        <button class="btn btn-outline-secondary btn-sm" onclick="verDetalles({{ seguimiento.id }})">
+                            <i class="fas fa-eye me-1"></i> Ver Detalles
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="no-pedidos">
+                    <i class="fas fa-shopping-cart" style="font-size: 4rem; color: var(--gray-300); margin-bottom: 20px;"></i>
+                    <h3>No tienes pedidos aún</h3>
+                    <p>¡Comienza canjeando tu primera recompensa arriba!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
         
     </div>
 </div>
@@ -514,8 +611,9 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// Simple JavaScript para funcionalidad básica
+// JavaScript mejorado con SweetAlert2
 document.addEventListener('DOMContentLoaded', function() {
     // Manejar favoritos
     document.querySelectorAll('.favorite-btn').forEach(btn => {
@@ -539,28 +637,676 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.favorito) {
                     this.classList.add('active');
+                    Swal.fire({
+                        title: '¡Agregado!',
+                        text: 'Recompensa añadida a favoritos',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
                 } else {
                     this.classList.remove('active');
+                    Swal.fire({
+                        title: 'Eliminado',
+                        text: 'Recompensa eliminada de favoritos',
+                        icon: 'info',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo actualizar favoritos',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
         });
     });
 
-    // Manejar canje
+    // Manejar canje con modal personalizado
     document.querySelectorAll('.canje-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const recompensaId = this.dataset.recompensaId;
             const nombre = this.dataset.nombre;
+            const puntos = parseInt(this.dataset.puntos);
+            const stock = parseInt(this.dataset.stock);
             
-            const direccion = prompt(`Por favor ingresa tu dirección de entrega para: ${nombre}`);
-            if (direccion && direccion.trim()) {
-                document.getElementById('canjeRecompensaId').value = recompensaId;
-                document.getElementById('direccionEntregaHidden').value = direccion.trim();
-                document.getElementById('canjeForm').submit();
-            }
+            Swal.fire({
+                title: '🎁 Canjear Recompensa',
+                html: `
+                    <div style="text-align: left; margin: 20px 0;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📦 ${nombre}</h4>
+                            <p style="margin: 5px 0; color: #6c757d;"><strong>💰 Costo:</strong> ${puntos} puntos c/u</p>
+                            <p style="margin: 5px 0; color: #6c757d;"><strong>📦 Stock:</strong> ${stock} disponibles</p>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label for="cantidad-canje" style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                🔢 Cantidad a canjear:
+                            </label>
+                            <input 
+                                type="number" 
+                                id="cantidad-canje" 
+                                class="swal2-input" 
+                                placeholder="¿Cuántas unidades quieres?"
+                                min="1" 
+                                max="${stock}" 
+                                value="1"
+                                style="width: 100%; font-size: 16px; text-align: center;"
+                            />
+                            <div id="total-puntos" style="margin-top: 10px; padding: 10px; background: #e8f5e9; border-radius: 8px; text-align: center; font-weight: 600; color: #2ecc40;">
+                                💎 Total: ${puntos} puntos
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="direccion-entrega" style="display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50;">
+                                📍 Dirección de entrega:
+                            </label>
+                            <textarea 
+                                id="direccion-entrega" 
+                                class="swal2-input" 
+                                placeholder="Ingresa tu dirección completa con referencias..."
+                                style="width: 100%; min-height: 80px; resize: vertical; font-size: 14px; line-height: 1.4;"
+                            ></textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '✅ Confirmar Canje',
+                cancelButtonText: '❌ Cancelar',
+                confirmButtonColor: '#2ecc40',
+                cancelButtonColor: '#6c757d',
+                width: '600px',
+                customClass: {
+                    container: 'canje-modal',
+                    popup: 'canje-popup',
+                    confirmButton: 'canje-confirm-btn',
+                    cancelButton: 'canje-cancel-btn'
+                },
+                didOpen: () => {
+                    // Enfocar el campo de cantidad al abrir
+                    const cantidadInput = document.getElementById('cantidad-canje');
+                    const direccionInput = document.getElementById('direccion-entrega');
+                    const totalElement = document.getElementById('total-puntos');
+                    
+                    cantidadInput.focus();
+                    cantidadInput.select();
+                    
+                    // Actualizar total en tiempo real
+                    function actualizarTotal() {
+                        const cantidad = parseInt(cantidadInput.value) || 1;
+                        const total = cantidad * puntos;
+                        totalElement.innerHTML = `💎 Total: ${total} puntos (${cantidad} unidad${cantidad > 1 ? 'es' : ''})`;
+                    }
+                    
+                    // Listener para cambios en cantidad
+                    cantidadInput.addEventListener('input', actualizarTotal);
+                    cantidadInput.addEventListener('change', function() {
+                        let cantidad = parseInt(this.value);
+                        if (cantidad < 1) {
+                            this.value = 1;
+                            cantidad = 1;
+                        }
+                        if (cantidad > stock) {
+                            this.value = stock;
+                            cantidad = stock;
+                        }
+                        actualizarTotal();
+                    });
+                    
+                    // Actualizar total inicial
+                    actualizarTotal();
+                },
+                preConfirm: () => {
+                    const direccion = document.getElementById('direccion-entrega').value.trim();
+                    const cantidad = parseInt(document.getElementById('cantidad-canje').value) || 1;
+                    
+                    if (!direccion) {
+                        Swal.showValidationMessage('Por favor ingresa una dirección de entrega');
+                        return false;
+                    }
+                    if (direccion.length < 10) {
+                        Swal.showValidationMessage('La dirección debe ser más específica (mínimo 10 caracteres)');
+                        return false;
+                    }
+                    if (cantidad < 1 || cantidad > stock) {
+                        Swal.showValidationMessage(`La cantidad debe estar entre 1 y ${stock}`);
+                        return false;
+                    }
+                    
+                    return { direccion, cantidad };
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    const { direccion, cantidad } = result.value;
+                    const totalPuntos = cantidad * puntos;
+                    
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Procesando canje...',
+                        html: `
+                            <div style="text-align: center;">
+                                <p>⏳ Estamos procesando tu solicitud</p>
+                                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                                    <strong>${cantidad} x ${nombre}</strong><br>
+                                    <span style="color: #2ecc40;">💎 Total: ${totalPuntos} puntos</span>
+                                </div>
+                            </div>
+                        `,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Enviar formulario
+                    document.getElementById('canjeRecompensaId').value = recompensaId;
+                    document.getElementById('direccionEntregaHidden').value = direccion;
+                    
+                    // Agregar campo de cantidad al formulario si no existe
+                    let cantidadField = document.getElementById('cantidadHidden');
+                    if (!cantidadField) {
+                        cantidadField = document.createElement('input');
+                        cantidadField.type = 'hidden';
+                        cantidadField.name = 'cantidad';
+                        cantidadField.id = 'cantidadHidden';
+                        document.getElementById('canjeForm').appendChild(cantidadField);
+                    }
+                    cantidadField.value = cantidad;
+                    
+                    document.getElementById('canjeForm').submit();
+                }
+            });
         });
     });
+    
+    // Funciones para Mis Pedidos
+    window.cancelarPedido = function(seguimientoId) {
+        Swal.fire({
+            title: '❌ Cancelar Pedido',
+            text: '¿Estás seguro de que quieres cancelar este pedido? Esta acción no se puede deshacer.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, Cancelar',
+            cancelButtonText: 'No, Mantener',
+            customClass: {
+                confirmButton: 'btn-danger',
+                cancelButton: 'btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Aquí enviarías la petición al servidor
+                fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: `action=cancelar_seguimiento&seguimiento_id=${seguimientoId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: '✅ Pedido Cancelado',
+                            text: 'Tu pedido ha sido cancelado exitosamente.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.error || 'No se pudo cancelar el pedido.',
+                            icon: 'error'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error de conexión. Intenta nuevamente.',
+                        icon: 'error'
+                    });
+                });
+            }
+        });
+    };
+
+    window.volverAComprar = function(recompensaId) {
+        // Buscar la tarjeta de la recompensa y simular click en canjear
+        const targetCard = document.querySelector(`[data-recompensa-id="${recompensaId}"]`);
+        if (targetCard) {
+            // Scroll hasta la recompensa
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Resaltar la tarjeta
+            const card = targetCard.closest('.reward-card');
+            card.style.border = '3px solid var(--primary-green)';
+            card.style.boxShadow = '0 0 20px rgba(46, 204, 64, 0.3)';
+            
+            setTimeout(() => {
+                card.style.border = '';
+                card.style.boxShadow = '';
+                targetCard.click();
+            }, 1000);
+        }
+    };
+
+    window.verDetalles = function(seguimientoId) {
+        // Hacer petición AJAX para obtener detalles del seguimiento
+        fetch(window.location.href + '?action=ver_detalle&seguimiento_id=' + seguimientoId, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const seguimiento = data.seguimiento;
+                const historial = data.historial || [];
+                
+                // Generar HTML del historial
+                let historialHTML = '';
+                if (historial.length > 0) {
+                    historial.forEach(item => {
+                        const activo = item.estado === seguimiento.estado ? '' : 'opacity: 0.5;';
+                        let icono = '🔄';
+                        let titulo = item.estado_display || item.estado;
+                        
+                        switch(item.estado) {
+                            case 'solicitado':
+                                icono = '✅';
+                                titulo = 'Pedido Confirmado';
+                                break;
+                            case 'en_preparacion':
+                                icono = '🏭';
+                                titulo = 'En Preparación';
+                                break;
+                            case 'enviado':
+                                icono = '📦';
+                                titulo = 'Enviado';
+                                break;
+                            case 'entregado':
+                                icono = '✅';
+                                titulo = 'Entregado';
+                                break;
+                            case 'cancelado':
+                                icono = '❌';
+                                titulo = 'Cancelado';
+                                break;
+                        }
+                        
+                        historialHTML += `
+                            <div style="margin: 8px 0; ${activo}">
+                                <strong>${icono} ${titulo}</strong>
+                                <small style="display: block; color: #6c757d;">
+                                    ${item.fecha_formatted} ${item.comentario ? '- ' + item.comentario : ''}
+                                </small>
+                            </div>
+                        `;
+                    });
+                } else {
+                    // Historial por defecto basado en el estado actual
+                    const estados = [
+                        {key: 'solicitado', icono: '✅', titulo: 'Pedido Confirmado'},
+                        {key: 'en_preparacion', icono: '🏭', titulo: 'En Preparación'},
+                        {key: 'enviado', icono: '📦', titulo: 'Enviado'},
+                        {key: 'entregado', icono: '✅', titulo: 'Entregado'}
+                    ];
+                    
+                    estados.forEach(estado => {
+                        const activo = estado.key === seguimiento.estado || 
+                                     (seguimiento.estado === 'entregado' && ['solicitado', 'en_preparacion', 'enviado'].includes(estado.key));
+                        const opacity = activo ? '' : 'opacity: 0.5;';
+                        historialHTML += `
+                            <div style="margin: 8px 0; ${opacity}">
+                                <strong>${estado.icono} ${estado.titulo}</strong>
+                                <small style="display: block; color: #6c757d;">
+                                    ${activo ? 'Completado' : 'Pendiente'}
+                                </small>
+                            </div>
+                        `;
+                    });
+                }
+
+                Swal.fire({
+                    title: '📦 Detalles del Pedido',
+                    html: `
+                        <div style="text-align: left; padding: 20px;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                                <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📋 ${seguimiento.recompensa_nombre}</h4>
+                                <p style="margin: 5px 0; color: #6c757d;"><strong>ID:</strong> #${seguimiento.id}</p>
+                                <p style="margin: 5px 0; color: #6c757d;"><strong>Estado:</strong> ${seguimiento.estado_display}</p>
+                                <p style="margin: 5px 0; color: #6c757d;"><strong>Puntos:</strong> ${seguimiento.puntos} puntos</p>
+                                ${seguimiento.fecha_estimada ? 
+                                    `<p style="margin: 5px 0; color: #6c757d;"><strong>Entrega estimada:</strong> ${seguimiento.fecha_estimada}</p>` : 
+                                    '<p style="margin: 5px 0; color: #6c757d;"><strong>Fecha estimada:</strong> 3-5 días hábiles</p>'
+                                }
+                                ${seguimiento.direccion ? 
+                                    `<p style="margin: 5px 0; color: #6c757d;"><strong>Dirección:</strong> ${seguimiento.direccion}</p>` : ''
+                                }
+                            </div>
+                            
+                            <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
+                                <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Seguimiento</h5>
+                                ${historialHTML}
+                            </div>
+                        </div>
+                    `,
+                    width: '600px',
+                    showConfirmButton: true,
+                    confirmButtonText: '✅ Entendido',
+                    confirmButtonColor: '#2ecc40'
+                });
+            } else {
+                // Fallback si no hay datos del servidor
+                Swal.fire({
+                    title: '📦 Detalles del Pedido',
+                    html: `
+                        <div style="text-align: left; padding: 20px;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                                <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📋 Información del Pedido</h4>
+                                <p style="margin: 5px 0; color: #6c757d;"><strong>ID:</strong> #${seguimientoId}</p>
+                                <p style="margin: 5px 0; color: #6c757d;"><strong>Estado:</strong> En proceso</p>
+                                <p style="margin: 5px 0; color: #6c757d;"><strong>Fecha estimada de entrega:</strong> 3-5 días hábiles</p>
+                            </div>
+                            
+                            <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
+                                <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Seguimiento</h5>
+                                <div style="margin: 8px 0;">
+                                    <strong>✅ Pedido confirmado</strong>
+                                    <small style="display: block; color: #6c757d;">Tu pedido ha sido recibido</small>
+                                </div>
+                                <div style="margin: 8px 0;">
+                                    <strong>🏭 En preparación</strong>
+                                    <small style="display: block; color: #6c757d;">Estamos preparando tu pedido</small>
+                                </div>
+                                <div style="margin: 8px 0; opacity: 0.5;">
+                                    <strong>📦 Enviado</strong>
+                                    <small style="display: block; color: #6c757d;">Pendiente</small>
+                                </div>
+                                <div style="margin: 8px 0; opacity: 0.5;">
+                                    <strong>✅ Entregado</strong>
+                                    <small style="display: block; color: #6c757d;">Pendiente</small>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    width: '600px',
+                    showConfirmButton: true,
+                    confirmButtonText: '✅ Entendido',
+                    confirmButtonColor: '#2ecc40'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Mostrar modal básico en caso de error
+            Swal.fire({
+                title: '📦 Detalles del Pedido',
+                html: `
+                    <div style="text-align: left; padding: 20px;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">📋 Información del Pedido</h4>
+                            <p style="margin: 5px 0; color: #6c757d;"><strong>ID:</strong> #${seguimientoId}</p>
+                            <p style="margin: 5px 0; color: #6c757d;"><strong>Estado:</strong> En proceso</p>
+                            <p style="margin: 5px 0; color: #6c757d;"><strong>Fecha estimada de entrega:</strong> 3-5 días hábiles</p>
+                        </div>
+                        
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 10px;">
+                            <h5 style="margin: 0 0 10px 0; color: #2c3e50;">🚚 Seguimiento</h5>
+                            <div style="margin: 8px 0;">
+                                <strong>✅ Pedido confirmado</strong>
+                                <small style="display: block; color: #6c757d;">Tu pedido ha sido recibido</small>
+                            </div>
+                            <div style="margin: 8px 0;">
+                                <strong>🏭 En preparación</strong>
+                                <small style="display: block; color: #6c757d;">Estamos preparando tu pedido</small>
+                            </div>
+                            <div style="margin: 8px 0; opacity: 0.5;">
+                                <strong>📦 Enviado</strong>
+                                <small style="display: block; color: #6c757d;">Pendiente</small>
+                            </div>
+                            <div style="margin: 8px 0; opacity: 0.5;">
+                                <strong>✅ Entregado</strong>
+                                <small style="display: block; color: #6c757d;">Pendiente</small>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                width: '600px',
+                showConfirmButton: true,
+                confirmButtonText: '✅ Entendido',
+                confirmButtonColor: '#2ecc40'
+            });
+        });
+    };
+
+    // Agregar estilos personalizados para el modal
+    const style = document.createElement('style');
+    style.textContent = `
+        .canje-modal .swal2-popup {
+            border-radius: 20px !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+        }
+        
+        .canje-confirm-btn {
+            border-radius: 10px !important;
+            padding: 12px 30px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 15px rgba(46, 204, 64, 0.3) !important;
+        }
+        
+        .canje-cancel-btn {
+            border-radius: 10px !important;
+            padding: 12px 30px !important;
+            font-weight: 600 !important;
+        }
+        
+        .swal2-input {
+            border-radius: 10px !important;
+            border: 2px solid #e9ecef !important;
+            padding: 12px 16px !important;
+        }
+        
+        .swal2-input:focus {
+            border-color: #2ecc40 !important;
+            box-shadow: 0 0 0 0.2rem rgba(46, 204, 64, 0.25) !important;
+        }
+        
+        .swal2-input[type="number"] {
+            text-align: center !important;
+            font-size: 18px !important;
+            font-weight: 600 !important;
+        }
+        
+        #total-puntos {
+            transition: all 0.3s ease !important;
+        }
+
+        /* Estilos para Mis Pedidos - Estilo AliExpress */
+        .pedidos-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .pedido-card {
+            background: white;
+            border-radius: var(--border-radius-xl);
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-md);
+            padding: 20px;
+            transition: var(--transition-normal);
+        }
+
+        .pedido-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .pedido-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .pedido-titulo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0 0 5px 0;
+        }
+
+        .pedido-fecha {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .estado-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .estado-completado { background: #d4edda; color: #155724; }
+        .estado-pendiente { background: #fff3cd; color: #856404; }
+        .estado-enviado { background: #d1ecf1; color: #0c5460; }
+        .estado-cancelado { background: #f8d7da; color: #721c24; }
+
+        .pedido-contenido {
+            margin-bottom: 20px;
+        }
+
+        .producto-info {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .producto-img {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--border-radius);
+            object-fit: cover;
+            border: 2px solid var(--gray-200);
+        }
+
+        .producto-detalles h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0 0 8px 0;
+        }
+
+        .cantidad, .puntos-usados, .fecha-estimada {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0 0 5px 0;
+        }
+
+        .puntos-usados {
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+
+        .fecha-estimada {
+            color: #17a2b8;
+            font-weight: 500;
+        }
+
+        .direccion-entrega {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: var(--soft-green);
+            border-radius: var(--border-radius);
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .direccion-entrega i {
+            color: var(--primary-green);
+        }
+
+        .pedido-acciones {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pedido-acciones .btn-sm {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: var(--border-radius);
+        }
+
+        .no-pedidos {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+
+        .no-pedidos h3 {
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        /* Responsive para mis pedidos */
+        @media (max-width: 768px) {
+            .pedido-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .producto-info {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .pedido-acciones {
+                justify-content: center;
+            }
+            
+            .producto-img {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
 });
 </script>
 {% endblock %}
